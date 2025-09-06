@@ -1,0 +1,349 @@
+/* Regular */
+@font-face {
+    font-family: "Inknut Antiqua";
+    src: url("/fonts/InknutAntiqua-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+}
+
+/* Light */
+@font-face {
+    font-family: "Inknut Antiqua";
+    src: url("/fonts/InknutAntiqua-Light.ttf") format("truetype");
+    font-weight: 300;
+    font-style: normal;
+}
+
+/* Medium */
+@font-face {
+    font-family: "Inknut Antiqua";
+    src: url("/fonts/InknutAntiqua-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-style: normal;
+}
+
+/* SemiBold */
+@font-face {
+    font-family: "Inknut Antiqua";
+    src: url("/fonts/InknutAntiqua-SemiBold.ttf") format("truetype");
+    font-weight: 600;
+    font-style: normal;
+}
+
+/* Bold */
+@font-face {
+    font-family: "Inknut Antiqua";
+    src: url("/fonts/InknutAntiqua-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+}
+
+/* ExtraBold */
+@font-face {
+    font-family: "Inknut Antiqua";
+    src: url("/fonts/InknutAntiqua-ExtraBold.ttf") format("truetype");
+    font-weight: 800;
+    font-style: normal;
+}
+
+/* Black */
+@font-face {
+    font-family: "Inknut Antiqua";
+    src: url("/fonts/InknutAntiqua-Black.ttf") format("truetype");
+    font-weight: 900;
+    font-style: normal;
+}
+
+* {
+    font-family: "Inknut Antiqua", serif;
+    padding: 0;
+    margin: 0 !important;
+    box-sizing: border-box;
+    text-decoration: none !important;
+    list-style: none;
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--primary-color);
+}
+
+:root {
+    --bg-color: #dfdfdf;
+    --bg-dark-color: #c2c2c2;
+    --text-color: #131313;
+    --hover-color: #f66c1d;
+    --border-color: #f6d431;
+    --white-color: #ffffff;
+
+    --primary-color: #f0ebe3;
+    --secondary-color: #d4cda5;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-weight: 600;
+}
+
+p {
+    font-weight: 400;
+}
+
+a {
+    font-weight: 400;
+}
+
+section {
+    padding: 120px 20px;
+}
+
+/* HEADER */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--bg-color);
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 80px;
+}
+
+.logo {
+    color: var(--text-color);
+    font-weight: 900;
+    font-style: oblique;
+    font-size: 1.5rem;
+}
+
+.nav-links {
+    display: flex;
+}
+
+.nav-links a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    padding: 20px;
+    font-size: 1.2rem;
+}
+
+.nav-icons {
+    background-color: var(--bg-dark-color);
+    padding: 12px 20px;
+    border-radius: 50px;
+}
+
+.nav-icons i {
+    font-size: 1.3rem;
+}
+
+.nav-icons a {
+    color: var(--text-color);
+    font-size: 1.2rem;
+}
+#navmenu{
+    color: var(--text-color);
+    font-size: 1.3rem;
+    margin-left: 10px !important;
+    display: none;
+}
+
+.nav-links a:hover {
+    background-color: var(--primary-color);
+    border-radius: 20px;
+}
+/* HEADER RESPONSIVENESS */
+@media (max-width: 1060px) {
+    #navmenu{
+        display: initial;
+    }
+    header{
+        padding: 20px 30px;
+    }
+    .nav-links{
+        position: absolute;
+        display: flex;
+        flex-direction: column;
+        text-align: center;
+        width: 40%;
+        top: 100%;
+        right: -100%;
+        border-radius: 20px;
+        margin: 2rem !important;
+        padding: 20px;
+        background-color: var(--hover-color);
+        transition: all .5s ease;
+    }
+    .nav-links a{
+        display: block;
+    }
+    .nav-links.open{
+        right: 0%;
+    }
+}
+
+/* HOME PAGE */
+.home {
+    margin-top: 0 60px !important;
+}
+
+.home h1 {
+    font-size: 3.5rem;
+    margin-bottom: 20px !important;
+}
+
+/* MORE INFO */
+.more-info {
+    background-color: var(--bg-color);
+    padding: 50px 20px;
+}
+
+.info-icons i {
+    background-color: var(--bg-dark-color);
+    font-size: 2rem;
+    height: 70px;
+    width: 70px;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* HOME LISTING */
+
+.cards {
+    background-color: var(--white-color);
+    border: 2px solid var(--border-color);
+    /* max-width: 410px; */
+    border-radius: 15px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.cards img.property-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
+.labels {
+    position: absolute;
+    margin-top: -170px !important;
+    padding: 0 15px;
+    display: flex;
+    gap: 8px;
+}
+
+.label {
+    background: var(--border-color);
+    color: var(--text-color);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 14px;
+}
+
+.label.secondary {
+    background: var(--primary-color);
+    border: 1px solid var(--bg-dark-color);
+}
+
+.heart-icon {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: var(--bg-dark-color);
+    border-radius: 14px;
+    padding: 6px;
+}
+
+.price-tag {
+    position: absolute;
+    margin-top: -40px !important;
+    margin-left: 15px !important;
+    background: var(--text-color);
+    color: var(--primary-color);
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-weight: bold;
+}
+
+.house-name {
+    font-size: 16px;
+    font-weight: 900;
+}
+
+.cards-content {
+    padding: 20px;
+}
+
+.features {
+    display: flex;
+    font-size: 12px;
+    color: var(--text-color);
+    margin-bottom: 12px !important;
+}
+
+.features i {
+    margin-right: 4px !important;
+}
+
+.location {
+    font-size: 12px;
+}
+
+.divider {
+    height: 2px;
+    background-color: var(--text-color);
+}
+
+.landlord-info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.landlord-left {
+    display: flex;
+    align-items: center;
+}
+
+.landlord-left img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--text-color);
+    margin-right: 10px !important;
+}
+
+.landlord-name {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.landlord-role {
+    font-size: 12px;
+    color: var(--text-color);
+}
+
+.landlord-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.landlord-actions .btn {
+    background-color: var(--bg-dark-color);
+    padding: 8px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
