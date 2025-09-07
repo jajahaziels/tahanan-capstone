@@ -29,7 +29,7 @@ window.onscroll = () => {
     });
 
 
-    ScrollReveal().reveal('.cards', {
+    ScrollReveal().reveal('.cards, .listing-btn', {
         origin: 'right',
         distance: '50px',
         duration: 1000,
