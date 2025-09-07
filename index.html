@@ -20,12 +20,13 @@
 <body>
     <!-- HEADER -->
     <header>
-        <a href="#" class="logo"><i class="fa-solid fa-house"></i>Tahanan</a>
+        <a href="#" class="logo"><i class="fa-solid fa-house-medical-circle-check"></i>Tahanan</a>
 
         <ul class="nav-links">
-            <li><a href="#">Home</a></li>
-            <li><a href="#">Services</a></li>
-            <li><a href="#">Contact</a></li>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#home-listing">Listing</a></li>
+            <li><a href="#footer">Contact</a></li>
         </ul>
         <!-- SIGN UP -->
         <div class="nav-icons">
@@ -37,14 +38,14 @@
     </header>
     <!-- HOME PAGE -->
     <div class="home" id="home">
-        <div class="container vh-100 d-flex align-items-center justify-content-center mt-4 m-auto">
-            <div class="row justify-content-center align-items-center gy-4">
+        <div class="container vh-100 d-flex align-items-center justify-content-center">
+            <div class="row justify-content-center align-items-center gy-5">
                 <div class="col-lg-6 col-sm-12 text-start px-2">
                     <h1>FIND YOUR HOME <br> WITH US</h1>
                     <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores quidem ipsam, minus nemo
                         nihil dolores nulla saepe autem quae numquam.</p>
                 </div>
-                <div class="col-lg-6 col-sm-12 gy-4">
+                <div class="col-lg-6 col-sm-12">
                     <div class="d-flex justify-content-center align-items-center">
                         <img src="img/home.png" alt="">
                     </div>
@@ -53,28 +54,28 @@
         </div>
     </div>
     <!-- MORE INFO -->
-    <div class="more-info">
+    <div class="more-info" id="services">
         <div class="container m-auto">
             <h3 class="text-center mb-4">Convenient and Efficient House<br>Searching</h3>
-            <div class="row g-4">
-                <div class="col-lg-4 col-sm-12 text-center">
+            <div class="row gy-5">
+                <div class="col-lg-4 col-sm-12 text-center info">
                     <div class="info-icons d-flex justify-content-center mb-4"><i class="fa-solid fa-comments"></i>
                     </div>
                     <p>Real-Time Communication</p> <br>
                     <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas in, alias illum deleniti
                         reprehenderit repellendus eveniet officia modi iusto rerum.</p>
                 </div>
-                <div class="col-lg-4 col-sm-12 text-center">
-                    <div class="info-icons d-flex justify-content-center mb-4"><i class="fa-solid fa-comments"></i>
+                <div class="col-lg-4 col-sm-12 text-center info">
+                    <div class="info-icons d-flex justify-content-center mb-4"><i class="fa-solid fa-user-check"></i>
                     </div>
-                    <p>Real-Time Communication</p> <br>
+                    <p>Verified and Updated Listing</p> <br>
                     <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas in, alias illum deleniti
                         reprehenderit repellendus eveniet officia modi iusto rerum.</p>
                 </div>
-                <div class="col-lg-4 col-sm-12 text-center">
-                    <div class="info-icons d-flex justify-content-center mb-4"><i class="fa-solid fa-comments"></i>
+                <div class="col-lg-4 col-sm-12 text-center info">
+                    <div class="info-icons d-flex justify-content-center mb-4"><i class="fa-solid fa-location-dot"></i>
                     </div>
-                    <p>Real-Time Communication</p> <br>
+                    <p>Mapping</p> <br>
                     <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas in, alias illum deleniti
                         reprehenderit repellendus eveniet officia modi iusto rerum.</p>
                 </div>
@@ -82,15 +83,16 @@
         </div>
     </div>
     <!-- HOME PAGE LISTING -->
-    <section class="home-listing">
+    <section class="home-listing" id="home-listing">
         <div class="container m-auto">
             <h3 class="mb-4">Available Apartment</h3>
             <i class="fa-regular fa-star"></i>
             Featured Properties <br> <br>
-            <div class="row g-5">
+            <!-- START ROW -->
+            <div class="row gy-5">
                 <div class="col-lg-4 col-sm-12">
                     <!-- CARD 1 -->
-                    <div class="cards">
+                    <div class="cards mb-4">
                         <div class="position-relative">
                             <img src="img/home.png" alt="" class="property-img">
                             <div class="labels">
@@ -136,7 +138,7 @@
                 </div>
                 <div class="col-lg-4 col-sm-12">
                     <!-- CARD 2 -->
-                    <div class="cards">
+                    <div class="cards mb-4">
                         <div class="position-relative">
                             <img src="img/home.png" alt="" class="property-img">
                             <div class="labels">
@@ -182,7 +184,7 @@
                 </div>
                 <div class="col-lg-4 col-sm-12">
                     <!-- CARD 3 -->
-                    <div class="cards">
+                    <div class="cards mb-4">
                         <div class="position-relative">
                             <img src="img/home.png" alt="" class="property-img">
                             <div class="labels">
@@ -227,12 +229,94 @@
                     <!-- CARD 3 END -->
                 </div>
             </div>
-
+            <!-- END NG ROW -->
+            <div class="d-flex justify-content-center align-items-center mt-4">
+                <div class="btn main-button mt-4">Load More Properties </div>
+            </div>
         </div>
     </section>
+    <!-- FOOTER -->
+    <footer id="footer">
+        <div class="container m-auto">
+            <div class="footer-top">
+                <!-- START NG ROW -->
+                <div class="row justify-content-center gy-5">
+                    <div class="col-lg-4 col-sm-12">
+                        <a href="#" class="logo"><i class="fa-solid fa-house"></i>Tahanan</a>
+                        <p>Our platform makes house searching simple and worry-free. You can easily search for verified and secure rental homes or list your own apartment with confidence.</p>
+                        <div class="d-flex">
+                            <div class="mt-4 mx-1 footer-box"><i class="fa-solid fa-user-check"></i> Verified Listing</div>
+                            <div class="mt-4 mx-1 footer-box"><i class="fa-solid fa-users"></i> 3k+ Happy User</div>
+                            <div class="mt-4 mx-1 footer-box"><i class="fa-regular fa-star"></i> 3.4 Rating</div>
+                        </div>
+                        <div class="mt-4">
+                            <i class="fa-solid fa-phone mx-1"></i> (+63) 2 8123-4567 <br>
+                            <i class="fa-solid fa-envelope mx-1"></i> tahanan@gmail.com <br>
+                            <i class="fa-solid fa-location-dot mx-1"></i> Pacita 1, San Pedro, Laguna 
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-sm-12">
+                        <div class="lead">For Tenants </div>
+                        <div class="mt-4">
+                            <p>Browse Rentals</p> <br>
+                            <p>Filter Location</p> <br>
+                            <p>Verified Listings</p> <br>
+                            <p>Location Map</p> <br>
+                            <p>Tenant Rights</p> <br>
+                            <p>Landlord FAQs</p> <br>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-sm-12">
+                        <div class="lead">For Landlord</div>
+                        <div class="mt-4">
+                            <p>List Your Properties</p> <br>
+                            <p>Verification Process</p> <br>
+                            <p>Update Property Information</p> <br>
+                            <p>Rental Reminders & Notifications</p> <br>
+                            <p>Landlords FAQs</p> <br>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-sm-12">
+                        <div class="lead">Company</div>
+                        <div class="mt-4">
+                            <p>About Us</p> <br>
+                            <p>Contact Us</p> <br>
+                            <p>Privacy Policy</p> <br>
+                            <p>Contact Support</p> <br>
+                            <p>Terms and Conditions</p> <br>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-sm-12">
+                        <div class="lead">Support Hours</div> <br>
+                            <i class="fa-solid fa-clock"></i>
+                            Mon - Fri: 8:00 AM - 9:00 PM <br> <br>
+                            Sat - Sun: 10:00 AM - 5:00 PM
+                    </div>
+
+                </div>
+                <!-- END NG ROW -->
+            </div>
+        </div>
+        <div class="footer-bottom mt-4">
+            <div class="container m-auto">
+                <div class="d-flex justify-content-center align-items-center p-3">
+                    <p>All Rights Reserved</p>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
-    <!-- MAIN JS -->
-    <script src="js/script.js"></script>
-    <!-- BS JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI" crossorigin="anonymous"></script>
+<!-- MAIN JS -->
+<script src="js/script.js" defer></script>
+<!-- BS JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+    crossorigin="anonymous"></script>
+<!-- SCROLL REVEAL -->
+<script src="https://unpkg.com/scrollreveal"></script>
+
 </html>
