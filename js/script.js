@@ -15,14 +15,14 @@ window.onscroll = () => {
     ScrollReveal().reveal('header, .home', {
         origin: 'top',
         distance: '40px',
-        duration: 1000,
+        duration: 1500,
         interval: 200,
         reset: true
     });
 
     ScrollReveal().reveal('.info', {
         origin: 'left',
-        distance: '40px',
+        distance: '50px',
         duration: 1000,
         interval: 200,
         reset: true
@@ -39,8 +39,8 @@ window.onscroll = () => {
 
     ScrollReveal().reveal('footer', {
         origin: 'bottom',
-        distance: '50px',
-        duration: 1000,
+        distance: '40px',
+        duration: 1500,
         delay: 100,
         reset: true
     });
