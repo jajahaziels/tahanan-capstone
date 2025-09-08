@@ -67,6 +67,7 @@
 body {
     background-color: var(--bg-color);
 }
+
 /* FONT SIZES
     12px
     14px
@@ -103,21 +104,26 @@ p {
 
 a {
     font-weight: 400;
+    color: var(--text-color);
 }
-img{
+
+img {
     width: 100%;
 }
+
 section {
     padding: 150px 20px;
 }
+
 /* CUSTOM BUTTON */
-.main-button{
+.main-button {
     border: 2px solid var(--border-alt-color);
     padding: 10px 20px;
     background-color: var(--button-color);
     border-radius: 20px;
 }
-.main-button:hover{
+
+.main-button:hover {
     transition: all .5s;
     background-color: var(--hover-color);
 }
@@ -172,7 +178,8 @@ header {
     color: var(--text-color);
     font-size: 16px;
 }
-#navmenu{
+
+#navmenu {
     color: var(--text-color);
     font-size: 18px;
     margin-left: 10px !important;
@@ -183,15 +190,59 @@ header {
     background-color: var(--hover-color);
     border-radius: 20px;
 }
+
+.nav-links .active {
+    background-color: var(--hover-color);
+    border-radius: 20px;
+}
+
+/* DROPDOWN FOR ACCOUNT */
+.dropdown {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--border-color);
+    min-width: 160px;
+    margin-top: 10px !important;
+    padding: 20px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    border-radius: 20px;
+    z-index: 1;
+    transition: all .5s ease;
+}
+
+.dropdown-content a {
+    padding: 12px 16px;
+    display: block;
+    text-decoration: none;
+    color: var(--text-color);
+}
+
+.dropdown-content a:hover {
+    background-color: var(--hover-color);
+    border-radius: 20px;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
 /* HEADER RESPONSIVENESS */
 @media (max-width: 1060px) {
-    #navmenu{
+    #navmenu {
         display: initial;
     }
-    header{
+
+    header {
         padding: 20px 30px;
     }
-    .nav-links{
+
+    .nav-links {
         position: absolute;
         display: flex;
         flex-direction: column;
@@ -205,10 +256,12 @@ header {
         background-color: var(--border-color);
         transition: all .5s;
     }
-    .nav-links a{
+
+    .nav-links a {
         display: block;
     }
-    .nav-links.open{
+
+    .nav-links.open {
         right: 0%;
     }
 }
@@ -218,13 +271,15 @@ header {
     margin-top: 30px !important;
     padding: 20px 160px;
 }
+
 /* HOME PAGE TEMPORARY RESPONSIVENESS */
 @media (max-width: 1060px) {
     .home {
-    margin-top: 10px !important;
-    padding: 20px;
+        margin-top: 10px !important;
+        padding: 20px;
     }
 }
+
 .home h1 {
     font-size: 2.1rem;
     margin-bottom: 20px !important;
@@ -378,21 +433,25 @@ header {
     font-size: 14px;
     cursor: pointer;
 }
+
 /* FOOTER */
-footer{
+footer {
     padding-top: 40px;
     background-color: var(--border-color);
     font-size: 14px;
 }
-.footer-box{
+
+.footer-box {
     font-size: 12px;
     border: 4px solid var(--bg-color);
     padding: 3px;
     border-radius: 5px;
 }
-.compony-line{
+
+.compony-line {
     border-bottom: 2px solid var(--text-color);
 }
+
 .footer-bottom {
     border-top: 2px solid var(--text-color);
 }

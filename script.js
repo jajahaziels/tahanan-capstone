@@ -16,7 +16,7 @@ window.onscroll = () => {
         origin: 'top',
         distance: '40px',
         duration: 1500,
-        interval: 200,
+        delay: 100,
         reset: true
     });
 
@@ -34,6 +34,7 @@ window.onscroll = () => {
         distance: '50px',
         duration: 1000,
         interval: 200,
+        delay: 200,
         reset: true
     });
 
