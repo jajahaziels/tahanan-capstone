@@ -20,18 +20,18 @@ window.onscroll = () => {
         reset: true
     });
 
-    ScrollReveal().reveal('.info', {
+    ScrollReveal().reveal('.info-animation', {
         origin: 'left',
-        distance: '50px',
+        distance: '20px',
         duration: 1000,
         interval: 200,
         reset: true
     });
 
 
-    ScrollReveal().reveal('.cards, .listing-btn', {
+    ScrollReveal().reveal('.cards, .button-animation', {
         origin: 'right',
-        distance: '50px',
+        distance: '10px',
         duration: 1000,
         interval: 200,
         delay: 200,

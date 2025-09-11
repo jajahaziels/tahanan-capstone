@@ -66,6 +66,9 @@
 
 body {
     background-color: var(--bg-color);
+    font-size: 16px;
+    line-height: 1.5;
+    word-spacing: 1px;
 }
 
 /* FONT SIZES
@@ -89,13 +92,10 @@ body {
     --hover-color: #fbfefb;
 }
 
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1{
     font-weight: 600;
+    font-size: 32px;
+    line-height: 1.2;
 }
 
 p {
@@ -121,6 +121,7 @@ section {
     padding: 10px 20px;
     background-color: var(--button-color);
     border-radius: 20px;
+    cursor: pointer;
 }
 
 .main-button:hover {
@@ -204,16 +205,18 @@ header {
 }
 
 .dropdown-content {
-    display: none;
     position: absolute;
     background-color: var(--border-color);
     min-width: 160px;
-    margin-top: 10px !important;
+    margin-top: 5px !important;
     padding: 20px;
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
     border-radius: 20px;
     z-index: 1;
-    transition: all .5s ease;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
 }
 
 .dropdown-content a {
@@ -229,8 +232,11 @@ header {
 }
 
 .dropdown:hover .dropdown-content {
-    display: block;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
 }
+
 
 /* HEADER RESPONSIVENESS */
 @media (max-width: 1060px) {
