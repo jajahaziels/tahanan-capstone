@@ -90,31 +90,25 @@
             Featured Properties <br> <br>
             <!-- START ROW -->
             <div class="row gy-5">
+                <!-- CARD 1 -->
                 <div class="col-lg-4 col-sm-12">
-                    <!-- CARD 1 -->
                     <div class="cards mb-4">
                         <div class="position-relative">
                             <img src="img/home.png" alt="" class="property-img">
                             <div class="labels">
                                 <div class="label"> <i class="fa-regular fa-star"></i>Featured</div>
-                                <div class="label secondary">Whole House</div>
-                            </div>
-                            <div class="heart-icon">
-                                <i class="far fa-heart"></i>
+                                <div class="label secondary">Specials</div>
                             </div>
                             <div class="price-tag">₱ 20,000</div>
                         </div>
 
                         <div class="cards-content">
                             <h5 class="mb-2 house-name">Lorem ipsum dolor sit ame</h5>
-                            <div class="mb-2 location"><i class="fas fa-map-marker-alt"></i> Phase 1B, Blk 8 Lot 3,
-                                Pacita 1,
-                                SPL</div>
+                            <div class="mb-2 location"><i class="fas fa-map-marker-alt"></i> Phase 1B, Blk 8 Lot 3, Pacita 1</div>
 
                             <div class="features">
-                                <div class="m-2"><i class="fas fa-bed"></i> 3 bed</div>
-                                <div class="m-2"><i class="fas fa-bath"></i> 1 bath</div>
-                                <div class="m-2"><i class="fas fa-ruler"></i> 950 sq ft</div>
+                                <div class="m-2"><i class="fas fa-bed"></i> 3 Bedroom</div>
+                                <div class="m-2"><i class="fa-solid fa-building"></i> Condominium</div>
                             </div>
 
                             <div class="divider my-3"></div>
@@ -123,19 +117,19 @@
                                 <div class="landlord-left">
                                     <img src="img/home.png" alt="Landlord">
                                     <div>
-                                        <div class="landlord-name">Jonathan Allen</div>
+                                        <div class="landlord-name">Doe Allen</div>
                                         <div class="landlord-role">Landlord</div>
                                     </div>
                                 </div>
                                 <div class="landlord-actions">
-                                    <div class="btn"><i class="fas fa-phone"></i></div>
+                                    <div class="btn"><i class="fa-solid fa-user"></i></div>
                                     <div class="btn"><i class="fas fa-comment-dots"></i></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- CARD 1 END -->
                 </div>
+                <!-- CARD 1 END -->
                 <div class="col-lg-4 col-sm-12">
                     <!-- CARD 2 -->
                     <div class="cards mb-4">
