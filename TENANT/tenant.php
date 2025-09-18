@@ -73,11 +73,11 @@ $result = $conn->query($sql);
                                     $images = json_decode($row['images'], true);
 
                                     // Default placeholder if no image
-                                    $imagePath = 'uploads/placeholder.jpg';
+                                    $imagePath = '../LANDLORD/uploads/placeholder.jpg';
 
                                     // If image exists, use the first one
                                     if (!empty($images) && is_array($images) && isset($images[0])) {
-                                        $imagePath = 'uploads/' . $images[0];
+                                        $imagePath = '../LANDLORD/uploads/' . $images[0];
                                     }
                                     ?>
 
