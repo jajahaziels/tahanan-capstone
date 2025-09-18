@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="verify.css">
+  <link rel="stylesheet" href="sidebar.css">
+  <link href='https://cdn.boxicons.com/fonts/basic/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body>
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <header>
+      <div class="image-text">
+        <span class="image">
+          <img src="logo.png" alt="logo">
+        </span>
+
+        <div class="text header-text">
+          <span class="name">Tahanan</span>
+        </div>
+
+      </div>
+
+      <i class='bxr bx-chevron-right toggle'></i> 
+    </header>
+
+    <div class="menu-bar">
+      <div class="menu">
+        <ul class="menu-links">
+          <li class="nav-link">
+            <a href="homepage.html">
+              <i class='bxr  bx-home icon'  ></i> 
+              <span class="text nav-text">Home</span>
+            </a>
+          </li>
+          <li class="nav-link">
+            <a href="account.html">
+              <i class='bxr  bx-user icon'  ></i>  
+              <span class="text nav-text">Accounts</span>
+            </a>
+          </li>
+          <li class="nav-link">
+            <a href="report.html">
+              <i class='bxr  bx-alert-circle icon'  ></i>  
+              <span class="text nav-text">Reports</span>
+            </a>
+          </li>
+          <li class="nav-link">
+            <a href="listing.html">
+              <i class='bxr  bx-list-ul icon'  ></i>   
+              <span class="text nav-text">Listing</span>
+            </a>
+          </li>
+          <li class="nav-link">
+            <a href="verify.html">
+              <i class='bxr  bx-check-circle icon'  ></i>  
+              <span class="text nav-text">Verify Landlord</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bottom-content">
+        <li class="">
+            <a href="#">
+              <i class='bxr  bx-arrow-out-left-square-half icon'  ></i>   
+              <span class="text nav-text">Logout</span>
+            </a>
+          </li>
+      </div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR -->
+
+   <main class="content">
+    <header class="page-header">
+      <h1>Verify Landlord Requests</h1>
+      <p>Review and approve or reject landlord applications</p>
+    </header>
+
+    <section class="verify-list">
+      <!-- Card 1 -->
+      <div class="verify-card">
+        <img src="/img/pogi1.jpg" alt="Landlord" class="profile-pic">
+        <div class="details">
+          <h3>Rey</h3>
+          <p>Email: rey@example.com</p>
+          <p>Requested: Sept 15, 2025</p>
+        </div>
+        <div class="actions">
+          <button class="btn approve">Approve</button>
+          <button class="btn reject">Reject</button>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="verify-card">
+        <img src="/img/pogi2.jpg" alt="Landlord" class="profile-pic">
+        <div class="details">
+          <h3>Berhel</h3>
+          <p>Email: berhel@example.com</p>
+          <p>Requested: Sept 10, 2025</p>
+        </div>
+        <div class="actions">
+          <button class="btn approve">Approve</button>
+          <button class="btn reject">Reject</button>
+        </div>
+      </div>
+
+      <!-- Repeat for more requests -->
+    </section>
+  </main>
+  
+  <script src="sidebar.js"></script>
+
+</body>
+  
+</html> 

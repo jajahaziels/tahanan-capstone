@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="account.css">
+  <link rel="stylesheet" href="sidebar.css">
+  <link href='https://cdn.boxicons.com/fonts/basic/boxicons.min.css' rel='stylesheet'>
+</head>
+
+<body>
+
+  <nav class="sidebar">
+    <header>
+      <div class="image-text">
+        <span class="image">
+          <img src="logo.png" alt="logo">
+        </span>
+
+        <div class="text header-text">
+          <span class="name">Tahanan</span>
+        </div>
+
+      </div>
+
+      <i class='bxr bx-chevron-right toggle'></i> 
+    </header>
+
+    <div class="menu-bar">
+      <div class="menu">
+        <ul class="menu-links">
+          <li class="nav-link">
+            <a href="homepage.html">
+              <i class='bxr  bx-home icon'  ></i> 
+              <span class="text nav-text">Home</span>
+            </a>
+          </li>
+          <li class="nav-link">
+            <a href="account.html">
+              <i class='bxr  bx-user icon'  ></i>  
+              <span class="text nav-text">Accounts</span>
+            </a>
+          </li>
+          <li class="nav-link">
+            <a href="report.html">
+              <i class='bxr  bx-alert-circle icon'  ></i>  
+              <span class="text nav-text">Reports</span>
+            </a>
+          </li>
+          <li class="nav-link">
+            <a href="listing.html">
+              <i class='bxr  bx-list-ul icon'  ></i>   
+              <span class="text nav-text">Listing</span>
+            </a>
+          </li>
+          <li class="nav-link">
+            <a href="verify.html">
+              <i class='bxr  bx-check-circle icon'  ></i>  
+              <span class="text nav-text">Verify Landlord</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="bottom-content">
+        <li class="">
+            <a href="#">
+              <i class='bxr  bx-arrow-out-left-square-half icon'  ></i>   
+              <span class="text nav-text">Logout</span>
+            </a>
+          </li>
+      </div>
+    </div>
+  </nav>
+  
+  <main class="content">
+    <h1>Manage Accounts</h1>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-target="#landlords">Landlords</button>
+      <button class="tab" data-target="#tenants">Tenants</button>
+    </div>
+
+    <!-- Landlords -->
+    <div id="landlords" class="tab-content active">
+      <div class="card-grid">
+        <div class="account-card">
+          <img src="/img/pogi2.jpg" alt="Landlord" class="profile-pic">
+          <div class="info">
+            <h3>John Doe</h3>
+            <p>johndoe@email.com</p>
+            <span class="badge active">Active</span>
+          </div>
+          <div class="actions">
+            <button class="btn green"><i class='bx bx-check'></i></button>
+            <button class="btn red"><i class='bx bx-x'></i></button>
+          </div>
+        </div>
+
+        <div class="account-card">
+          <img src="/img/pogi2.jpg" alt="Landlord" class="profile-pic">
+          <div class="info">
+            <h3>Jane Smith</h3>
+            <p>jane@email.com</p>
+            <span class="badge pending">Pending</span>
+          </div>
+          <div class="actions">
+            <button class="btn green"><i class='bx bx-check'></i></button>
+            <button class="btn red"><i class='bx bx-x'></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tenants -->
+    <div id="tenants" class="tab-content">
+      <div class="card-grid">
+        <div class="account-card">
+          <img src="/img/pogi2.jpg" alt="Tenant" class="profile-pic">
+          <div class="info">
+            <h3>Michael Reyes</h3>
+            <p>michael@email.com</p>
+            <span class="badge active">Active</span>
+          </div>
+          <div class="actions">
+            <button class="btn green"><i class='bx bx-check'></i></button>
+            <button class="btn red"><i class='bx bx-x'></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+<script src="sidebar.js"></script>
+<script src="tabs.js"></script>
+
+</body>
+  
+</html> 
