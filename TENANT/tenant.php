@@ -68,45 +68,67 @@ $result = $conn->query($sql);
                         <div class="col-lg-4 col-sm-12">
                             <div class="cards mb-4">
                                 <div class="position-relative">
-                                    <img src="uploads/<?php echo htmlspecialchars($row['image']); ?>"
-                                        alt="Property Image"
-                                        class="property-img">
+                                    <?php
+                                    // Decode images JSON from DB
+                                    $images = json_decode($row['images'], true);
 
+                                    // Default placeholder if no image
+                                    $imagePath = 'uploads/placeholder.jpg';
+
+                                    // If image exists, use the first one
+                                    if (!empty($images) && is_array($images) && isset($images[0])) {
+                                        $imagePath = 'uploads/' . $images[0];
+                                    }
+                                    ?>
+
+                                    <!-- Property Image -->
+                                    <img src="<?= htmlspecialchars($imagePath); ?>"
+                                        alt="Property Image"
+                                        class="property-img"
+                                        style="width:100%; max-height:200px; object-fit:cover;">
+
+                                    <!-- Labels -->
                                     <div class="labels">
                                         <?php if (!empty($row['is_featured'])): ?>
                                             <div class="label"><i class="fa-regular fa-star"></i> Featured</div>
                                         <?php endif; ?>
-
                                         <?php if (!empty($row['is_special'])): ?>
                                             <div class="label secondary">Specials</div>
                                         <?php endif; ?>
                                     </div>
 
-                                    <div class="price-tag">₱ <?php echo number_format($row['price']); ?></div>
+                                    <!-- Price -->
+                                    <div class="price-tag">₱ <?= number_format($row['price']); ?></div>
                                 </div>
 
                                 <div class="cards-content">
-                                    <h5 class="mb-2 house-name">
-                                        <?php echo htmlspecialchars($row['title']); ?>
-                                    </h5>
+                                    <!-- Property Name -->
+                                    <h5 class="mb-2 house-name"><?= htmlspecialchars($row['listingName']); ?></h5>
+
+                                    <!-- Address -->
                                     <div class="mb-2 location">
                                         <i class="fas fa-map-marker-alt"></i>
-                                        <?php echo htmlspecialchars($row['location']); ?>
+                                        <?= htmlspecialchars($row['address']); ?>
                                     </div>
 
+                                    <!-- Features -->
                                     <div class="features">
-                                        <div class="m-2"><i class="fas fa-bed"></i> <?php echo $row['bedrooms']; ?> Bedroom</div>
-                                        <div class="m-2"><i class="fa-solid fa-building"></i> <?php echo $row['type']; ?></div>
+                                        <div class="m-2">
+                                            <i class="fas fa-bed"></i> <?= htmlspecialchars($row['rooms']); ?> Bedroom
+                                        </div>
+                                        <div class="m-2">
+                                            <i class="fa-solid fa-building"></i> <?= htmlspecialchars($row['category']); ?>
+                                        </div>
                                     </div>
 
                                     <div class="divider my-3"></div>
 
+                                    <!-- Landlord Info -->
                                     <div class="landlord-info">
                                         <div class="landlord-left">
-                                            <img src="uploads/<?php echo htmlspecialchars($row['landlord_img']); ?>"
-                                                alt="Landlord">
+                                            <img src="uploads/<?= htmlspecialchars($row['profilePic']); ?>" alt="Landlord">
                                             <div>
-                                                <div class="landlord-name"><?php echo htmlspecialchars($row['landlord_name']); ?></div>
+                                                <div class="landlord-name"><?= htmlspecialchars($row['landlordName']); ?></div>
                                                 <div class="landlord-role">Landlord</div>
                                             </div>
                                         </div>
@@ -124,7 +146,12 @@ $result = $conn->query($sql);
                 <?php endif; ?>
             </div>
 
+
+
+
         </div>
+
+    </div>
     </div>
     </div>
 

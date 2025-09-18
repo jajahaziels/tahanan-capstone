@@ -5,7 +5,7 @@ $errors = [];
 $success = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // INPUTS
+    // Collect inputs
     $listingName  = trim($_POST['listing_name'] ?? '');
     $address      = trim($_POST['address'] ?? '');
     $barangay     = $_POST['barangay'] ?? '';
@@ -16,7 +16,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $latitude     = $_POST['latitude'] ?? null;
     $longitude    = $_POST['longitude'] ?? null;
 
-    // VALIDATION
+    // Validation
     if (empty($listingName)) $errors[] = "Listing name is required.";
     if (empty($address)) $errors[] = "Address is required.";
     if (empty($barangay)) $errors[] = "Barangay is required.";
@@ -24,57 +24,73 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (empty($rooms)) $errors[] = "Number of rooms is required.";
     if (empty($category)) $errors[] = "Category is required.";
     if (empty($latitude) || empty($longitude)) $errors[] = "Location must be pinned on the map.";
-    if (empty($_FILES['image']['name'])) $errors[] = "At least one image is required.";
-    if (!empty($_FILES['image']['name']) && $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-        $errors[] = "Error uploading image.";
-    }
+    if (empty($_FILES['image']['name'][0])) $errors[] = "At least one image is required.";
 
     $listingDate = date('Y-m-d H:i:s');
     if ($listingDesc === '') $listingDesc = null;
 
-    $images = null;
-    if (!empty($_FILES['image']['name'])) {
+    // Handle images
+    $uploadedImages = [];
+    if (!empty($_FILES['image']['name'][0])) {
         $targetDir = "uploads/";
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0777, true);
         }
 
-        $images = time() . "_" . basename($_FILES['image']['name']);
-        $targetFile = $targetDir . $images;
+        foreach ($_FILES['image']['name'] as $key => $name) {
+            $tmpName = $_FILES['image']['tmp_name'][$key];
+            $error   = $_FILES['image']['error'][$key];
 
-        if (!move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
-            $errors[] = "Image upload failed.";
+            if ($error === UPLOAD_ERR_OK && !empty($tmpName)) {
+                $newName = time() . "_" . uniqid() . "_" . basename($name);
+                $targetFile = $targetDir . $newName;
+
+                if (move_uploaded_file($tmpName, $targetFile)) {
+                    $uploadedImages[] = $newName;
+                } else {
+                    $errors[] = "Failed to upload image: $name";
+                }
+            }
         }
     }
 
-    if (empty($errors)) {
-        $stmt = $conn->prepare("INSERT INTO listingtbl 
-            (listingName, address, barangay, price, rooms, category, listingDesc, images, listingDate)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
+    // Save to DB
+if (empty($errors)) {
+    $imagesJson = json_encode($uploadedImages);
 
-        $stmt->bind_param(
-            "sssiisssd",
-            $listingName,
-            $address,
-            $barangay,
-            $price,
-            $rooms,
-            $category,
-            $listingDesc,
-            $images,
-            $listingDate
-        );
+    $stmt = $conn->prepare("
+        INSERT INTO listingtbl 
+        (listingName, address, barangay, price, rooms, category, listingDesc, images, listingDate, latitude, longitude)  
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ");
 
-        if ($stmt->execute()) {
-            $success = "Property added successfully!";
-        } else {
-            $errors[] = "Database error: " . $stmt->error;
-        }
-        $stmt->close();
+    $stmt->bind_param(
+        "sssiissssdd",   // ✅ correct format string
+        $listingName,
+        $address,
+        $barangay,
+        $price,
+        $rooms,
+        $category,
+        $listingDesc,
+        $imagesJson,
+        $listingDate,
+        $latitude,
+        $longitude
+    );
+
+    if ($stmt->execute()) {
+        $success = "Property added successfully!";
+    } else {
+        $errors[] = "Database error: " . $stmt->error;
     }
+    $stmt->close();
+}
+
 }
 ?>
+
+
 
 
 <!DOCTYPE html>
@@ -236,7 +252,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </div>
                             <div class="col">
                                 <label class="form-label">Images</label>
-                                <input type="file" name="image" class="form-control" accept="image/*">
+                                <input type="file" name="image[]" class="form-control" accept="image/*" multiple>
                             </div>
                         </div>
 
@@ -250,7 +266,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                         </div>
 
                         <button type="submit" class="main-button">Add property</button>
-                        <a href="landlord-properties.php" class="main-button mx-3 mb-5">Cancel</a>
+                        <a href="landlord-properties.html" class="main-button mx-3 mb-5">Cancel</a>
                     </form>
                 </div>
             </div>
@@ -290,3 +306,5 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         });
     </script>
 </body>
+
+</html>
