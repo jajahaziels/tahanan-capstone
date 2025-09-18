@@ -5,9 +5,24 @@ session_start();
 $errors = [];
 $success = "";
 
+$ID = $_GET['ID'] ?? null;
+if (!$ID) {
+    die("Invalid request.");
+}
+
+$stmt = $conn->prepare("SELECT * FROM listingtbl WHERE ID = ?");
+$stmt->bind_param("i", $ID);
+$stmt->execute();
+$result = $stmt->get_result();
+$property = $result->fetch_assoc();
+$stmt->close();
+
+if (!$property) {
+    die("Property not found.");
+}
+
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    // Collect inputs
-    $listingName  = trim($_POST['listing_name'] ?? '');
+    $listingName  = trim($_POST['listingName'] ?? '');
     $address      = trim($_POST['address'] ?? '');
     $barangay     = $_POST['barangay'] ?? '';
     $price        = $_POST['price'] ?? '';
@@ -25,48 +40,60 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (empty($rooms)) $errors[] = "Number of rooms is required.";
     if (empty($category)) $errors[] = "Category is required.";
     if (empty($latitude) || empty($longitude)) $errors[] = "Location must be pinned on the map.";
-    if (empty($_FILES['image']['name'][0])) $errors[] = "At least one image is required.";
 
-    $listingDate = date('Y-m-d H:i:s');
-    if ($listingDesc === '') $listingDesc = null;
+        // Get current images from DB
+        $uploadedImages = json_decode($property['images'], true) ?? [];
 
-    // Handle images
-    $uploadedImages = [];
-    if (!empty($_FILES['image']['name'][0])) {
-        $targetDir = "uploads/";
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0777, true);
+
+        if (!empty($_POST['remove_images'])) {
+            foreach ($_POST['remove_images'] as $removeImg) {
+                // Delete from array
+                if (($key = array_search($removeImg, $uploadedImages)) !== false) {
+                    unset($uploadedImages[$key]);
+
+                    // (Optional) also delete the actual file from server
+                    $filePath = "uploads/" . $removeImg;
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                    }
+                }
+            }
+            // Reindex array
+            $uploadedImages = array_values($uploadedImages);
         }
 
-        foreach ($_FILES['image']['name'] as $key => $name) {
-            $tmpName = $_FILES['image']['tmp_name'][$key];
-            $error   = $_FILES['image']['error'][$key];
+    if (!empty($_FILES['image']['name'][0])) {
+    foreach ($_FILES['image']['name'] as $key => $name) {
+        $tmpName = $_FILES['image']['tmp_name'][$key];
+        $error   = $_FILES['image']['error'][$key];
 
-            if ($error === UPLOAD_ERR_OK && !empty($tmpName)) {
-                $newName = time() . "_" . uniqid() . "_" . basename($name);
-                $targetFile = $targetDir . $newName;
+        if ($error === UPLOAD_ERR_OK && !empty($tmpName)) {
+            $newName = time() . "_" . uniqid() . "_" . basename($name);
+            $targetFile = "uploads/" . $newName;
 
-                if (move_uploaded_file($tmpName, $targetFile)) {
-                    $uploadedImages[] = $newName;
-                } else {
-                    $errors[] = "Failed to upload image: $name";
-                }
+            if (move_uploaded_file($tmpName, $targetFile)) {
+                $uploadedImages[] = $newName;
             }
         }
     }
+}
+    // // Limit to max 5 images
+    // if (count($uploadedImages) > 5) {
+    //     $errors[] = "You can upload a maximum of 5 images.";
+    // }
 
-    // Save to DB
+
     if (empty($errors)) {
         $imagesJson = json_encode($uploadedImages);
 
         $stmt = $conn->prepare("
-            INSERT INTO listingtbl 
-            (listingName, address, barangay, price, rooms, category, listingDesc, images, listingDate, latitude, longitude)  
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            UPDATE listingtbl 
+            SET listingName=?, address=?, barangay=?, price=?, rooms=?, category=?, listingDesc=?, images=?, latitude=?, longitude=?
+            WHERE ID=?
         ");
 
         $stmt->bind_param(
-            "sssiissssdd",
+            "sssiisssddi",
             $listingName,
             $address,
             $barangay,
@@ -75,16 +102,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $category,
             $listingDesc,
             $imagesJson,
-            $listingDate,
             $latitude,
-            $longitude
+            $longitude,
+            $ID
         );
 
         if ($stmt->execute()) {
-            $_SESSION['success'] = "Property added successfully!";
-
-            // 🔑 Redirect so refresh won't resubmit the form
-            header("Location: " . $_SERVER['PHP_SELF']);
+            $_SESSION['success'] = "Property updated successfully!";
+            header("Location: landlord-properties.php");
             exit;
         } else {
             $errors[] = "Database error: " . $stmt->error;
@@ -92,17 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $stmt->close();
     }
 }
-
-// Show success message after redirect
-if (!empty($_SESSION['success'])) {
-    $success = $_SESSION['success'];
-    unset($_SESSION['success']);
-}
 ?>
-
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -122,10 +137,10 @@ if (!empty($_SESSION['success'])) {
     <link rel="stylesheet" href="../css/style.css">
     <!-- LEAFLET -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <title>ADD PROPERTIES</title>
+    <title>EDIT PROPERTIES</title>
     <style>
         .landlord-page {
-            margin-top: 140px !important;
+            margin: 140px 0px 80px 0px !important;
         }
 
         .add-property {
@@ -153,9 +168,9 @@ if (!empty($_SESSION['success'])) {
         <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png" alt="">Tahanan</a>
 
         <ul class="nav-links">
-            <li><a href="landlord.php">Home</a></li>
-            <li><a href="landlord-properties.php">Properties</a></li>
-            <li><a href="landlord-message.php">Messages</a></li>
+            <li><a href="landlord.html">Home</a></li>
+            <li><a href="landlord-properties.html">Properties</a></li>
+            <li><a href="landlord-message.html">Messages</a></li>
             <li><a href="../support.html">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
@@ -177,30 +192,23 @@ if (!empty($_SESSION['success'])) {
     <!-- PROPERTY PAGE -->
     <div class="landlord-page">
         <div class="container m-auto">
-            <h2>Add Property</h2>
+            <h2>Edit Property</h2>
             <div class="row gy-4 justify-content-center">
-                <div class="col-lg-6">
-                    <?php if (!empty($errors)): ?>
-                        <div class="alert alert-danger">
-                            <?php foreach ($errors as $e) echo "<div>$e</div>"; ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($success)): ?>
-                        <div class="alert alert-success"><?= $success; ?></div>
-                    <?php endif; ?>
-
-                    <form class="mt-4" method="POST" enctype="multipart/form-data">
+                <div class="col-6">
+                    <form method="POST" enctype="multipart/form-data">
                         <div class="row mb-3">
                             <div class="col">
                                 <label class="form-label">Listing Name</label>
-                                <input type="text" name="listing_name" class="form-control" required>
+                                <input type="text" name="listingName" class="form-control"
+                                    value="<?= htmlspecialchars($property['listingName']) ?>" required>
                             </div>
                         </div>
+
                         <div class="row mb-3">
                             <div class="col">
                                 <label class="form-label">Address</label>
-                                <input type="text" name="address" class="form-control" required>
+                                <input type="text" name="address" class="form-control"
+                                    value="<?= htmlspecialchars($property['address']) ?>" required>
                             </div>
                         </div>
 
@@ -208,11 +216,10 @@ if (!empty($_SESSION['success'])) {
                             <div class="col">
                                 <label class="form-label">Barangay</label>
                                 <select name="barangay" class="form-control" required>
-                                    <option value="" disabled selected>Select Barangay</option>
-                                    <option value="Bagong Silang">Bagong Silang</option>
-                                    <option value="Calendola">Calendola</option>
-                                    <option value="Chrysanthemum">Chrysanthemum</option>
-                                    <!-- BASTA 27 TO -->
+                                    <option value="Bagong Silang" <?= $property['barangay'] == "Bagong Silang" ? 'selected' : '' ?>>Bagong Silang</option>
+                                    <option value="Calendola" <?= $property['barangay'] == "Calendola" ? 'selected' : '' ?>>Calendola</option>
+                                    <option value="Chrysanthemum" <?= $property['barangay'] == "Chrysanthemum" ? 'selected' : '' ?>>Chrysanthemum</option>
+                                    <!-- add more -->
                                 </select>
                             </div>
                             <div class="col">
@@ -225,32 +232,32 @@ if (!empty($_SESSION['success'])) {
                             </div>
                         </div>
 
+                        <!-- same for price, rooms, category -->
                         <div class="row mb-3">
                             <div class="col">
                                 <label class="form-label">Price</label>
-                                <input type="number" name="price" class="form-control" required>
+                                <input type="number" name="price" class="form-control"
+                                    value="<?= $property['price'] ?>" required>
                             </div>
                             <div class="col">
                                 <label class="form-label">Number of Rooms</label>
                                 <select name="rooms" class="form-control" required>
-                                    <option value="" disabled selected>Select No. of Rooms</option>
-                                    <option value="1">1 Bedroom</option>
-                                    <option value="2">2 Bedrooms</option>
-                                    <option value="3">3 Bedrooms</option>
-                                    <option value="4">4 Bedrooms</option>
-                                    <option value="5">5+ Bedrooms</option>
+                                    <option value="1" <?= $property['rooms'] == 1 ? 'selected' : '' ?>>1 Bedroom</option>
+                                    <option value="2" <?= $property['rooms'] == 2 ? 'selected' : '' ?>>2 Bedrooms</option>
+                                    <option value="3" <?= $property['rooms'] == 3 ? 'selected' : '' ?>>3 Bedrooms</option>
+                                    <option value="4" <?= $property['rooms'] == 4 ? 'selected' : '' ?>>4 Bedrooms</option>
+                                    <option value="5" <?= $property['rooms'] == 5 ? 'selected' : '' ?>>5+ Bedrooms</option>
                                 </select>
                             </div>
                             <div class="col">
                                 <label class="form-label">Category</label>
                                 <select name="category" class="form-control" required>
-                                    <option value="" disabled selected>Select Category</option>
-                                    <option value="Condominium">Condominium</option>
-                                    <option value="Apartment complex">Apartment complex</option>
-                                    <option value="Single-family home">Single-family home</option>
-                                    <option value="Townhouse">Townhouse</option>
-                                    <option value="Low-rise apartment">Low-rise apartment</option>
-                                    <option value="High-rise apartment">High-rise apartment</option>
+                                    <option value="Condominium" <?= $property['category'] == "Condominium" ? 'selected' : '' ?>>Condominium</option>
+                                    <option value="Apartment complex" <?= $property['category'] == "Apartment complex" ? 'selected' : '' ?>>Apartment complex</option>
+                                    <option value="Single-family home" <?= $property['category'] == "Single-family home" ? 'selected' : '' ?>>Single-family home</option>
+                                    <option value="Townhouse" <?= $property['category'] == "Townhouse" ? 'selected' : '' ?>>Townhouse</option>
+                                    <option value="Low-rise apartment" <?= $property['category'] == "Low-rise apartment" ? 'selected' : '' ?>>Low-rise apartment</option>
+                                    <option value="High-rise apartment" <?= $property['category'] == "High-rise apartment" ? 'selected' : '' ?>>High-rise apartment</option>
                                 </select>
                             </div>
                         </div>
@@ -258,28 +265,42 @@ if (!empty($_SESSION['success'])) {
                         <div class="row mb-3">
                             <div class="col">
                                 <label class="form-label">Description</label>
-                                <textarea name="description" class="form-control"></textarea>
+                                <textarea name="description" class="form-control"><?= htmlspecialchars($property['listingDesc']) ?></textarea>
                             </div>
-                            <div class="col">
-                                <label class="form-label">Images</label>
-                                <input type="file" name="image[]" class="form-control" accept="image/*" multiple>
-                            </div>
+                                <div class="col">
+                                    <label class="form-label">Upload New Images (optional)</label>
+                                    <input type="file" name="image[]" class="form-control" accept="image/*" multiple>
+
+                                    <p>Current Images:</p>
+                                    <?php foreach (json_decode($property['images'], true) ?? [] as $img): ?>
+                                        <div style="display:inline-block; margin:5px; text-align:center;">
+                                            <img src="uploads/<?= $img ?>" alt="property image" width="80" style="display:block; margin-bottom:5px;">
+                                            <label>
+                                                <input type="checkbox" name="remove_images[]" value="<?= $img ?>"> Remove
+                                            </label>
+                                        </div>
+                                    <?php endforeach; ?>
+                                </div>
+
                         </div>
 
+                        <!-- Map -->
                         <div class="row mb-3">
                             <div class="col">
                                 <label>Pin Location</label>
                                 <div id="map"></div>
-                                <input type="hidden" name="latitude" id="latitude">
-                                <input type="hidden" name="longitude" id="longitude">
+                                <input type="hidden" name="latitude" id="latitude" value="<?= $property['latitude'] ?>">
+                                <input type="hidden" name="longitude" id="longitude" value="<?= $property['longitude'] ?>">
                             </div>
                         </div>
+
                         <div class="mb-5">
-                        <button type="submit" class="main-button mx-2">Add property</button>
-                        <button class="main-button" onclick="location.href='landlord-properties.php'">Cancel</button>
+                            <button type="submit" class="main-button mx-2">Update property</button>
+                            <button class="main-button" onclick="location.href='landlord-properties.php'">Cancel</button>
                         </div>
                     </form>
                 </div>
+
             </div>
         </div>
     </div>
@@ -293,8 +314,10 @@ if (!empty($_SESSION['success'])) {
     <!-- LEAFLET JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
-        // INITIALIZE MAP IN SAN PEDRO
-        var map = L.map('map').setView([14.3647, 121.0556], 15);
+        var lat = parseFloat(document.getElementById('latitude').value) || 14.3647;
+        var lng = parseFloat(document.getElementById('longitude').value) || 121.0556;
+
+        var map = L.map('map').setView([lat, lng], 15);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
@@ -302,9 +325,13 @@ if (!empty($_SESSION['success'])) {
 
         var marker;
 
+        if (!isNaN(lat) && !isNaN(lng)) {
+            marker = L.marker([lat, lng]).addTo(map).bindPopup("Current Location").openPopup();
+        }
+        
         map.on('click', function(e) {
-            var lat = e.latlng.lat;
-            var lng = e.latlng.lng;
+            lat = e.latlng.lat;
+            lng = e.latlng.lng;
 
             if (marker) {
                 map.removeLayer(marker);
@@ -317,5 +344,3 @@ if (!empty($_SESSION['success'])) {
         });
     </script>
 </body>
-
-</html>

@@ -20,11 +20,51 @@ $result = $conn->query($sql);
     <!-- BS -->
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <!-- MAIN CSS -->
-    <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
-    <title>HOME</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <title>PROPERTIES</title>
     <style>
-        .tenant-page {
-            margin-top: 140px !important;
+        .landlord-page {
+            margin: 140px 0px 80px 0px !important;
+        }
+
+        .available {
+            background-color: #0697065e;
+            color: white;
+            padding: 8px;
+            border-radius: 20px;
+            color: var(--text-color);
+        }
+
+        .occupied {
+            background-color: #ff00006b;
+            color: white;
+            padding: 8px;
+            border-radius: 20px;
+            color: var(--text-color);
+        }
+
+        .status-occupied {
+            background-color: #ff0000c5;
+            color: white;
+            padding: 8px;
+            border-radius: 20px;
+            color: var(--text-color);
+        }
+        .status-available {
+            background-color: #008000b2;
+            color: white;
+            padding: 8px;
+            border-radius: 20px;
+            color: var(--text-color);
+        }
+
+        .edit {
+            background-color: #0000ff59;
+            color: var(--text-color);
+            width: 45px;
+            height: 45px;
+            font-size: 16px;
+            border-radius: 20px;
         }
     </style>
 </head>
@@ -35,10 +75,9 @@ $result = $conn->query($sql);
         <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png" alt="">Tahanan</a>
 
         <ul class="nav-links">
-            <li><a href="tenant.html" class="active">Home</a></li>
-            <li><a href="tenant-rental.html">My Rental</a></li>
-            <li><a href="tenant-favorite.html">Favorite</a></li>
-            <li><a href="tenant-messages.html">Messages</a></li>
+            <li><a href="landlord.php">Home</a></li>
+            <li><a href="landlord-properties.php" class="active">Properties</a></li>
+            <li><a href="landlord-message.php">Messages</a></li>
             <li><a href="../support.html">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
@@ -46,25 +85,34 @@ $result = $conn->query($sql);
             <!-- DROP DOWN -->
             <div class="dropdown">
                 <i class="fa-solid fa-user"></i>
-                Tenant
-                <div class="dropdown-content">
-                    <a href="tenant-profile.html">Account</a>
-                    <a href="settings.html">Settings</a>
-                    <a href="logout.html">Log out</a>
-                </div>
+                Landlord
+					<div class="dropdown-content">
+					<a href="account.html">Account</a>
+					<a href="settings.html">Settings</a>
+					<a href="logout.html">Log out</a>
+					</div>
             </div>
             <!-- NAVMENU -->
             <div class="fa-solid fa-bars" id="navmenu"></div>
         </div>
     </header>
-
-    <!-- HOME PAGE CONTENT -->
-    <div class="tenant-page">
+    <!-- PROPERTY PAGE -->
+    <div class="landlord-page">
+        <div class="container m-auto d-flex justify-content-between align-items-center">
+            <h2>MY PROPERTIES</h2>
+            <div class="d-flex">
+            <button class="main-button" onclick="location.href='add-property.php'">Add Property</button>
+                <div class="d-flex text-center justify-content-center align-items-center">
+                <p class="mx-4 available">Available</p>
+                <p class="occupied">Occupied</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- PROPERTY LIST -->
+    <div class="property-list">
         <div class="container m-auto">
-            <h2>Featured Apartment</h2>
             <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <div class="row justify-content-center">
                 <?php if ($result && $result->num_rows > 0): ?>
                     <?php while ($row = $result->fetch_assoc()): ?>
                         <div class="col-lg-4 col-sm-12">
@@ -77,14 +125,17 @@ $result = $conn->query($sql);
                                         $imagePath = '../LANDLORD/uploads/' . $images[0];
                                     }
                                     ?>
+
+                                    <!-- Property Image -->
                                     <img src="<?= htmlspecialchars($imagePath); ?>"
                                         alt="Property Image"
                                         class="property-img"
                                         style="width:100%; max-height:200px; object-fit:cover;">
 
+                                    <!-- Labels -->
                                     <div class="labels">
-                                        <div class="label"><i class="fa-regular fa-star"></i> Featured</div>
-                                        <div class="label secondary">Specials</div>
+                                            <div class="label"><i class="fa-regular fa-star"></i> Featured</div>
+                                            <div class="label secondary">Specials</div>
                                     </div>
 
                                     <!-- Price -->
@@ -113,19 +164,11 @@ $result = $conn->query($sql);
 
                                     <div class="divider my-3"></div>
 
-                                    <!-- Landlord Info -->
-                                    <div class="landlord-info">
-                                        <div class="landlord-left">
-                                            <img src="uploads/<?= htmlspecialchars($row['profilePic']); ?>" alt="Landlord">
-                                            <div>
-                                                <div class="landlord-name"><?= htmlspecialchars($row['landlordName']); ?></div>
-                                                <div class="landlord-role">Landlord</div>
-                                            </div>
-                                        </div>
-                                        <div class="landlord-actions">
-                                            <div class="btn"><i class="fa-solid fa-user"></i></div>
-                                            <div class="btn"><i class="fas fa-comment-dots"></i></div>
-                                        </div>
+                                    <!-- LANDLORD ACTIONS -->
+                                        <div class="d-flex justify-content-center align-items-center">
+                                            <p class="mx-4 available">Available</p>
+                                            <button class="main-button" onclick="location.href='edit-property.php?ID=<?= $row['ID'] ?>'">Edit</button>
+
                                     </div>
                                 </div>
                             </div>
@@ -136,20 +179,12 @@ $result = $conn->query($sql);
                 <?php endif; ?>
             </div>
         </div>
-            </div>
-
-        </div>
-
-    </div>
-    </div>
     </div>
 
-    <!-- MAIN JS -->
-    <script src="../js/script.js" defer></script>
-    <!-- BS JS -->
-    <script src="../js/bootstrap.bundle.min.js"></script>
-    <!-- SCROLL REVEAL -->
-    <script src="https://unpkg.com/scrollreveal"></script>
+<!-- MAIN JS -->
+<script src="../js/script.js" defer></script>
+<!-- BS JS -->
+<script src="../js/bootstrap.bundle.min.js"></script>
+<!-- SCROLL REVEAL -->
+<script src="https://unpkg.com/scrollreveal"></script>
 </body>
-
-</html>
