@@ -9,7 +9,6 @@
   margin-left: 80px; 
 }
 
-
 .search-bar {
   display: flex;
   align-items: center;
@@ -35,14 +34,12 @@
   font-size: 14px;
 }
 
-/* card grid */
 .card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 20px;
 }
 
-/* listing card */
 .listing-card {
   background: #fff;
   border-radius: 8px;
@@ -50,9 +47,24 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: opacity 220ms ease, transform 220ms ease;
+  transition: all 0.3s ease;
   opacity: 1;
-  transform: scale(1);
+}
+
+.listing-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.25); 
+}
+
+.listing-card:hover img {
+  transform: scale(1.05);
+}
+
+.listing-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
 .listing-card.is-hidden {
@@ -68,7 +80,6 @@
   object-fit: cover;
 }
 
-/* text body */
 .card-body {
   padding: 15px;
   display: flex;
@@ -93,7 +104,6 @@
   flex-grow: 1;
 }
 
-/* actions row */
 .card-actions {
   display: flex;
   justify-content: space-between;
