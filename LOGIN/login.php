@@ -1,19 +1,71 @@
 <?php
-include '../includes/db.php'; // ✅ database connection
+include '../includes/db.php'; // database connection
 session_start();
+
+require_once __DIR__ . '/google-config.php'; 
 
 $errorMsg = "";
 
-//  login
+// ---------------- GOOGLE LOGIN CALLBACK ----------------
+if (isset($_GET['code'])) {
+    $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
+    if (!isset($token["error"])) {
+        $client->setAccessToken($token["access_token"]);
+
+        $google_service = new Google_Service_Oauth2($client);
+        $data = $google_service->userinfo->get();
+
+        $email = $data['email'];
+        $name = $data['name'];
+
+        // Check if user exists in DB
+        $tables = [
+            "admintbl" => "homepage.html", // to change to php 
+            "landlordtbl" => "landlord.html", // to change to php
+            "tenanttbl" => "tenant-rental.html" // to change to php
+        ];
+
+        $found = false;
+
+        foreach ($tables as $table => $redirect) {
+            $stmt = $conn->prepare("SELECT ID, firstName, lastName FROM $table WHERE email = ?");
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($row = $result->fetch_assoc()) {
+                $_SESSION["user_id"] = $row["ID"];
+                $_SESSION["user_name"] = $row["firstName"] . " " . $row["lastName"];
+                $_SESSION["user_type"] = $table;
+                $found = true;
+
+                header("Location: " . $redirect);
+                exit;
+            }
+        }
+
+        // if no account found 
+        if (!$found) {
+            $errorMsg = "No account found for <b>$email</b>. Please sign up first.";
+        }
+    }
+}
+// -------------------------------------------------------
+
+
+// ---------------- LOGIN -----------------
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = trim($_POST["email"]);
     $password = trim($_POST["password"]);
 
-    // list of tables to check in tahanandb
-    $tables = ["admintbl", "landlordtbl", "tenanttbl"];
+    $tables = [
+        "admintbl" => "dashboard.php",
+        "landlordtbl" => "landlord_home.php",
+        "tenanttbl" => "tenant_home.php"
+    ];
     $found = false;
 
-    foreach ($tables as $table) {
+    foreach ($tables as $table => $redirect) {
         $stmt = $conn->prepare("SELECT ID, password, firstName, lastName FROM $table WHERE email = ?");
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -25,8 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $_SESSION["user_name"] = $row["firstName"] . " " . $row["lastName"];
                 $_SESSION["user_type"] = $table;
 
-                // redirect to either landlord or tenant if successful login
-                header("Location: dashboard.php"); // insert the home page of either landlord or tenant
+                header("Location: " . $redirect);
                 exit;
             } else {
                 $errorMsg = "Incorrect password. Please try again.";
@@ -43,6 +94,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -55,9 +107,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link
         href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@300;400;500;600;700;800;900&family=Quicksand:wght@300..700&display=swap"
         rel="stylesheet">
-    <!-- Font Awsome Icons -->
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
-        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -66,7 +117,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 <body>
     <div class="form-container login-container">
-
         <!--Login Form -->
         <div class="form-box login-form">
             <form method="POST" action="">
@@ -91,15 +141,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <button type="submit" class="btn login">Login</button>
                 <div class="socials"><br>
                     <p>or</p><br>
-                    <a href=""><i class="fa-brands fa-google"></i> Login with Google</a>
-                    <a href=""><i class="fa-brands fa-facebook"></i> Login with Facebook</a>
+                    <a href="<?php echo $client->createAuthUrl(); ?>">
+                        <i class="fa-brands fa-google"></i> Login with Google
+                    </a>
                 </div><br>
                 <div class="signup-link">
                     Not a member? <a href="signup.php">Signup now</a>
                 </div>
             </form>
         </div>
-
     </div>
 </body>
 

@@ -1,22 +1,62 @@
 <?php
-include '../includes/db.php'; // database connection
+include '../includes/db.php';
+require_once __DIR__ . '/google-config.php';
 session_start();
 
-$message = ""; 
+$message = "";
+
+// ---------------- GOOGLE SIGNUP CALLBACK ----------------
+if (isset($_GET['code'])) {
+    $token = $client->fetchAccessTokenWithAuthCode($_GET['code']);
+    if (!isset($token["error"])) {
+        $client->setAccessToken($token["access_token"]);
+        $google_service = new Google_Service_Oauth2($client);
+        $data = $google_service->userinfo->get();
+
+        $email = $data['email'];
+        $name = $data['name'];
+        $nameParts = explode(" ", $name, 2);
+        $firstName = $nameParts[0];
+        $lastName = isset($nameParts[1]) ? $nameParts[1] : "";
+
+        // Check if email already exists
+        $checkSql = "SELECT email FROM landlordtbl WHERE email=? UNION SELECT email FROM tenanttbl WHERE email=?";
+        $checkStmt = $conn->prepare($checkSql);
+        $checkStmt->bind_param("ss", $email, $email);
+        $checkStmt->execute();
+        $checkResult = $checkStmt->get_result();
+
+        if ($checkResult->num_rows > 0) {
+            // if registered redirect to login
+            header("Location: login.php");
+            exit;
+        } else {
+            // auto-create rows in databas
+            $stmt = $conn->prepare("INSERT INTO tenanttbl (firstName, lastName, email, dateJoin) VALUES (?, ?, ?, NOW())");
+            $stmt->bind_param("sss", $firstName, $lastName, $email);
+            $stmt->execute();
+
+            // Redirect to login
+            header("Location: login.php");
+            exit;
+        }
+    }
+}
+// --------------------------------------------------------
+
+
+// ---------------- NORMAL FORM SIGNUP --------------------
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $role = $_POST['role'];
     $username = trim($_POST['username']);
     $email = trim($_POST['email']);
     $password = trim($_POST['password']);
 
-    // Validation
     if (empty($username) || empty($email) || empty($password)) {
         $message = "❌ All fields are required.";
     } else {
-        // check if email is already existing
-        $checkSql = "SELECT email FROM landlordtbl WHERE email=? 
-                     UNION 
-                     SELECT email FROM tenanttbl WHERE email=?";
+        // check if email already exists
+        $checkSql = "SELECT email FROM landlordtbl WHERE email=? UNION SELECT email FROM tenanttbl WHERE email=?";
         $checkStmt = $conn->prepare($checkSql);
         $checkStmt->bind_param("ss", $email, $email);
         $checkStmt->execute();
@@ -30,30 +70,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($role === "landlord") {
                 $sql = "INSERT INTO landlordtbl (firstName, email, password, status, dateJoin) 
                         VALUES (?, ?, ?, 'pending', NOW())";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("sss", $username, $email, $hashedPassword);
-
-                if ($stmt->execute()) {
-                    $message = "✅ Landlord account created. Please wait for admin approval.";
-                } else {
-                    $message = "❌ Error: " . $stmt->error;
-                }
-            } elseif ($role === "tenant") {
+            } else {
                 $sql = "INSERT INTO tenanttbl (firstName, email, password, dateJoin) 
                         VALUES (?, ?, ?, NOW())";
-                $stmt = $conn->prepare($sql);
-                $stmt->bind_param("sss", $username, $email, $hashedPassword);
+            }
 
-                if ($stmt->execute()) {
-                    $message = "✅ Tenant account created successfully!";
-                } else {
-                    $message = "❌ Error: " . $stmt->error;
-                }
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("sss", $username, $email, $hashedPassword);
+            if ($stmt->execute()) {
+                // Redirect landlord to login 
+                header("Location: login.php");
+                exit;
+            } else {
+                $message = "❌ Error: " . $stmt->error;
             }
         }
     }
 }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -81,9 +116,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         <!--  messages  -->
         <?php if (!empty($message)): ?>
-        <p style="color:red; text-align:center; font-weight:bold;">
-            <?php echo $message; ?>
-        </p>
+            <p style="color:red; text-align:center; font-weight:bold;">
+                <?php echo $message; ?>
+            </p>
         <?php endif; ?>
 
         <!--Landlord Form -->
@@ -110,8 +145,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <button type="submit" class="btn signup">Sign Up</button>
                 <div class="socials">
                     <p>or</p><br>
-                    <a href=""><i class="fa-brands fa-google"></i> Signup with Google</a>
-                    <a href=""><i class="fa-brands fa-facebook"></i> Signup with Facebook</a>
+                    <a href="<?php echo $client->createAuthUrl(); ?>"><i class="fa-brands fa-google"></i> Signup with
+                        Google</a>
                 </div>
             </form>
         </div>
@@ -140,8 +175,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <button type="submit" class="btn signup">Sign Up</button><br><br>
                 <div class="socials">
                     <p>or</p><br>
-                    <a href=""><i class="fa-brands fa-google"></i> Signup with Google</a>
-                    <a href=""><i class="fa-brands fa-facebook"></i> Signup with Facebook</a>
+                    <a href="<?php echo $client->createAuthUrl(); ?>"><i class="fa-brands fa-google"></i> Signup with
+                        Google</a>
                 </div>
             </form>
         </div>

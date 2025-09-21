@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 18, 2025 at 04:02 PM
+-- Generation Time: Sep 14, 2025 at 10:11 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -28,13 +28,13 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `admintbl` (
-  `ID` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `ID` int(11) NOT NULL,
   `firstName` varchar(50) NOT NULL,
   `lastName` varchar(50) NOT NULL,
   `middleName` varchar(50) DEFAULT NULL,
-  `email` varchar(50) NOT NULL UNIQUE,
-  `password` varchar(255) NOT NULL,
-  `phoneNum` varchar(15) DEFAULT NULL
+  `email` varchar(50) NOT NULL,
+  `password` varchar(100) NOT NULL,
+  `phoneNum` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -44,12 +44,12 @@ CREATE TABLE `admintbl` (
 --
 
 CREATE TABLE `landlordtbl` (
-  `ID` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `ID` int(11) NOT NULL,
   `firstName` varchar(50) NOT NULL,
   `lastName` varchar(50) NOT NULL,
   `middleName` varchar(50) DEFAULT NULL,
   `email` varchar(50) NOT NULL,
-  `password` varchar(255) NOT NULL,
+  `password` varchar(100) NOT NULL,
   `phoneNum` varchar(11) DEFAULT NULL,
   `verificationId` varchar(255) DEFAULT NULL,
   `birthday` date DEFAULT NULL,
@@ -73,33 +73,20 @@ CREATE TABLE `landlordtbl` (
 
 CREATE TABLE `listingtbl` (
   `ID` int(11) NOT NULL,
-  `listingName` varchar(255) DEFAULT NULL,
   `price` int(50) NOT NULL,
   `listingDesc` varchar(255) NOT NULL,
-  `images` longtext NOT NULL,
-  `address` varchar(255) NOT NULL,
+  `images` varchar(255) NOT NULL,
+  `houseNum` int(10) NOT NULL,
+  `street` varchar(50) NOT NULL,
   `barangay` varchar(50) NOT NULL,
-  `rooms` int(11) DEFAULT NULL,
+  `city` varchar(50) NOT NULL,
+  `province` varchar(50) NOT NULL,
+  `zipCode` int(10) NOT NULL,
+  `country` varchar(50) NOT NULL,
   `listingDate` date NOT NULL,
   `category` varchar(50) NOT NULL,
-  `landlord_id` int(11) DEFAULT NULL,
-  `latitude` decimal(10,7) DEFAULT NULL,
-  `longitude` decimal(10,7) DEFAULT NULL
+  `landlord_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `listingtbl`
---
-
-INSERT INTO `listingtbl` (`ID`, `listingName`, `price`, `listingDesc`, `images`, `address`, `barangay`, `rooms`, `listingDate`, `category`, `landlord_id`, `latitude`, `longitude`) VALUES
-(1, 'BAHAY NI KUYA', 2222, 'sssssssssssssssssssss', '[\"1758084896_68ca3f207fa6f_381687360_298767639568410_6505632902293883757_n.jpg\"]', 'JAN LANG SA KANTO', 'Bagong Silang', 3, '2025-09-17', 'Condominium', NULL, 14.3643373, 121.0502529),
-(2, 'BAHAY NI KUYA', 2222, 'sssssssssssssssssssss', '[\"1758084990_68ca3f7e2b3da_381687360_298767639568410_6505632902293883757_n.jpg\"]', 'JAN LANG SA KANTO', 'Bagong Silang', 3, '2025-09-17', 'Condominium', NULL, 14.3643373, 121.0502529),
-(3, 'APARTMENT2', 998, 'jjjjjjjjjjjjjjjjjj', '[\"1758085013_68ca3f9516cd0_381687360_298767639568410_6505632902293883757_n.jpg\"]', 'JAN LANG SA KANTOs', 'Calendola', 2, '2025-09-17', 'Single-family home', NULL, 14.3662913, 121.0493088),
-(4, 'APARTMENT2', 998, 'jjjjjjjjjjjjjjjjjj', '[\"1758085590_68ca41d652f77_381687360_298767639568410_6505632902293883757_n.jpg\"]', 'JAN LANG SA KANTOs', 'Calendola', 2, '2025-09-17', 'Single-family home', NULL, 14.3662913, 121.0493088),
-(5, 'BAHAY NI ATEEs', 2222, '22222222222', '[\"1758085629_68ca41fd95098_382486546_6612322138887282_4039537186339714220_n.jpg\"]', '2222222222', 'Bagong Silang', 1, '2025-09-17', 'Condominium', NULL, 14.3645868, 121.0526991),
-(6, 'BAHAY NI ATEEs', 2222, '22222222222', '[\"1758085662_68ca421eb779d_382486546_6612322138887282_4039537186339714220_n.jpg\"]', '2222222222', 'Bagong Silang', 1, '2025-09-17', 'Condominium', NULL, 14.3645868, 121.0526991),
-(7, 'BAHAY NI KUYA', 2222222, '22222222222222222', '[\"1758086066_68ca43b2c2643_home.png\"]', '2222222222222', 'Bagong Silang', 2, '2025-09-17', 'Apartment complex', NULL, 14.3642314, 121.0530746),
-(8, 'APARTMENT3', 22222, '222222222222', '[\"1758086252_68ca446ccb325_home.png\"]', '222222222222', 'Bagong Silang', 2, '2025-09-17', 'Apartment complex', NULL, 14.3634227, 121.0521412);
 
 -- --------------------------------------------------------
 
@@ -135,12 +122,12 @@ CREATE TABLE `requesttbl` (
 --
 
 CREATE TABLE `tenanttbl` (
-  `ID` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  `ID` int(11) NOT NULL,
   `firstName` varchar(50) NOT NULL,
   `lastName` varchar(50) NOT NULL,
   `middleName` varchar(50) DEFAULT NULL,
   `email` varchar(50) NOT NULL,
-  `password` varchar(255) NOT NULL,
+  `password` varchar(100) NOT NULL,
   `verificationId` varchar(255) DEFAULT NULL,
   `birthday` date DEFAULT NULL,
   `gender` varchar(50) DEFAULT NULL,
@@ -204,7 +191,7 @@ ALTER TABLE `landlordtbl`
 -- AUTO_INCREMENT for table `listingtbl`
 --
 ALTER TABLE `listingtbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `renttbl`
