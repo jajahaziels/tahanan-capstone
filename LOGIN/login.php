@@ -1,3 +1,48 @@
+<?php
+include '../includes/db.php'; // ✅ database connection
+session_start();
+
+$errorMsg = "";
+
+//  login
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = trim($_POST["email"]);
+    $password = trim($_POST["password"]);
+
+    // list of tables to check in tahanandb
+    $tables = ["admintbl", "landlordtbl", "tenanttbl"];
+    $found = false;
+
+    foreach ($tables as $table) {
+        $stmt = $conn->prepare("SELECT ID, password, firstName, lastName FROM $table WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+
+        if ($row = $result->fetch_assoc()) {
+            if (password_verify($password, $row["password"])) {
+                $_SESSION["user_id"] = $row["ID"];
+                $_SESSION["user_name"] = $row["firstName"] . " " . $row["lastName"];
+                $_SESSION["user_type"] = $table;
+
+                // redirect to either landlord or tenant if successful login
+                header("Location: dashboard.php"); // insert the home page of either landlord or tenant
+                exit;
+            } else {
+                $errorMsg = "Incorrect password. Please try again.";
+                $found = true;
+                break;
+            }
+        }
+        $stmt->close();
+    }
+
+    if (!$found && $errorMsg == "") {
+        $errorMsg = "No account found with this email.";
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -24,14 +69,19 @@
 
         <!--Login Form -->
         <div class="form-box login-form">
-            <form action="#">
+            <form method="POST" action="">
                 <h1>Login Form</h1>
+
+                <?php if (!empty($errorMsg)): ?>
+                    <p style="color: red; font-size: 14px;"><?php echo $errorMsg; ?></p>
+                <?php endif; ?>
+
                 <div class="input-box">
-                    <input type="text" placeholder="Username" required>
+                    <input type="text" name="email" placeholder="Email" required>
                     <i class="fa-solid fa-user"></i>
                 </div>
                 <div class="input-box">
-                    <input type="password" placeholder="Password" required>
+                    <input type="password" name="password" placeholder="Password" required>
                     <i class="fa-solid fa-key"></i>
                 </div>
                 <div class="remember-forgot">
@@ -43,10 +93,9 @@
                     <p>or</p><br>
                     <a href=""><i class="fa-brands fa-google"></i> Login with Google</a>
                     <a href=""><i class="fa-brands fa-facebook"></i> Login with Facebook</a>
-
                 </div><br>
                 <div class="signup-link">
-                    Not a member? <a href="signup.html">Signup now</a>
+                    Not a member? <a href="signup.php">Signup now</a>
                 </div>
             </form>
         </div>

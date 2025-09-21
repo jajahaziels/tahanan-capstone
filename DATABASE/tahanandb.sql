@@ -28,13 +28,13 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `admintbl` (
-  `ID` int(11) NOT NULL,
+  `ID` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `firstName` varchar(50) NOT NULL,
   `lastName` varchar(50) NOT NULL,
   `middleName` varchar(50) DEFAULT NULL,
-  `email` varchar(50) NOT NULL,
-  `password` varchar(50) NOT NULL,
-  `phoneNum` int(11) DEFAULT NULL
+  `email` varchar(50) NOT NULL UNIQUE,
+  `password` varchar(255) NOT NULL,
+  `phoneNum` varchar(15) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -44,12 +44,12 @@ CREATE TABLE `admintbl` (
 --
 
 CREATE TABLE `landlordtbl` (
-  `ID` int(11) NOT NULL,
+  `ID` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `firstName` varchar(50) NOT NULL,
   `lastName` varchar(50) NOT NULL,
   `middleName` varchar(50) DEFAULT NULL,
   `email` varchar(50) NOT NULL,
-  `password` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `phoneNum` varchar(11) DEFAULT NULL,
   `verificationId` varchar(255) DEFAULT NULL,
   `birthday` date DEFAULT NULL,
@@ -135,12 +135,12 @@ CREATE TABLE `requesttbl` (
 --
 
 CREATE TABLE `tenanttbl` (
-  `ID` int(11) NOT NULL,
+  `ID` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `firstName` varchar(50) NOT NULL,
   `lastName` varchar(50) NOT NULL,
   `middleName` varchar(50) DEFAULT NULL,
-  `email` varchar(5) NOT NULL,
-  `password` varchar(50) NOT NULL,
+  `email` varchar(50) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `verificationId` varchar(255) DEFAULT NULL,
   `birthday` date DEFAULT NULL,
   `gender` varchar(50) DEFAULT NULL,
