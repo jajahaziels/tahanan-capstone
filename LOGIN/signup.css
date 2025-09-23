@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+* {
+	font-family: "Montserrat", sans-serif;
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+	list-style: none;
+	text-decoration: none !important;
+	scroll-behavior: smooth;
+}
+
+:root {
+	--bg-color: #fafafa;
+	--bg-alt-color: #dfdfdf;
+	--main-color: #8D0B41;
+	--text-color: #42505A;
+	--text-alt-color: #647887;
+}
+
+/* CUSTOM BUTTON */
+.main-button {
+	width: 100px;
+	height: 40px;
+	font-size: 16px;
+	background-color: var(--main-color);
+	color: var(--bg-color);
+	border-radius: 20px;
+	cursor: pointer;
+}
+
+.main-button:hover {
+	transform: scale(1.10);
+	transition: all .5s;
+}
+.login-button{
+	width: 390px;
+	height: 40px;
+	font-size: 16px;
+	background-color: var(--main-color);
+	color: var(--bg-color);
+	border-radius: 20px;
+	cursor: pointer;
+}
+.login-button:hover {
+	transform: scale(1.05);
+	transition: all .5s;
+}
+
+/* SIGNUP PAGE */
+.signup-container {
+	border: 4px solid var(--main-color);
+	border-radius: 10px;
+	padding: 30px 0px;
+	box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.75);
+}
+
+.form-control {
+	border: 2px solid var(--main-color);
+}
+
+/* LOGIN PAGE */
+.login-container {
+	max-width: 800px;
+	width: 100%;
+	height: 450px;
+	border: 4px solid var(--main-color);
+	border-radius: 20px;
+	display: flex;
+	box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.75);
+}
+
+.login-img {
+	flex: 1;
+	background: url('../img/house1.jpeg') no-repeat center center;
+	background-size: cover;
+}
+
+.login-form {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+}

@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 14, 2025 at 10:11 AM
+-- Generation Time: Sep 23, 2025 at 09:02 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.0.30
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -33,7 +33,7 @@ CREATE TABLE `admintbl` (
   `lastName` varchar(50) NOT NULL,
   `middleName` varchar(50) DEFAULT NULL,
   `email` varchar(50) NOT NULL,
-  `password` varchar(100) NOT NULL,
+  `password` varchar(50) NOT NULL,
   `phoneNum` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -45,11 +45,12 @@ CREATE TABLE `admintbl` (
 
 CREATE TABLE `landlordtbl` (
   `ID` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
   `firstName` varchar(50) NOT NULL,
   `lastName` varchar(50) NOT NULL,
   `middleName` varchar(50) DEFAULT NULL,
-  `email` varchar(50) NOT NULL,
-  `password` varchar(100) NOT NULL,
+  `email` varchar(150) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `phoneNum` varchar(11) DEFAULT NULL,
   `verificationId` varchar(255) DEFAULT NULL,
   `birthday` date DEFAULT NULL,
@@ -62,7 +63,8 @@ CREATE TABLE `landlordtbl` (
   `gender` varchar(50) DEFAULT NULL,
   `profilePic` varchar(255) DEFAULT NULL,
   `dateJoin` date DEFAULT NULL,
-  `status` varchar(50) DEFAULT NULL
+  `status` varchar(50) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -73,20 +75,26 @@ CREATE TABLE `landlordtbl` (
 
 CREATE TABLE `listingtbl` (
   `ID` int(11) NOT NULL,
+  `listingName` varchar(255) DEFAULT NULL,
   `price` int(50) NOT NULL,
   `listingDesc` varchar(255) NOT NULL,
-  `images` varchar(255) NOT NULL,
-  `houseNum` int(10) NOT NULL,
-  `street` varchar(50) NOT NULL,
+  `images` longtext NOT NULL,
+  `address` varchar(255) NOT NULL,
   `barangay` varchar(50) NOT NULL,
-  `city` varchar(50) NOT NULL,
-  `province` varchar(50) NOT NULL,
-  `zipCode` int(10) NOT NULL,
-  `country` varchar(50) NOT NULL,
+  `rooms` int(11) DEFAULT NULL,
   `listingDate` date NOT NULL,
   `category` varchar(50) NOT NULL,
-  `landlord_id` int(11) DEFAULT NULL
+  `landlord_id` int(11) DEFAULT NULL,
+  `latitude` decimal(10,7) DEFAULT NULL,
+  `longitude` decimal(10,7) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `listingtbl`
+--
+
+INSERT INTO `listingtbl` (`ID`, `listingName`, `price`, `listingDesc`, `images`, `address`, `barangay`, `rooms`, `listingDate`, `category`, `landlord_id`, `latitude`, `longitude`) VALUES
+(1, 'BAHAY NI KUYA', 3332, '.........................', '[\"1758370391_68ce9a57ab50f_INFORMATION TECHNOLOGY SOCIETY.png\"]', 'JAN LANG SA KANTO', 'Calendola', 1, '2025-09-20', 'Low-rise apartment', NULL, 14.3653411, 121.0512023);
 
 -- --------------------------------------------------------
 
@@ -123,11 +131,12 @@ CREATE TABLE `requesttbl` (
 
 CREATE TABLE `tenanttbl` (
   `ID` int(11) NOT NULL,
+  `username` varchar(50) NOT NULL,
   `firstName` varchar(50) NOT NULL,
   `lastName` varchar(50) NOT NULL,
   `middleName` varchar(50) DEFAULT NULL,
-  `email` varchar(50) NOT NULL,
-  `password` varchar(100) NOT NULL,
+  `email` varchar(150) NOT NULL,
+  `password` varchar(255) NOT NULL,
   `verificationId` varchar(255) DEFAULT NULL,
   `birthday` date DEFAULT NULL,
   `gender` varchar(50) DEFAULT NULL,
@@ -145,7 +154,9 @@ CREATE TABLE `tenanttbl` (
 -- Indexes for table `landlordtbl`
 --
 ALTER TABLE `landlordtbl`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `username` (`username`);
 
 --
 -- Indexes for table `listingtbl`
@@ -175,7 +186,10 @@ ALTER TABLE `requesttbl`
 -- Indexes for table `tenanttbl`
 --
 ALTER TABLE `tenanttbl`
-  ADD PRIMARY KEY (`ID`);
+  ADD PRIMARY KEY (`ID`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `email_2` (`email`),
+  ADD UNIQUE KEY `username` (`username`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -191,7 +205,7 @@ ALTER TABLE `landlordtbl`
 -- AUTO_INCREMENT for table `listingtbl`
 --
 ALTER TABLE `listingtbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `renttbl`
