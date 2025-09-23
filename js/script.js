@@ -12,9 +12,9 @@ window.onscroll = () => {
     navLinks.classList.remove("open");
 }
 // SCROLL REVEAL
-    ScrollReveal().reveal('header, .home', {
+    ScrollReveal().reveal('header, .home, #testimonials', {
         origin: 'top',
-        distance: '40px',
+        distance: '20px',
         duration: 1500,
         delay: 100,
         reset: true
@@ -38,9 +38,9 @@ window.onscroll = () => {
         reset: true
     });
 
-    ScrollReveal().reveal('footer', {
+    ScrollReveal().reveal('#map-section, footer', {
         origin: 'bottom',
-        distance: '40px',
+        distance: '20px',
         duration: 1500,
         delay: 100,
         reset: true

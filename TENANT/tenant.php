@@ -35,11 +35,11 @@ $result = $conn->query($sql);
         <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png" alt="">Tahanan</a>
 
         <ul class="nav-links">
-            <li><a href="tenant.html" class="active">Home</a></li>
-            <li><a href="tenant-rental.html">My Rental</a></li>
-            <li><a href="tenant-favorite.html">Favorite</a></li>
-            <li><a href="tenant-messages.html">Messages</a></li>
-            <li><a href="../support.html">Support</a></li>
+            <li><a href="tenant.php" class="active">Home</a></li>
+            <li><a href="tenant-rental.php">My Rental</a></li>
+            <li><a href="tenant-favorite.php">Favorite</a></li>
+            <li><a href="tenant-messages.php">Messages</a></li>
+            <li><a href="../support.php">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
         <div class="nav-icons">
@@ -48,9 +48,9 @@ $result = $conn->query($sql);
                 <i class="fa-solid fa-user"></i>
                 Tenant
                 <div class="dropdown-content">
-                    <a href="tenant-profile.html">Account</a>
-                    <a href="settings.html">Settings</a>
-                    <a href="logout.html">Log out</a>
+                    <a href="tenant-profile.php">Account</a>
+                    <a href="settings.php">Settings</a>
+                    <a href="logout.php">Log out</a>
                 </div>
             </div>
             <!-- NAVMENU -->
@@ -68,7 +68,7 @@ $result = $conn->query($sql);
                 <?php if ($result && $result->num_rows > 0): ?>
                     <?php while ($row = $result->fetch_assoc()): ?>
                         <div class="col-lg-4 col-sm-12">
-                            <div class="cards mb-4">
+                            <div class="cards mb-4" onclick="window.location='property-details.php?ID=<?= $row['ID']; ?>'">
                                 <div class="position-relative">
                                     <?php
                                     $images = json_decode($row['images'], true);

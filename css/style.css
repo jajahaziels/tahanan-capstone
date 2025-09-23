@@ -1,66 +1,11 @@
-/* Regular */
-@font-face {
-    font-family: "Inknut Antiqua";
-    src: url("/fonts/InknutAntiqua-Regular.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-}
-
-/* Light */
-@font-face {
-    font-family: "Inknut Antiqua";
-    src: url("/fonts/InknutAntiqua-Light.ttf") format("truetype");
-    font-weight: 300;
-    font-style: normal;
-}
-
-/* Medium */
-@font-face {
-    font-family: "Inknut Antiqua";
-    src: url("/fonts/InknutAntiqua-Medium.ttf") format("truetype");
-    font-weight: 500;
-    font-style: normal;
-}
-
-/* SemiBold */
-@font-face {
-    font-family: "Inknut Antiqua";
-    src: url("/fonts/InknutAntiqua-SemiBold.ttf") format("truetype");
-    font-weight: 600;
-    font-style: normal;
-}
-
-/* Bold */
-@font-face {
-    font-family: "Inknut Antiqua";
-    src: url("/fonts/InknutAntiqua-Bold.ttf") format("truetype");
-    font-weight: 700;
-    font-style: normal;
-}
-
-/* ExtraBold */
-@font-face {
-    font-family: "Inknut Antiqua";
-    src: url("/fonts/InknutAntiqua-ExtraBold.ttf") format("truetype");
-    font-weight: 800;
-    font-style: normal;
-}
-
-/* Black */
-@font-face {
-    font-family: "Inknut Antiqua";
-    src: url("/fonts/InknutAntiqua-Black.ttf") format("truetype");
-    font-weight: 900;
-    font-style: normal;
-}
-
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 * {
-    font-family: "Inknut Antiqua", serif;
+    font-family: "Montserrat", sans-serif;
     padding: 0;
-    margin: 0 !important;
+    margin: 0;
     box-sizing: border-box;
-    text-decoration: none !important;
     list-style: none;
+    text-decoration: none !important;
     scroll-behavior: smooth;
 }
 
@@ -69,6 +14,7 @@ body {
     font-size: 16px;
     line-height: 1.5;
     word-spacing: 1px;
+    overflow-x: hidden;
 }
 
 /* FONT SIZES
@@ -81,7 +27,7 @@ body {
 :root {
     /* --primary-color: #f3d2c1;
     --secondary-color: #d4cda5; */
-    --bg-color: #ffffff;
+    /* --bg-color: #ffffff;
     --bg-alt-color: #ffffff;
     --text-color: #383838;
     --text-alt-color: #383838;
@@ -89,55 +35,61 @@ body {
     --border-alt-color: #ebdc88;
     --button-color: #d0b8ac;
     --button-alt-color: #e9d0c3;
-    --hover-color: #fbfefb;
-}
+    --hover-color: #fbfefb; */
 
+    --bg-color: #fafafa;
+    --bg-alt-color: #dfdfdf;
+    --main-color: #8D0B41;
+    --text-color: #42505A;
+    --text-alt-color: #647887;
+}
+    /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.75); */
 h1{
     font-weight: 900;
     font-size: 32px;
     line-height: 1.2;
+    color: var(--text-color);
 }
 
 p {
-    font-weight: 400;
+    font-weight: 600;
+    color: var(--text-alt-color);
 }
 
 a {
     color: var(--text-color);
 }
 
-img {
-    width: 100%;
-}
 
 section {
-    padding: 150px 20px;
+    padding: 140px 20px;
     margin: 2px;
 }
 
 /* CUSTOM BUTTON */
 .main-button {
-    border: 2px solid var(--border-alt-color);
     width: 150px;
     height: 45px;
     font-size: 16px;
-    background-color: var(--button-color);
+    background-color: var(--main-color);
+    color: var(--bg-color);
     border-radius: 20px;
     cursor: pointer;
 }
 
 .main-button:hover {
+    transform: scale(1.10);
     transition: all .5s;
-    background-color: var(--hover-color);
 }
 
 /* HEADER */
 header {
     position: fixed;
-    width: 94%;
-    top: 3%;
+    width: 95%;
+    top: 2%;
     left: 3%;
-    background-color: var(--border-color);
+    background-color: var(--bg-color);
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.75);
     border-radius: 20px;
     z-index: 1000;
     display: flex;
@@ -146,20 +98,23 @@ header {
     padding: 10px 80px;
 }
 
+
 .logo {
-    color: var(--text-color);
+    color: var(--main-color);
     font-weight: 900;
     font-style: oblique;
     font-size: 24px;
-    /* font-family: "Brush Script MT", cursive; */
 }
 .logo img {
     width: 60px;
-    margin-top: 5px !important;
+    margin-top: 5px;
 }
 
 .nav-links {
     display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
 }
 
 .nav-links a {
@@ -169,37 +124,44 @@ header {
     color: var(--text-color);
     padding: 20px;
     font-size: 16px;
+    font-weight: 600;
 }
 
 .nav-icons {
-    background-color: var(--bg-color);
+    background-color: var(--bg-alt-color);
     padding: 12px 20px;
     border-radius: 50px;
 }
 
 .nav-icons i {
     font-size: 16px;
+    color: var(--main-color);
 }
 
 .nav-icons a {
     color: var(--text-color);
     font-size: 16px;
+    font-weight: 600;
 }
 
 #navmenu {
     color: var(--text-color);
     font-size: 18px;
-    margin-left: 10px !important;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 10px;
     display: none;
 }
 
 .nav-links a:hover {
-    background-color: var(--hover-color);
+    background-color: var(--main-color);
+    color: var(--bg-color);
     border-radius: 20px;
 }
 
 .nav-links .active {
-    background-color: var(--hover-color);
+    background-color: var(--main-color);
+    color: var(--bg-color);
     border-radius: 20px;
 }
 
@@ -212,11 +174,11 @@ header {
 
 .dropdown-content {
     position: absolute;
-    background-color: var(--border-color);
+    background-color: var(--main-color);
     min-width: 160px;
-    margin-top: 5px !important;
+    margin-top: 5px;
     padding: 20px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.075);
     border-radius: 20px;
     z-index: 1;
     opacity: 0;
@@ -229,11 +191,12 @@ header {
     padding: 12px 16px;
     display: block;
     text-decoration: none;
-    color: var(--text-color);
+    color: var(--bg-color);
 }
 
 .dropdown-content a:hover {
-    background-color: var(--hover-color);
+    background-color: var(--bg-color);
+    color: var(--main-color);
     border-radius: 20px;
 }
 
@@ -263,14 +226,20 @@ header {
         top: 100%;
         right: -100%;
         border-radius: 20px;
-        margin: 2rem !important;
+        margin: 2rem;
         padding: 20px;
-        background-color: var(--border-color);
+        background-color: var(--main-color);
         transition: all .5s;
     }
 
     .nav-links a {
         display: block;
+        color: var(--bg-color);
+    }
+    .nav-links a:hover {
+        background-color: var(--bg-color);
+        color: var(--main-color);
+        border-radius: 20px;
     }
 
     .nav-links.open {
@@ -280,31 +249,71 @@ header {
 
 /* HOME PAGE */
 .home {
-    margin-top: 30px !important;
-    padding: 20px 160px;
+    background: linear-gradient(rgba(0, 0, 0, 0.911), rgba(22, 1, 22, 0.747)), url(../img/house1.jpeg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
 }
+.home h1{
+    color: var(--bg-color);
+}
+.home span{
+    color: var(--main-color);
+}
+    /* From Uiverse.io by Shaidend */ 
+    .InputContainer {
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-color);
+    border-radius: 20px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.075);
+    }
+
+    .input {
+    width: 500px;
+    height: 100%;
+    font-size: 16px;
+    padding: 20px;
+    caret-color: var(--main-color);
+    }
+
+    .labelforsearch {
+    cursor: pointer;
+    padding: 0px 12px;
+    }
+    .labelforsearch i{
+        color: var(--main-color);
+        font-size: 24px;
+    }
+
+
+
+
+
+
 
 /* HOME PAGE TEMPORARY RESPONSIVENESS */
 @media (max-width: 1060px) {
     .home {
-        margin-top: 10px !important;
+        margin-top: 10px;
         padding: 20px;
     }
 }
 
 .home h1 {
     font-size: 2.1rem;
-    margin-bottom: 20px !important;
+    margin-bottom: 20px;
 }
 
 /* MORE INFO */
-.more-info {
-    background-color: var(--border-color);
-    padding: 120px 20px;
-}
 
 .info-icons i {
-    background-color: var(--bg-color);
+    background-color: var(--bg-alt-color);
+    color: var(--main-color);
     font-size: 32px;
     height: 70px;
     width: 70px;
@@ -315,16 +324,17 @@ header {
     justify-content: center;
 }
 
-/* HOME LISTING */
+
+/* INDEX LISTING */
 
 .cards {
-    background-color: var(--white-color);
-    border: 2px solid var(--border-alt-color);
+    background-color: var(--bg-color);
+    border: 2px solid var(--main-color);
     /* max-width: 410px; */
     border-radius: 15px;
     overflow: hidden;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.25);
     transition: all .5s;
 }
 
@@ -336,38 +346,25 @@ header {
 
 .labels {
     position: absolute;
-    margin-top: -170px !important;
+    margin-top: -170px;
     padding: 0 15px;
     display: flex;
     gap: 8px;
 }
 
-.label {
-    background: var(--border-alt-color);
-    color: var(--text-color);
+.listing-label {
+    background: var(--main-color);
+    color: var(--bg-color);
     font-size: 12px;
     padding: 4px 10px;
     border-radius: 14px;
-}
 
-.label.secondary {
-    background: var(--border-color);
-    border: 1px solid var(--bg-color);
-}
-
-.heart-icon {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: var(--border-color);
-    border-radius: 50px;
-    padding: 6px;
 }
 
 .price-tag {
     position: absolute;
-    margin-top: -40px !important;
-    margin-left: 15px !important;
+    margin-top: -40px;
+    margin-left: 15px;
     background: var(--text-color);
     color: var(--bg-color);
     padding: 5px 10px;
@@ -388,11 +385,11 @@ header {
     display: flex;
     font-size: 12px;
     color: var(--text-color);
-    margin-bottom: 12px !important;
+    margin-bottom: 12px;
 }
 
 .features i {
-    margin-right: 4px !important;
+    margin-right: 4px;
 }
 
 .location {
@@ -420,7 +417,7 @@ header {
     height: 40px;
     border-radius: 50%;
     border: 1px solid var(--text-color);
-    margin-right: 10px !important;
+    margin-right: 10px;
 }
 
 .landlord-name {
@@ -439,23 +436,39 @@ header {
 }
 
 .landlord-actions .btn {
-    background-color: var(--bg-dark-color);
+    color: var(--main-color);
     padding: 8px;
     border-radius: 8px;
     font-size: 14px;
     cursor: pointer;
 }
+/* TESTIMONIALS SECTION */
+.review{
+    background-color: var(--bg-alt-color);
+    border-radius: 5px;
+    height: 500px;
+}
+.fa-message{
+    font-size: 32px;
+    color: var(--text-color);
+}
+.stars{
+    color: var(--main-color);
+}
+.person img{
+    clip-path: circle();
+}
 
 /* FOOTER */
 footer {
     padding-top: 40px;
-    background-color: var(--border-color);
+    background-color: var(--bg-alt-color);
     font-size: 14px;
 }
 
 .footer-box {
     font-size: 12px;
-    border: 4px solid var(--bg-color);
+    border: 2px solid var(--main-color);
     padding: 3px;
     border-radius: 5px;
 }
@@ -466,4 +479,22 @@ footer {
 
 .footer-bottom {
     border-top: 2px solid var(--text-color);
+}
+
+
+/* CAROUSEL SA PROPERTY DESCRIPTION CSS */
+/* CAROUSEL CONTROL */
+.carousel-control-prev,
+.carousel-control-next {
+    background-color: var(--text-color);
+    width: 50px;
+    height: 70px;
+    margin: auto;
+}
+#carouselExample .carousel-inner {
+    height: 500px;
+}
+#carouselExample .carousel-item img {
+    height: 100%;
+    object-fit: cover;
 }

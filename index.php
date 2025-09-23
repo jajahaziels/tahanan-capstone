@@ -14,7 +14,17 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="css/style.css?v=<?= time(); ?>">
-    <title>CAPSTONE</title>
+    <!-- LEAFLET -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <title>INDEX</title>
+    <style>
+        #map {
+            height: 400px;
+            max-width: 800px;
+            padding: 0 !important;
+            margin: auto;
+        }
+    </style>
 </head>
 
 <body>
@@ -26,6 +36,7 @@
             <li><a href="#home">Home</a></li>
             <li><a href="#services">Services</a></li>
             <li><a href="#home-listing">Listing</a></li>
+            <li><a href="#testimonials">Testimonials</a></li>
             <li><a href="#footer">Contact</a></li>
         </ul>
         <!-- SIGN UP -->
@@ -36,25 +47,32 @@
             <div class="fa-solid fa-bars" id="navmenu"></div>
         </div>
     </header>
-    <!-- HOME PAGE -->
+    <!-- HOME SECTION -->
     <div class="home" id="home">
-        <div class="container vh-100 d-flex align-items-center justify-content-center">
-            <div class="row justify-content-center align-items-center gy-5">
-                <div class="col-lg-6 col-sm-12 text-start px-2">
-                    <h1>FIND YOUR HOME <br> WITH US</h1>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Asperiores quidem ipsam, minus nemo
-                        nihil dolores nulla saepe autem quae numquam.</p>
-                </div>
-                <div class="col-lg-6 col-sm-12">
-                    <div class="d-flex justify-content-center align-items-center">
-                        <img src="img/home.png" alt="">
+        <div class="container d-flex align-items-center
+                justify-content-center vh-100 text-center" data-aos="fade-up">
+            <div class="row justify-content-center">
+                <div class="col-lg-12 col-sm-12">
+                    <h1><span>—</span> T a h a n a n <span>—</span></h1> <br>
+                    <div class="InputContainer">
+                        <input
+                            placeholder="Search"
+                            id="input"
+                            class="input"
+                            name="text"
+                            type="text" />
+
+                        <label class="labelforsearch" for="input">
+                            <i class="fa-solid fa-magnifying-glass searchIcon"></i>
+                            <i class="fa-solid fa-filter"></i>
+                        </label>
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <!-- MORE INFO -->
-    <div class="more-info" id="services">
+    <section class="more-info" id="services">
         <div class="container m-auto">
             <h3 class="text-center mb-4">Convenient and Efficient House<br>Searching</h3>
             <div class="row gy-5">
@@ -81,7 +99,7 @@
                 </div>
             </div>
         </div>
-    </div>
+    </section>
     <!-- HOME PAGE LISTING -->
     <section class="home-listing" id="home-listing">
         <div class="container m-auto">
@@ -96,8 +114,8 @@
                         <div class="position-relative">
                             <img src="img/home.png" alt="" class="property-img">
                             <div class="labels">
-                                <div class="label"> <i class="fa-regular fa-star"></i>Featured</div>
-                                <div class="label secondary">Specials</div>
+                                <div class="listing-label"> <i class="fa-regular fa-star"></i>Featured</div>
+                                <div class="listing-label">Specials</div>
                             </div>
                             <div class="price-tag">₱ 20,000</div>
                         </div>
@@ -130,31 +148,25 @@
                     </div>
                 </div>
                 <!-- CARD 1 END -->
+                <!-- CARD 2 -->
                 <div class="col-lg-4 col-sm-12">
-                    <!-- CARD 2 -->
                     <div class="cards mb-4">
                         <div class="position-relative">
                             <img src="img/home.png" alt="" class="property-img">
                             <div class="labels">
-                                <div class="label"> <i class="fa-regular fa-star"></i>Featured</div>
-                                <div class="label secondary">Whole House</div>
-                            </div>
-                            <div class="heart-icon">
-                                <i class="far fa-heart"></i>
+                                <div class="listing-label"> <i class="fa-regular fa-star"></i>Featured</div>
+                                <div class="listing-label">Specials</div>
                             </div>
                             <div class="price-tag">₱ 20,000</div>
                         </div>
 
                         <div class="cards-content">
                             <h5 class="mb-2 house-name">Lorem ipsum dolor sit ame</h5>
-                            <div class="mb-2 location"><i class="fas fa-map-marker-alt"></i> Phase 1B, Blk 8 Lot 3,
-                                Pacita 1,
-                                SPL</div>
+                            <div class="mb-2 location"><i class="fas fa-map-marker-alt"></i> Phase 1B, Blk 8 Lot 3, Pacita 1</div>
 
                             <div class="features">
-                                <div class="m-2"><i class="fas fa-bed"></i> 3 bed</div>
-                                <div class="m-2"><i class="fas fa-bath"></i> 1 bath</div>
-                                <div class="m-2"><i class="fas fa-ruler"></i> 950 sq ft</div>
+                                <div class="m-2"><i class="fas fa-bed"></i> 3 Bedroom</div>
+                                <div class="m-2"><i class="fa-solid fa-building"></i> Condominium</div>
                             </div>
 
                             <div class="divider my-3"></div>
@@ -163,44 +175,38 @@
                                 <div class="landlord-left">
                                     <img src="img/home.png" alt="Landlord">
                                     <div>
-                                        <div class="landlord-name">Jonathan Allen</div>
+                                        <div class="landlord-name">Doe Allen</div>
                                         <div class="landlord-role">Landlord</div>
                                     </div>
                                 </div>
                                 <div class="landlord-actions">
-                                    <div class="btn"><i class="fas fa-phone"></i></div>
+                                    <div class="btn"><i class="fa-solid fa-user"></i></div>
                                     <div class="btn"><i class="fas fa-comment-dots"></i></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- CARD 2 END -->
                 </div>
+                <!-- CARD 2 END -->
+                <!-- CARD 3 -->
                 <div class="col-lg-4 col-sm-12">
-                    <!-- CARD 3 -->
                     <div class="cards mb-4">
                         <div class="position-relative">
                             <img src="img/home.png" alt="" class="property-img">
                             <div class="labels">
-                                <div class="label"> <i class="fa-regular fa-star"></i>Featured</div>
-                                <div class="label secondary">Whole House</div>
-                            </div>
-                            <div class="heart-icon">
-                                <i class="far fa-heart"></i>
+                                <div class="listing-label"> <i class="fa-regular fa-star"></i>Featured</div>
+                                <div class="listing-label">Specials</div>
                             </div>
                             <div class="price-tag">₱ 20,000</div>
                         </div>
 
                         <div class="cards-content">
                             <h5 class="mb-2 house-name">Lorem ipsum dolor sit ame</h5>
-                            <div class="mb-2 location"><i class="fas fa-map-marker-alt"></i> Phase 1B, Blk 8 Lot 3,
-                                Pacita 1,
-                                SPL</div>
+                            <div class="mb-2 location"><i class="fas fa-map-marker-alt"></i> Phase 1B, Blk 8 Lot 3, Pacita 1</div>
 
                             <div class="features">
-                                <div class="m-2"><i class="fas fa-bed"></i> 3 bed</div>
-                                <div class="m-2"><i class="fas fa-bath"></i> 1 bath</div>
-                                <div class="m-2"><i class="fas fa-ruler"></i> 950 sq ft</div>
+                                <div class="m-2"><i class="fas fa-bed"></i> 3 Bedroom</div>
+                                <div class="m-2"><i class="fa-solid fa-building"></i> Condominium</div>
                             </div>
 
                             <div class="divider my-3"></div>
@@ -209,24 +215,176 @@
                                 <div class="landlord-left">
                                     <img src="img/home.png" alt="Landlord">
                                     <div>
-                                        <div class="landlord-name">Jonathan Allen</div>
+                                        <div class="landlord-name">Doe Allen</div>
                                         <div class="landlord-role">Landlord</div>
                                     </div>
                                 </div>
                                 <div class="landlord-actions">
-                                    <div class="btn"><i class="fas fa-phone"></i></div>
+                                    <div class="btn"><i class="fa-solid fa-user"></i></div>
                                     <div class="btn"><i class="fas fa-comment-dots"></i></div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- CARD 3 END -->
                 </div>
+                <!-- CARD 3 END -->
             </div>
             <!-- END NG ROW -->
             <div class="d-flex justify-content-center align-items-center mt-4 button-animation">
-                <div class="main-button mt-4">Load More Properties </div>
+                <button class="main-button" onclick="location.href='properties.html'">View More</button>
             </div>
+        </div>
+    </section>
+
+    <!-- MAP SECTION -->
+    <div id="map-section">
+        <div class="container m-auto mb-4">
+            <h1>Listing Locations</h1>
+            <div class="row">
+                <div class="col-lg-6 col-sm-12">
+                    <!-- Only one actual map div -->
+                    <div id="map"></div>
+                </div>
+                <div class="col-lg-6 col-sm-12">
+                    <!-- Only one actual map div -->
+                    <h3 class="mb-2">Explore Listings in San Pedro, Laguna</h3>
+                    <p>Discover a variety of rental properties in San Pedro, Laguna. Our listings include</p>
+                    <div class="d-flex">
+                        <ul>
+                            <li>Barangay</li>
+                            <li>Bagong Silang</li>
+                            <li>Calendola</li>
+                            <li>Chrysanthemum</li>
+                            <li>.....</li>
+                        </ul>
+                        <ul>
+                            <li>Number of Rooms</li>
+                            <li>1 Bedroom</li>
+                            <li>2 Bedrooms</li>
+                            <li>3 Bedrooms</li>
+                            <li>4+ Bedrooms</li>
+                        </ul>
+                        <ul>
+                            <li>Category</li>
+                            <li>Condominiums</li>
+                            <li>Townhouses</li>
+                            <li>Houses for Rent</li>
+                            <li>....</li>
+                        </ul>
+                    </div>
+                    <p>Each listing provides detailed information, photos, and contact details to help you find
+                        your perfect home. Start your search today and explore the best rental options in San Pedro,
+                        Laguna!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- TESTIMONIALS SECTION -->
+    <section id="testimonials" class="mt-5 testimonials">
+        <div class="container m-auto">
+            <h3 class="mb-4">Hear From Our Happy Users</h3>
+            <div id="carouselExample" class="carousel slide">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="review text-center p-4">
+                                    <i class="fa-regular fa-message mb-4 mt-5"></i>
+                                    <p>"This platform has been a game-changer for managing our apartments. Everything is in one place—tenant requests, payments, and updates—so I no longer waste time juggling multiple tools. It keeps everything organized and stress-free."</p>
+                                    <div class="person mt-5">
+                                        <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
+                                        <h5 class="mt-3">Jonathan Allen Mina</h5>
+                                        <div class="stars">
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star-half-stroke"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="carousel-item">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="review text-center p-4">
+                                    <i class="fa-regular fa-message mb-4 mt-5"></i>
+                                    <p>"I love how easy it is to stay connected with tenants through this platform. From announcements to maintenance updates, communication is clear and efficient. It has improved relationships and boosted tenant satisfaction."</p>
+                                    <div class="person mt-5">
+                                        <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
+                                        <h5 class="mt-3">Jahaziel Sison</h5>
+                                        <div class="stars">
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star-half-stroke"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="carousel-item">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="review text-center p-4">
+                                    <i class="fa-regular fa-message mb-4 mt-5"></i>
+                                    <p>"Collecting rent used to be a hassle, but now it’s effortless. The platform’s payment system is reliable and secure, making the entire process smooth for both tenants and management. It’s a win-win!"</p>
+                                    <div class="person mt-5">
+                                        <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
+                                        <h5 class="mt-3">Salmuel Whyette Alcazar</h5>
+                                        <div class="stars">
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star-half-stroke"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="carousel-item">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="review text-center p-4">
+                                    <i class="fa-regular fa-message mb-4 mt-5"></i>
+                                    <p>"This apartment management platform has elevated the way we operate. It gives off a professional, modern feel that tenants notice and appreciate. It’s not just a tool—it’s part of delivering excellent service."</p>
+                                    <div class="person mt-5">
+                                        <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
+                                        <h5 class="mt-3">Giorj Allen Gonzales</h5>
+                                        <div class="stars">
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star-half-stroke"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+
         </div>
     </section>
     <!-- FOOTER -->
@@ -246,49 +404,48 @@
                         <div class="mt-4">
                             <i class="fa-solid fa-phone mx-1"></i> (+63) 2 8123-4567 <br>
                             <i class="fa-solid fa-envelope mx-1"></i> tahanan@gmail.com <br>
-                            <i class="fa-solid fa-location-dot mx-1"></i> Pacita 1, San Pedro, Laguna 
+                            <i class="fa-solid fa-location-dot mx-1"></i> Pacita 1, San Pedro, Laguna
                         </div>
                     </div>
 
                     <div class="col-lg-2 col-sm-12">
                         <div class="lead">For Tenants </div>
                         <div class="mt-4">
-                            <p>Browse Rentals</p> <br>
-                            <p>Filter Location</p> <br>
-                            <p>Verified Listings</p> <br>
-                            <p>Location Map</p> <br>
-                            <p>Tenant Rights</p> <br>
-                            <p>Landlord FAQs</p> <br>
+                            <p>Browse Rentals</p>
+                            <p>Filter Location</p>
+                            <p>Verified Listings</p>
+                            <p>Location Map</p>
+                            <p>Tenant Rights</p>
+                            <p>Landlord FAQs</p>
                         </div>
                     </div>
 
                     <div class="col-lg-2 col-sm-12">
                         <div class="lead">For Landlord</div>
                         <div class="mt-4">
-                            <p>List Your Properties</p> <br>
-                            <p>Verification Process</p> <br>
-                            <p>Update Property Information</p> <br>
-                            <p>Rental Reminders & Notifications</p> <br>
-                            <p>Landlords FAQs</p> <br>
+                            <p>List Your Properties</p>
+                            <p>Verification Process</p>
+                            <p>Update Property Information</p>
+                            <p>Rental Reminders & Notifications</p>
+                            <p>Landlords FAQs</p>
                         </div>
                     </div>
 
                     <div class="col-lg-2 col-sm-12">
                         <div class="lead">Company</div>
                         <div class="mt-4">
-                            <p>About Us</p> <br>
-                            <p>Contact Us</p> <br>
-                            <p>Privacy Policy</p> <br>
-                            <p>Contact Support</p> <br>
-                            <p>Terms and Conditions</p> <br>
+                            <p>About Us</p>
+                            <p>Contact Us</p>
+                            <p>Privacy Policy</p>
+                            <p>Contact Support</p>
+                            <p>Terms and Conditions</p>
                         </div>
                     </div>
 
                     <div class="col-lg-2 col-sm-12">
                         <div class="lead">Support Hours</div> <br>
-                            <i class="fa-solid fa-clock"></i>
-                            Mon - Fri: 8:00 AM - 9:00 PM <br> <br>
-                            Sat - Sun: 10:00 AM - 5:00 PM
+                        <p>Mon - Fri: 8:00 AM - 9:00 PM</p>
+                        <p>Sat - Sun: 10:00 AM - 5:00 PM</p>
                     </div>
 
                 </div>
@@ -297,7 +454,7 @@
         </div>
         <div class="footer-bottom mt-4">
             <div class="container m-auto">
-                <div class="d-flex justify-content-center align-items-center p-3">
+                <div class="d-flex justify-content-center align-items-center pt-3">
                     <p>All Rights Reserved</p>
                 </div>
             </div>
@@ -305,10 +462,31 @@
     </footer>
 </body>
 <!-- MAIN JS -->
-<script src="js/script.js" defer></script>
+<script src="js/script.js?v=<?php echo time(); ?>" defer></script>
 <!-- BS JS -->
 <script src="js/bootstrap.bundle.min.js"></script>
 <!-- SCROLL REVEAL -->
 <script src="https://unpkg.com/scrollreveal"></script>
+<!-- LEAFLET JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+    // INITIALIZE MAP IN SAN PEDRO
+    var map = L.map('map').setView([14.3647, 121.0556], 15);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var marker;
+
+    map.on('click', function(e) {
+        var lat = e.latlng.lat;
+        var lng = e.latlng.lng;
+
+        if (marker) {
+            map.removeLayer(marker);
+        }
+    });
+</script>
 
 </html>
