@@ -48,30 +48,49 @@
     </header>
     <!-- MESSAGES -->
     <div class="landlord-page">
-        <div class="container m-auto">
-            <h2 class="my-4">Chats <i class="fa-solid fa-pen-to-square"></i></h2>
-            <div class="row chat-box">
-                <div class="col-lg-4 side1 overflow-y-scroll">
-                    <input class="search-chats " type="text" placeholder=" Search Shats">
-                    <div class="convo my-2 d-flex justify-content-start align-items-center">
-                        <img src="../img/home.png" alt="">
-                        <h4>Sam Sulek</h4>
-                    </div>
-                    <div class="convo my-2 d-flex justify-content-start align-items-center">
-                        <img src="../img/home.png" alt="">
-                        <h4>Berhel Reyes</h4>
-                    </div>
-                </div>
-                <div class="col-lg-8 side2 overflow-y-scroll">
-                    <!-- ANO ILALAGAY KO DINE????.. ewan ko po ateee -->
-                </div>
-            </div>
+     <div class="container-fluid h-100">
+         <div class="row chat-box">
+      
+      <!-- Sidebar -->
+      <div class="col-lg-4 side1">
+        <input class="search-chats" type="text" placeholder=" Search Chats">
+        <div class="convo d-flex align-items-center">
+          <img src="../img/home.png" alt="">
+          <h4>Sam Sulek</h4>
         </div>
+        <div class="convo d-flex align-items-center">
+          <img src="../img/home.png" alt="">
+          <h4>Berhel Reyes</h4>
+        </div>
+      </div>
+
+      <!-- Chat area -->
+      <div class="col-lg-8 side2">
+        <div class="chat-header">
+          Chat with Sam Sulek
+        </div>
+
+        <div class="chat-messages">
+          <div class="message received">Hey, welcome to the chat!</div>
+          <div class="message sent">Thanks! This feels cleaner now 😎</div>
+        </div>
+
+        <div class="chat-input">
+          <input type="text" placeholder="Type a message...">
+          <button><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+      </div>
+
     </div>
+  </div>
+</div>
 <!-- MAIN JS -->
 <script src="../js/script.js" defer></script>
 <!-- BS JS -->
 <script src="../js/bootstrap.bundle.min.js"></script>
 <!-- SCROLL REVEAL -->
 <script src="https://unpkg.com/scrollreveal"></script>
+
+<script src="../js/chatsys.js" defer></script>
+
 </body>
