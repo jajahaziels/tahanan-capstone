@@ -352,13 +352,12 @@ header {
     gap: 8px;
 }
 
-.listing-label {
+.label {
     background: var(--main-color);
     color: var(--bg-color);
     font-size: 12px;
     padding: 4px 10px;
     border-radius: 14px;
-
 }
 
 .price-tag {

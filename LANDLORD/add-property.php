@@ -1,31 +1,36 @@
 <?php
 require_once '../connection.php';
-session_start();
+include '../session_auth.php';
 
 $errors = [];
 $success = "";
 
+// Handle form submit
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Collect inputs
     $listingName  = trim($_POST['listing_name'] ?? '');
     $address      = trim($_POST['address'] ?? '');
     $barangay     = $_POST['barangay'] ?? '';
-    $price        = $_POST['price'] ?? '';
-    $rooms        = $_POST['rooms'] ?? '';
+    $price        = (float)($_POST['price'] ?? 0);
+    $rooms        = (int)($_POST['rooms'] ?? 0);
     $category     = $_POST['category'] ?? '';
     $listingDesc  = trim($_POST['description'] ?? '');
     $latitude     = $_POST['latitude'] ?? null;
     $longitude    = $_POST['longitude'] ?? null;
 
+    // Landlord ID from session
+    $landlord_id = $_SESSION['landlord_id'] ?? null;
+
     // Validation
-    if (empty($listingName)) $errors[] = "Listing name is required.";
-    if (empty($address)) $errors[] = "Address is required.";
-    if (empty($barangay)) $errors[] = "Barangay is required.";
-    if (empty($price) || $price <= 0) $errors[] = "Price must be greater than 0.";
-    if (empty($rooms)) $errors[] = "Number of rooms is required.";
-    if (empty($category)) $errors[] = "Category is required.";
+    if ($listingName === '') $errors[] = "Listing name is required.";
+    if ($address === '') $errors[] = "Address is required.";
+    if ($barangay === '') $errors[] = "Barangay is required.";
+    if ($price <= 0) $errors[] = "Price must be greater than 0.";
+    if ($rooms <= 0) $errors[] = "Number of rooms is required.";
+    if ($category === '') $errors[] = "Category is required.";
     if (empty($latitude) || empty($longitude)) $errors[] = "Location must be pinned on the map.";
     if (empty($_FILES['image']['name'][0])) $errors[] = "At least one image is required.";
+    if (empty($landlord_id)) $errors[] = "Landlord is not logged in.";
 
     $listingDate = date('Y-m-d H:i:s');
     if ($listingDesc === '') $listingDesc = null;
@@ -33,7 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     // Handle images
     $uploadedImages = [];
     if (!empty($_FILES['image']['name'][0])) {
-        $targetDir = "uploads/";
+        $targetDir = __DIR__ . "/uploads/"; // ✅ safer path
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0777, true);
         }
@@ -61,12 +66,12 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $stmt = $conn->prepare("
             INSERT INTO listingtbl 
-            (listingName, address, barangay, price, rooms, category, listingDesc, images, listingDate, latitude, longitude)  
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (listingName, address, barangay, price, rooms, category, listingDesc, images, listingDate, latitude, longitude, landlord_id)  
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $stmt->bind_param(
-            "sssiissssdd",
+            "sssiissssddi",
             $listingName,
             $address,
             $barangay,
@@ -77,18 +82,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $imagesJson,
             $listingDate,
             $latitude,
-            $longitude
+            $longitude,
+            $landlord_id
         );
 
         if ($stmt->execute()) {
             $_SESSION['success'] = "Property added successfully!";
-
-            // 🔑 Redirect so refresh won't resubmit the form
-            header("Location: " . $_SERVER['PHP_SELF']);
+            header("Location: " . $_SERVER['PHP_SELF']); // ✅ prevents resubmit
             exit;
         } else {
             $errors[] = "Database error: " . $stmt->error;
         }
+
         $stmt->close();
     }
 }
@@ -99,6 +104,8 @@ if (!empty($_SESSION['success'])) {
     unset($_SESSION['success']);
 }
 ?>
+
+
 
 
 
@@ -136,7 +143,7 @@ if (!empty($_SESSION['success'])) {
         }
 
         .form-control {
-            border: 2px solid var(--button-color);
+            border: 2px solid var(--main-color);
         }
 
         #map {

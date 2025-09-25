@@ -1,3 +1,8 @@
+<?php
+require_once '../connection.php';
+include '../session_auth.php';
+
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -14,7 +19,7 @@
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="../css/style.css">
-    <title>HOME</title>
+    <title>Landlord <?= htmlspecialchars($_SESSION['username']); ?>!</title>
     <style>
         .landlord-page {
             margin-top: 140px !important;
@@ -38,11 +43,11 @@
             <!-- DROP DOWN -->
             <div class="dropdown">
                 <i class="fa-solid fa-user"></i>
-                Landlord
+                <?= htmlspecialchars($_SESSION['username']); ?>
                 <div class="dropdown-content">
                     <a href="account.php">Account</a>
                     <a href="settings.php">Settings</a>
-                    <a href="logout.php">Log out</a>
+                    <a href="../LOGIN/logout.php">Log out</a>
                 </div>
             </div>
             <!-- NAVMENU -->
@@ -51,15 +56,17 @@
     </header>
     <div class="landlord-page">
         <div class="container m-auto">
-            <h1>Welcome, Landlord!</h1>
+            <h1>Welcome, Landlord <?= htmlspecialchars($_SESSION['username']); ?>!</h1>
             <p>Manage your properties and connect with tenants easily.</p>
             <p>DITO KANA MAG START NG CONTENT, INSIDE THIS LANDLORD PAGE DIV</p>
         </div>
+    </div>
 
-<!-- MAIN JS -->
-<script src="../js/script.js" defer></script>
-<!-- BS JS -->
-<script src="../js/bootstrap.bundle.min.js"></script>
-<!-- SCROLL REVEAL -->
-<script src="https://unpkg.com/scrollreveal"></script>
+    <!-- MAIN JS -->
+    <script src="../js/script.js" defer></script>
+    <!-- BS JS -->
+    <script src="../js/bootstrap.bundle.min.js"></script>
+    <!-- SCROLL REVEAL -->
+    <script src="https://unpkg.com/scrollreveal"></script>
 </body>
+</html>

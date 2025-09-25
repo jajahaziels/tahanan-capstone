@@ -42,7 +42,7 @@
         <!-- SIGN UP -->
         <div class="nav-icons">
             <i class="fa-solid fa-user"></i>
-            <a href="/LOGIN/signup.html">Sign In</a>
+            <a href="../TAHANAN/LOGIN/login.php">Sign In</a>
             <!-- NAVMENU -->
             <div class="fa-solid fa-bars" id="navmenu"></div>
         </div>

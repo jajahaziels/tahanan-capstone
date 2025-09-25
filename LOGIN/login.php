@@ -2,56 +2,52 @@
 session_start();
 require_once '../connection.php';
 
-$message = "";
-
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = trim($_POST['username'] ?? '');
-    $password = $_POST['password'] ?? '';
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
 
-    if (empty($username) || empty($password)) {
-        $message = "❌ Both fields are required!";
-    } else {
-        // First check Tenant table
-        $stmt = $conn->prepare("SELECT ID, username, password FROM tenanttbl WHERE username = ?");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
+    // First, check landlords
+    $stmt = $conn->prepare("SELECT * FROM landlordtbl WHERE username = ?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-        $user = $result->fetch_assoc();
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
 
-        if (!$user) {
-            // If not found, check Landlord table
-            $stmt = $conn->prepare("SELECT ID, username, password FROM landlordtbl WHERE username = ?");
-            $stmt->bind_param("s", $username);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $user = $result->fetch_assoc();
+        if (password_verify($password, $row['password'])) {
+            $_SESSION['user_type']   = "landlord";
+            $_SESSION['landlord_id'] = $row['ID'];
+            $_SESSION['username']    = $row['username'];
 
-            $role = "Landlord";
-        } else {
-            $role = "Tenant";
+            header("Location: ../LANDLORD/landlord.php");
+            exit;
         }
-
-        if ($user && password_verify($password, $user['password'])) {
-            // Store session
-            $_SESSION['user_id'] = $user['ID'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['role'] = $role;
-
-            // Redirect based on role
-            if ($role === "Tenant") {
-                header("Location: ../TENANT/tenant.php");
-            } else {
-                header("Location: ../LANDLORD/landlord.php");
-            }
-            exit();
-        } else {
-            $message = "❌ Invalid username or password!";
-        }
-
-        $stmt->close();
     }
+
+    // If not landlord, check tenants
+    $stmt = $conn->prepare("SELECT * FROM tenanttbl WHERE username = ?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+
+        if (password_verify($password, $row['password'])) {
+            $_SESSION['user_type']  = "tenant";
+            $_SESSION['tenant_id']  = $row['ID'];
+            $_SESSION['username']   = $row['username'];
+
+            header("Location: ../TENANT/tenant.php");
+            exit;
+        }
+    }
+
+    // If neither table matches
+    $error = "Invalid username or password.";
 }
+
 ?>
 
 <!DOCTYPE html>
