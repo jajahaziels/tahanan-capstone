@@ -82,6 +82,21 @@ section {
     transition: all .5s;
 }
 
+.map-button {
+    width: 75px;
+    height: 25px;
+    font-size: 16px;
+    background-color: var(--main-color);
+    color: var(--bg-color);
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.map-button:hover {
+    transform: scale(1.10);
+    transition: all .5s;
+}
+
 /* HEADER */
 header {
     position: fixed;

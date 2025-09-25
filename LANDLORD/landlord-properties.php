@@ -2,9 +2,16 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-$sql = "SELECT * FROM listingtbl";
-$result = $conn->query($sql);
+// Get the landlord_id from the session
+$landlord_id = $_SESSION['landlord_id'];
+
+$sql = "SELECT * FROM listingtbl WHERE landlord_id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $landlord_id);
+$stmt->execute();
+$result = $stmt->get_result();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

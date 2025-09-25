@@ -1,7 +1,7 @@
 <?php
-include '../connection.php';
+require_once '../connection.php';
+include '../session_auth.php';
 
-// Accept both ?id=1 and ?ID=1
 $idParam = $_GET['id'] ?? $_GET['ID'] ?? null;
 
 if (!$idParam || !is_numeric($idParam)) {
@@ -66,6 +66,7 @@ $stmt->close();
             <li><a href="tenant.php">Home</a></li>
             <li><a href="tenant-rental.php">My Rental</a></li>
             <li><a href="tenant-favorite.php">Favorite</a></li>
+            <li><a href="tenant-map.php">Map</a></li>
             <li><a href="tenant-messages.php">Messages</a></li>
             <li><a href="../support.php">Support</a></li>
         </ul>

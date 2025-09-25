@@ -2,7 +2,9 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-$sql = "SELECT l.*, lt.username, lt.profilePic 
+$tenant_id = $_SESSION['tenant_id'];
+
+$sql = "SELECT l.*, lt.firstName, lt.lastName, lt.profilePic 
         FROM listingtbl AS l
         JOIN landlordtbl AS lt ON l.landlord_id = lt.ID";
 $result = $conn->query($sql);
@@ -39,6 +41,7 @@ $result = $conn->query($sql);
             <li><a href="tenant.php" class="active">Home</a></li>
             <li><a href="tenant-rental.php">My Rental</a></li>
             <li><a href="tenant-favorite.php">Favorite</a></li>
+            <li><a href="tenant-map.php">Map</a></li>
             <li><a href="tenant-messages.php">Messages</a></li>
             <li><a href="../support.php">Support</a></li>
         </ul>
@@ -120,7 +123,7 @@ $result = $conn->query($sql);
                                                 <div class="landlord-left">
                                                     <img src="../LANDLORD/uploads/<?= htmlspecialchars($row['profilePic']); ?>" alt="Landlord" style="width:40px; height:40px; border-radius:50%;">
                                                     <div>
-                                                        <div class="landlord-name"><?= htmlspecialchars($row['username']); ?></div>
+                                                        <div class="landlord-name"><?= htmlspecialchars($row['firstName'] . ' ' . $row['lastName']); ?></div>
                                                         <div class="landlord-role">Landlord</div>
                                                     </div>
                                                 </div>
