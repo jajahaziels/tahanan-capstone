@@ -13,7 +13,7 @@
     <!-- BS -->
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <!-- MAIN CSS -->
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
     <title>EDIT ACCOUNT</title>
     <style>
         .landlord-page {
@@ -21,7 +21,7 @@
         }
 
         .edit {
-            border: 6px solid var(--border-color);
+            border: 6px solid var(--main-color);
             padding: 40px;
             border-radius: 20px;
         }
@@ -30,7 +30,7 @@
             width: 120px;
             height: 120px;
             background-color: #d9d9d9;
-            border-radius: 50%;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -38,23 +38,20 @@
             position: relative;
             cursor: pointer;
             overflow: hidden;
-            border: 2px solid var(--border-alt-color);
+            border: 2px solid var(--main-color);
         }
 
         .profile-img img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 50%;
+            border-radius: 10px;
         }
 
         .upload-input {
             display: none;
         }
 
-        .form-control {
-            border: 2px solid var(--button-color);
-        }
     </style>
 </head>
 
@@ -64,10 +61,10 @@
         <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png" alt="">Tahanan</a>
 
         <ul class="nav-links">
-            <li><a href="landlord.html">Home</a></li>
-            <li><a href="landlord-properties.html">Properties</a></li>
-            <li><a href="landlord-message.html">Messages</a></li>
-            <li><a href="../support.html">Support</a></li>
+            <li><a href="landlord.php">Home</a></li>
+            <li><a href="landlord-properties.php">Properties</a></li>
+            <li><a href="landlord-message.php">Messages</a></li>
+            <li><a href="../support.php">Support</a></li>
         </ul>
         <!-- SIGN UP -->
         <!-- NAV ICON / NAME -->
@@ -75,11 +72,11 @@
             <!-- DROP DOWN -->
             <div class="dropdown">
                 <i class="fa-solid fa-user"></i>
-                Landlord
+                <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>
                 <div class="dropdown-content">
-                    <a href="account.html">Account</a>
-                    <a href="settings.html">Settings</a>
-                    <a href="logout.html">Log out</a>
+                    <a href="account.php">Account</a>
+                    <a href="settings.php">Settings</a>
+                    <a href="../LOGIN/logout.php">Log out</a>
                 </div>
             </div>
             <!-- NAVMENU -->
@@ -141,8 +138,8 @@
                                 <input type="text" class="form-control">
                             </div>
                         </div>
-                        <a href=""><button class="main-button mx-3">Save</button></a>
-                        <button class="main-button text-white"><a href="account.html">Cancel</a></button>
+                        <button class="main-button mt-4" onclick="location.href='edit-account.php'">Save</button>
+                        <button class="main-button" onclick="location.href='account.php'">Cancel</button>
 
                     </form>
                 </div>

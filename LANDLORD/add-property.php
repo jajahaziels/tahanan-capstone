@@ -163,18 +163,18 @@ if (!empty($_SESSION['success'])) {
             <li><a href="landlord.php">Home</a></li>
             <li><a href="landlord-properties.php">Properties</a></li>
             <li><a href="landlord-message.php">Messages</a></li>
-            <li><a href="../support.html">Support</a></li>
+            <li><a href="../support.php">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
         <div class="nav-icons">
             <!-- DROP DOWN -->
             <div class="dropdown">
                 <i class="fa-solid fa-user"></i>
-                Landlord
+                <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>
                 <div class="dropdown-content">
-                    <a href="account.html">Account</a>
-                    <a href="settings.html">Settings</a>
-                    <a href="logout.html">Log out</a>
+                    <a href="account.php">Account</a>
+                    <a href="settings.php">Settings</a>
+                    <a href="../LOGIN/logout.php">Log out</a>
                 </div>
             </div>
             <!-- NAVMENU -->

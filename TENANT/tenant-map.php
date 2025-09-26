@@ -69,7 +69,7 @@ while ($row = $result->fetch_assoc()) {
                 <i class="fa-solid fa-user"></i>
                 Tenant
                 <div class="dropdown-content">
-                    <a href="tenant-profile.php">Account</a>
+                    <a href="account.php">Account</a>
                     <a href="settings.php">Settings</a>
                     <a href="../LOGIN/logout.php">Log out</a>
                 </div>
@@ -116,7 +116,7 @@ while ($row = $result->fetch_assoc()) {
             if (item.latitude && item.longitude) {
                 // create popup content with a button
                 var popupContent = `
-            <button class="map-button" onclick="window.location.href='property-details.php?id=${item.listing_id}'">
+            <button class="small-button" onclick="window.location.href='property-details.php?id=${item.listing_id}'">
                 View
             </button>
         `;

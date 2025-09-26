@@ -19,7 +19,7 @@ include '../session_auth.php';
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="../css/style.css">
-    <title>Landlord <?= htmlspecialchars($_SESSION['username']); ?>!</title>
+    <title>Landlord <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>!</title>
     <style>
         .landlord-page {
             margin-top: 140px !important;
@@ -43,7 +43,7 @@ include '../session_auth.php';
             <!-- DROP DOWN -->
             <div class="dropdown">
                 <i class="fa-solid fa-user"></i>
-                <?= htmlspecialchars($_SESSION['username']); ?>
+                <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>
                 <div class="dropdown-content">
                     <a href="account.php">Account</a>
                     <a href="settings.php">Settings</a>
@@ -56,7 +56,7 @@ include '../session_auth.php';
     </header>
     <div class="landlord-page">
         <div class="container m-auto">
-            <h1>Welcome, Landlord <?= htmlspecialchars($_SESSION['username']); ?>!</h1>
+            <h1>Welcome, Landlord <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>!</h1>
             <p>Manage your properties and connect with tenants easily.</p>
             <p>DITO KANA MAG START NG CONTENT, INSIDE THIS LANDLORD PAGE DIV</p>
         </div>

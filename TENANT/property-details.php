@@ -10,8 +10,15 @@ if (!$idParam || !is_numeric($idParam)) {
 
 $ID = intval($idParam);
 
-// Fetch property from DB
-$stmt = $conn->prepare("SELECT * FROM listingtbl WHERE ID = ?");
+// Fetch property + landlord info
+$sql = "
+    SELECT l.*, 
+           ld.firstName, ld.lastName, ld.profilePic 
+    FROM listingtbl l
+    JOIN landlordtbl ld ON l.landlord_id = ld.ID
+    WHERE l.ID = ?
+";
+$stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $ID);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -24,6 +31,7 @@ $property = $result->fetch_assoc();
 $images = json_decode($property['images'], true) ?? [];
 $stmt->close();
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -48,6 +56,41 @@ $stmt->close();
         .tenant-page {
             margin-top: 140px !important;
         }
+
+        .prorperty-details {
+            border: 3px solid var(--main-color);
+            border-radius: 10px;
+        }
+
+        .back-button {
+            position: fixed;
+        }
+
+        .price {
+            font-size: 3rem;
+        }
+
+        .landlord-info {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--main-color);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .avatar img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+
         #map {
             height: 500px;
             padding: 0;
@@ -58,10 +101,8 @@ $stmt->close();
 
 <body>
     <!-- HEADER -->
-    <!-- HEADER -->
     <header>
         <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png" alt="">Tahanan</a>
-
         <ul class="nav-links">
             <li><a href="tenant.php">Home</a></li>
             <li><a href="tenant-rental.php">My Rental</a></li>
@@ -77,9 +118,9 @@ $stmt->close();
                 <i class="fa-solid fa-user"></i>
                 Tenant
                 <div class="dropdown-content">
-                    <a href="tenant-profile.html">Account</a>
-                    <a href="settings.html">Settings</a>
-                    <a href="logout.html">Log out</a>
+                    <a href="account.php">Account</a>
+                    <a href="settings.php">Settings</a>
+                    <a href="../LOGIN/logout.php">Log out</a>
                 </div>
             </div>
             <!-- NAVMENU -->
@@ -89,11 +130,11 @@ $stmt->close();
     <div class="tenant-page">
         <div class="container m-auto">
             <div class="d-flex justify-content-start align-items-center">
-                <button class="main-button" onclick="location.href='tenant.php'">Back</button>
+                <button class="main-button back-button" onclick="location.href='tenant.php'">Back</button>
             </div>
         </div>
         <div class="row justify-content-center align-items-center mt-5">
-            <div class="col-lg-6 border p-3">
+            <div class="col-lg-6 prorperty-details p-3">
 
                 <!-- Bootstrap Carousel -->
                 <div id="carouselExample" class="carousel slide mb-4">
@@ -137,16 +178,56 @@ $stmt->close();
                 </div>
 
                 <!-- Property Info -->
-                <h2><?= htmlspecialchars($property['listingName']); ?></h2>
-                <p><strong>Price:</strong> ₱ <?= number_format($property['price']); ?></p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <p class="mb-0"><?= htmlspecialchars($property['barangay']); ?>, San Pedro, Laguna </p>
+                    <button class="main-button mx-5">Apply</button>
+                </div>
+                <h4><?= htmlspecialchars($property['listingName']); ?></h4>
+                <h1 class="price">₱ <?= number_format($property['price']); ?>.00<small class="text-muted fs-5">/month</small></h1>
 
+                <!-- LANDLORD INFOF -->
+                <div class="d-flex align-items-center p-2 border rounded mb-4 mt-4">
+                    <!-- Avatar -->
+                    <div class="avatar me-3">
+                        <?php if (!empty($property['profilePic'])): ?>
+                            <img src="<?= htmlspecialchars($property['profilePic']); ?>"
+                                alt="Profile">
+                        <?php else: ?>
+                            <div class="landlord-info">
+                                <?= strtoupper(substr($property['firstName'], 0, 1)); ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Landlord Info -->
+                    <div class="info flex-grow-1 mt-2">
+                        <h1 class="mb-0">
+                            <?= htmlspecialchars(ucwords(strtolower($property['firstName'] . ' ' . $property['lastName']))); ?>
+                        </h1>
+
+                        <p class="text-muted">Landlord</p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex">
+                        <button class="small-button"
+                            onclick="window.location.href='landlord-profile.php?id=<?= $property['landlord_id']; ?>'">
+                            <i class="fa-solid fa-user"></i>
+                        </button>
+                        <button class="small-button mx-3">
+                            <i class="fas fa-comment-dots"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <h3>Property Description</h3>
+                <p><?= nl2br(htmlspecialchars($property['listingDesc'] ?? "No description available.")); ?></p>
                 <ul>
                     <li><strong>Address:</strong> <?= htmlspecialchars($property['address']); ?>, <?= htmlspecialchars($property['barangay']); ?>, San Pedro, Laguna</li>
                     <li><strong>Category:</strong> <?= htmlspecialchars($property['category']); ?></li>
                     <li><strong>Rooms:</strong> <?= htmlspecialchars($property['rooms']); ?> Bedroom(s)</li>
                 </ul>
-                <h3>Property Description</h3>
-                <p><?= nl2br(htmlspecialchars($property['listingDesc'] ?? "No description available.")); ?></p>
+
 
                 <!-- Map -->
                 <div id="map"></div>

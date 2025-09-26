@@ -4,6 +4,7 @@ include '../session_auth.php';
 
 $tenant_id = $_SESSION['tenant_id'];
 
+// Fetch listings with landlord info
 $sql = "SELECT l.*, lt.firstName, lt.lastName, lt.profilePic 
         FROM listingtbl AS l
         JOIN landlordtbl AS lt ON l.landlord_id = lt.ID";
@@ -29,6 +30,26 @@ $result = $conn->query($sql);
     <style>
         .tenant-page {
             margin-top: 140px !important;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--main-color);
+            color: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        .avatar img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
         }
     </style>
 </head>
@@ -65,7 +86,7 @@ $result = $conn->query($sql);
     <!-- HOME PAGE CONTENT -->
     <div class="tenant-page">
         <div class="container m-auto">
-            <h1>Welcome, Tenant <?= htmlspecialchars($_SESSION['username']); ?>!</h1>
+            <h1>Welcome, Tenant <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>!</h1>
             <p>Here are some featured properties</p>
             <div class="row justify-content-center">
                 <div class="col-lg-10">
@@ -120,13 +141,25 @@ $result = $conn->query($sql);
 
                                             <!-- Landlord Info -->
                                             <div class="landlord-info">
-                                                <div class="landlord-left">
-                                                    <img src="../LANDLORD/uploads/<?= htmlspecialchars($row['profilePic']); ?>" alt="Landlord" style="width:40px; height:40px; border-radius:50%;">
-                                                    <div>
-                                                        <div class="landlord-name"><?= htmlspecialchars($row['firstName'] . ' ' . $row['lastName']); ?></div>
+                                                <div class="landlord-left d-flex align-items-center">
+                                                    <?php if (!empty($row['profilePic'])): ?>
+                                                        <img src="../LANDLORD/uploads/<?= htmlspecialchars($row['profilePic']); ?>"
+                                                            alt="Landlord"
+                                                            style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                                    <?php else: ?>
+                                                        <div class="avatar">
+                                                            <?= ucwords(substr($row['firstName'], 0, 1)); ?>
+                                                        </div>
+                                                    <?php endif; ?>
+
+                                                    <div class="ms-2">
+                                                        <div class="landlord-name">
+                                                            <?= ucwords(htmlspecialchars($row['firstName'] . ' ' . $row['lastName'])); ?>
+                                                        </div>
                                                         <div class="landlord-role">Landlord</div>
                                                     </div>
                                                 </div>
+
                                                 <div class="landlord-actions">
                                                     <div class="btn"><i class="fa-solid fa-user"></i></div>
                                                     <div class="btn"><i class="fas fa-comment-dots"></i></div>
