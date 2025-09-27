@@ -25,9 +25,9 @@ if (!$conversation_id) {
 }
 
 // Fetch messages
-$stmt = $conn->prepare("SELECT id, sender_id, message, created_at 
+$stmt = $conn->prepare("SELECT id, sender_id, content as message, created_at 
                         FROM messages 
-                        WHERE conversation_id = ? 
+                        WHERE conversation_id = ? AND status = 'active'
                         ORDER BY created_at ASC");
 $stmt->bind_param("i", $conversation_id);
 $stmt->execute();
@@ -45,3 +45,4 @@ echo json_encode([
 
 $stmt->close();
 $conn->close();
+  
