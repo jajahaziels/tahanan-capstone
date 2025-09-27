@@ -5,8 +5,29 @@ include '../session_auth.php';
 $errors = [];
 $success = "";
 
-// Handle form submit
-if ($_SERVER["REQUEST_METHOD"] === "POST") {
+// Landlord ID from session
+$landlord_id = $_SESSION['landlord_id'] ?? null;
+
+// ✅ Check verification status before allowing property posting
+if ($landlord_id) {
+    $sql = "SELECT verification_status FROM landlordtbl WHERE ID = ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("i", $landlord_id);
+    $stmt->execute();
+    $stmt->bind_result($status);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($status !== 'verified') {
+        $_SESSION['error'] = "❌ You must be verified before posting a property. Please upload your ID first.";
+        header("Location: landlord-verification.php");
+        exit;
+    }
+} else {
+    $errors[] = "Landlord is not logged in.";
+}
+
+if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
     // Collect inputs
     $listingName  = trim($_POST['listing_name'] ?? '');
     $address      = trim($_POST['address'] ?? '');
@@ -18,9 +39,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $latitude     = $_POST['latitude'] ?? null;
     $longitude    = $_POST['longitude'] ?? null;
 
-    // Landlord ID from session
-    $landlord_id = $_SESSION['landlord_id'] ?? null;
-
     // Validation
     if ($listingName === '') $errors[] = "Listing name is required.";
     if ($address === '') $errors[] = "Address is required.";
@@ -30,15 +48,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if ($category === '') $errors[] = "Category is required.";
     if (empty($latitude) || empty($longitude)) $errors[] = "Location must be pinned on the map.";
     if (empty($_FILES['image']['name'][0])) $errors[] = "At least one image is required.";
-    if (empty($landlord_id)) $errors[] = "Landlord is not logged in.";
 
     $listingDate = date('Y-m-d H:i:s');
     if ($listingDesc === '') $listingDesc = null;
 
-    // Handle images
+    // Handle image uploads
     $uploadedImages = [];
     if (!empty($_FILES['image']['name'][0])) {
-        $targetDir = __DIR__ . "/uploads/"; // ✅ safer path
+        $targetDir = __DIR__ . "/uploads/";
         if (!is_dir($targetDir)) {
             mkdir($targetDir, 0777, true);
         }
@@ -60,7 +77,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 
-    // Save to DB
+    // Save to database
     if (empty($errors)) {
         $imagesJson = json_encode($uploadedImages);
 
@@ -87,8 +104,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         );
 
         if ($stmt->execute()) {
-            $_SESSION['success'] = "Property added successfully!";
-            header("Location: " . $_SERVER['PHP_SELF']); // ✅ prevents resubmit
+            $_SESSION['success'] = "✅ Property added successfully!";
+            header("Location: " . $_SERVER['PHP_SELF']);
             exit;
         } else {
             $errors[] = "Database error: " . $stmt->error;
@@ -104,6 +121,7 @@ if (!empty($_SESSION['success'])) {
     unset($_SESSION['success']);
 }
 ?>
+
 
 
 

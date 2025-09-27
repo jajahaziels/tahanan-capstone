@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 23, 2025 at 09:02 AM
+-- Generation Time: Sep 27, 2025 at 05:52 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -64,7 +64,9 @@ CREATE TABLE `landlordtbl` (
   `profilePic` varchar(255) DEFAULT NULL,
   `dateJoin` date DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `verification_status` enum('not_submitted','pending','verified','rejected') DEFAULT 'not_submitted',
+  `ID_image` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -88,13 +90,6 @@ CREATE TABLE `listingtbl` (
   `latitude` decimal(10,7) DEFAULT NULL,
   `longitude` decimal(10,7) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `listingtbl`
---
-
-INSERT INTO `listingtbl` (`ID`, `listingName`, `price`, `listingDesc`, `images`, `address`, `barangay`, `rooms`, `listingDate`, `category`, `landlord_id`, `latitude`, `longitude`) VALUES
-(1, 'BAHAY NI KUYA', 3332, '.........................', '[\"1758370391_68ce9a57ab50f_INFORMATION TECHNOLOGY SOCIETY.png\"]', 'JAN LANG SA KANTO', 'Calendola', 1, '2025-09-20', 'Low-rise apartment', NULL, 14.3653411, 121.0512023);
 
 -- --------------------------------------------------------
 
@@ -141,10 +136,17 @@ CREATE TABLE `tenanttbl` (
   `birthday` date DEFAULT NULL,
   `gender` varchar(50) DEFAULT NULL,
   `profilePic` varchar(255) DEFAULT NULL,
-  `datejoin` date DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
   `phoneNum` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `tenanttbl`
+--
+
+INSERT INTO `tenanttbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `verificationId`, `birthday`, `gender`, `profilePic`, `created_at`, `status`, `phoneNum`) VALUES
+(1, 'mina', 'mina', 'mina', NULL, 'mina@gmail.com', '$2y$10$WcyN9bKppu1gXv5plvKZtO/hNT59Kw/mD.9fFfxSdMK365rQDtqVC', NULL, NULL, NULL, NULL, NULL, NULL, 2147483647);
 
 --
 -- Indexes for dumped tables
@@ -205,7 +207,7 @@ ALTER TABLE `landlordtbl`
 -- AUTO_INCREMENT for table `listingtbl`
 --
 ALTER TABLE `listingtbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `renttbl`
@@ -223,7 +225,7 @@ ALTER TABLE `requesttbl`
 -- AUTO_INCREMENT for table `tenanttbl`
 --
 ALTER TABLE `tenanttbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
