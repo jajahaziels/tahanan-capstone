@@ -49,11 +49,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         displayConversations(data.conversations);
         
         // Hide loading, show conversations or no-conversations message
-        document.getElementById('conversations-loading').style.display = 'none';
+        const loadingEl = document.getElementById('conversations-loading');
+        if (loadingEl) loadingEl.style.display = 'none';
+        
         if (data.conversations.length === 0) {
-          document.getElementById('no-conversations').style.display = 'block';
+          const noConvEl = document.getElementById('no-conversations');
+          if (noConvEl) noConvEl.style.display = 'block';
         } else {
-          document.getElementById('no-conversations').style.display = 'none';
+          const noConvEl = document.getElementById('no-conversations');
+          if (noConvEl) noConvEl.style.display = 'none';
           // Auto-select first conversation if available
           if (!currentConversationId) {
             selectConversation(data.conversations[0]);
@@ -61,11 +65,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       } else {
         console.error("Error loading conversations:", data.error);
-        document.getElementById('conversations-loading').innerHTML = '<p style="color: red;">Error loading conversations</p>';
+        const loadingEl = document.getElementById('conversations-loading');
+        if (loadingEl) {
+          loadingEl.innerHTML = '<p style="color: rgba(255,255,255,0.8);">Error loading conversations</p>';
+        }
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      document.getElementById('conversations-loading').innerHTML = '<p style="color: red;">Network error</p>';
+      const loadingEl = document.getElementById('conversations-loading');
+      if (loadingEl) {
+        loadingEl.innerHTML = '<p style="color: rgba(255,255,255,0.8);">Network error</p>';
+      }
     }
   }
 
@@ -74,12 +84,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Clear existing conversations (keep search input)
     const searchInput = document.querySelector(".search-chats");
     conversationsList.innerHTML = "";
-    conversationsList.appendChild(searchInput);
+    if (searchInput) {
+      conversationsList.appendChild(searchInput);
+    }
 
-    conversations.forEach(conv => {
+    conversations.forEach((conv, index) => {
       const convDiv = document.createElement("div");
       convDiv.className = "convo d-flex align-items-center";
       convDiv.setAttribute("data-conversation-id", conv.conversation_id);
+      convDiv.style.animationDelay = `${index * 0.1}s`;
       
       // Use profile picture if available, otherwise default
       const profilePic = conv.other_user_profile_pic ? 
@@ -90,7 +103,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <img src="${profilePic}" alt="" onerror="this.src='../img/home.png'">
         <div style="flex: 1;">
           <h4>${conv.other_user_name || conv.other_user_type + ' (ID: ' + conv.other_user_id + ')'}</h4>
-          <small style="color: #666; font-size: 12px;">${conv.last_message || 'No messages yet'}</small>
+          <small>${conv.last_message || 'No messages yet'}</small>
         </div>
       `;
 
@@ -100,6 +113,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       conversationsList.appendChild(convDiv);
     });
+
+    // Add loading states to DOM if they don't exist
+    if (!document.getElementById('conversations-loading')) {
+      const loadingDiv = document.createElement("div");
+      loadingDiv.id = "conversations-loading";
+      loadingDiv.className = "loading-state";
+      loadingDiv.innerHTML = `
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        <p>Loading conversations...</p>
+      `;
+      conversationsList.appendChild(loadingDiv);
+    }
+
+    if (!document.getElementById('no-conversations')) {
+      const noConvDiv = document.createElement("div");
+      noConvDiv.id = "no-conversations";
+      noConvDiv.className = "no-conversations-state";
+      noConvDiv.innerHTML = `
+        <i class="fa-solid fa-comments"></i>
+        <p>No conversations yet</p>
+        <small>Contact your landlord to start chatting</small>
+      `;
+      conversationsList.appendChild(noConvDiv);
+    }
   }
 
   // Select a conversation
@@ -149,6 +186,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const message = chatInput.value.trim();
     if (!message || !currentConversationId) return;
 
+    // Disable input temporarily
+    chatInput.disabled = true;
+    sendBtn.disabled = true;
+
     const formData = new FormData();
     formData.append("conversation_id", currentConversationId);
     formData.append("sender_id", currentUserId);
@@ -167,12 +208,48 @@ document.addEventListener("DOMContentLoaded", async () => {
         loadConversations(); // Refresh conversations to update last message
       } else {
         console.error("Error sending message:", data.error);
-        alert("Failed to send message: " + data.error);
+        showError("Failed to send message: " + data.error);
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      alert("Network error. Please try again.");
+      showError("Network error. Please try again.");
+    } finally {
+      // Re-enable input
+      chatInput.disabled = false;
+      sendBtn.disabled = false;
+      chatInput.focus();
     }
+  }
+
+  // Show error message
+  function showError(message) {
+    // Create temporary error notification
+    const errorDiv = document.createElement("div");
+    errorDiv.style.cssText = `
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #dc3545;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+      animation: slideIn 0.3s ease-out;
+    `;
+    errorDiv.textContent = message;
+    
+    document.body.appendChild(errorDiv);
+    
+    // Remove after 3 seconds
+    setTimeout(() => {
+      errorDiv.style.animation = "slideOut 0.3s ease-in forwards";
+      setTimeout(() => {
+        if (document.body.contains(errorDiv)) {
+          document.body.removeChild(errorDiv);
+        }
+      }, 300);
+    }, 3000);
   }
 
   // Load messages
@@ -184,27 +261,30 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await res.json();
 
       if (data.success) {
+        const wasAtBottom = chatMessages.scrollTop + chatMessages.clientHeight >= chatMessages.scrollHeight - 10;
+        
         chatMessages.innerHTML = "";
         
         // If no messages, show empty state
         if (data.messages.length === 0) {
           chatMessages.innerHTML = `
             <div class="empty-chat">
-              <div style="text-align: center;">
-                <i class="fa-solid fa-comment-dots" style="font-size: 48px; color: #ccc;"></i>
-                <p style="color: #666; margin-top: 15px;">No messages yet</p>
-                <small style="color: #999;">Start the conversation!</small>
+              <div class="empty-chat-content">
+                <i class="fa-solid fa-comment-dots"></i>
+                <p>No messages yet</p>
+                <small>Start the conversation!</small>
               </div>
             </div>
           `;
           return;
         }
 
-        data.messages.forEach(msg => {
+        data.messages.forEach((msg, index) => {
           const div = document.createElement("div");
           div.classList.add("message");
           div.classList.add(msg.sender_id == currentUserId ? "sent" : "received");
           div.textContent = msg.message;
+          div.style.animationDelay = `${index * 0.05}s`;
           
           // Add timestamp
           const time = new Date(msg.created_at).toLocaleTimeString('en-US', {
@@ -216,14 +296,17 @@ document.addEventListener("DOMContentLoaded", async () => {
           chatMessages.appendChild(div);
         });
 
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        // Scroll to bottom if user was at bottom before update
+        if (wasAtBottom) {
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
       } else {
         console.error("Error loading messages:", data.error);
         chatMessages.innerHTML = `
           <div class="empty-chat">
-            <div style="text-align: center;">
-              <i class="fa-solid fa-exclamation-triangle" style="font-size: 48px; color: #dc3545;"></i>
-              <p style="color: #dc3545; margin-top: 15px;">Error loading messages</p>
+            <div class="empty-chat-content">
+              <i class="fa-solid fa-exclamation-triangle" style="color: #dc3545;"></i>
+              <p style="color: #dc3545;">Error loading messages</p>
               <small style="color: #666;">${data.error}</small>
             </div>
           </div>
@@ -233,9 +316,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error("Fetch error:", err);
       chatMessages.innerHTML = `
         <div class="empty-chat">
-          <div style="text-align: center;">
-            <i class="fa-solid fa-wifi" style="font-size: 48px; color: #dc3545;"></i>
-            <p style="color: #dc3545; margin-top: 15px;">Connection error</p>
+          <div class="empty-chat-content">
+            <i class="fa-solid fa-wifi" style="color: #dc3545;"></i>
+            <p style="color: #dc3545;">Connection error</p>
             <small style="color: #666;">Please check your internet connection</small>
           </div>
         </div>
@@ -254,6 +337,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     });
   }
+
+  // Add CSS for error notifications
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+      from { transform: translateX(0); opacity: 1; }
+      to { transform: translateX(100%); opacity: 0; }
+    }
+  `;
+  document.head.appendChild(style);
 
   // Cleanup on page unload
   window.addEventListener("beforeunload", () => {
