@@ -3,24 +3,24 @@
 require_once '../session_auth.php';
 require_once '../connection.php';
 
-// Get landlord ID from session (your system uses landlord_id, not user_id)
-$landlord_id = $_SESSION['landlord_id'];
+// Get tenant ID from session (your system uses tenant_id, not user_id)
+$tenant_id = $_SESSION['tenant_id'];
 
-// Fetch landlord information from landlordtbl table
-$stmt = $conn->prepare("SELECT * FROM landlordtbl WHERE ID = ?");
-$stmt->bind_param("i", $landlord_id);
+// Fetch tenant information from tenanttbl table
+$stmt = $conn->prepare("SELECT * FROM tenanttbl WHERE ID = ?");
+$stmt->bind_param("i", $tenant_id);
 $stmt->execute();
-$landlord = $stmt->get_result()->fetch_assoc();
+$tenant = $stmt->get_result()->fetch_assoc();
 
-if (!$landlord) {
-    // Landlord not found, redirect to login
+if (!$tenant) {
+    // Tenant not found, redirect to login
     session_destroy();
     header('Location: ../LOGIN/login.php');
     exit;
 }
 
-// Get landlord's full name
-$landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? $landlord['middleName'] . ' ' : '') . $landlord['lastName']);
+// Get tenant's full name
+$tenant_name = trim($tenant['firstName'] . ' ' . ($tenant['middleName'] ? $tenant['middleName'] . ' ' : '') . $tenant['lastName']);
 ?>
 
 <!DOCTYPE html>
@@ -39,8 +39,8 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="../css/style.css">
-    <title>MESSAGE - <?php echo htmlspecialchars($landlord_name); ?></title>
-    <link rel="stylesheet" href="ll-messages.css">
+    <title>TENANT MESSAGE - <?php echo htmlspecialchars($tenant_name); ?></title>
+    <link rel="stylesheet" href="tenant-messages.css">
 </head>
 
 <body>
@@ -51,9 +51,10 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
         </a>
 
         <ul class="nav-links">
-            <li><a href="landlord.php">Home</a></li>
-            <li><a href="landlord-properties.php">Properties</a></li>
-            <li><a href="landlord-message.php" class="active">Messages</a></li>
+            <li><a href="tenant.php">Home</a></li>
+            <li><a href="tenant-rental.php">My Rental</a></li>
+            <li><a href="tenant-favorite.php">Favorite</a></li>
+            <li><a href="tenant-message.php" class="active">Messages</a></li>
             <li><a href="../support.php">Support</a></li>
         </ul>
         
@@ -62,9 +63,9 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
             <!-- DROP DOWN -->
             <div class="dropdown">
                 <i class="fa-solid fa-user"></i>
-                <?php echo htmlspecialchars($landlord_name); ?>
+                <?php echo htmlspecialchars($tenant_name); ?>
                 <div class="dropdown-content">
-                    <a href="account.php">Account</a>
+                    <a href="tenant-profile.php">Account</a>
                     <a href="settings.php">Settings</a>
                     <a href="../LOGIN/logout.php">Log out</a>
                 </div>
@@ -74,26 +75,27 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
         </div>
     </header>
     
-    <!-- MESSAGES -->
-    <div class="landlord-page">
-        <div class="container-fluid h-100">
+    <!-- TENANT MSG CONTENT -->
+    <div class="tenant-page">
+        <div class="container m-auto">
+            <h2 class="my-4">Chats <i class="fa-solid fa-pen-to-square"></i></h2>
             <div class="row chat-box">
-      
+                
                 <!-- Sidebar -->
                 <div class="col-lg-4 side1">
                     <input class="search-chats" type="text" placeholder=" Search Chats">
                     
                     <!-- Loading state -->
-                    <div id="conversations-loading" style="text-align: center; color: #666; margin-top: 30px;">
+                    <div id="conversations-loading" class="loading-state">
                         <i class="fa-solid fa-spinner fa-spin"></i>
                         <p>Loading conversations...</p>
                     </div>
                     
                     <!-- No conversations state -->
-                    <div id="no-conversations" style="text-align: center; color: #666; margin-top: 50px; display: none;">
-                        <i class="fa-solid fa-comments" style="font-size: 48px; opacity: 0.3;"></i>
+                    <div id="no-conversations" class="no-conversations-state">
+                        <i class="fa-solid fa-comments"></i>
                         <p>No conversations yet</p>
-                        <small>Start a conversation with a tenant</small>
+                        <small>Contact your landlord to start chatting</small>
                     </div>
                 </div>
 
@@ -105,10 +107,10 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
 
                     <div class="chat-messages">
                         <div class="empty-chat">
-                            <div style="text-align: center;">
-                                <i class="fa-solid fa-comment-dots" style="font-size: 64px; color: #ccc;"></i>
-                                <p style="color: #666; margin-top: 20px;">Choose a conversation from the sidebar</p>
-                                <small style="color: #999;">Your messages will appear here</small>
+                            <div class="empty-chat-content">
+                                <i class="fa-solid fa-comment-dots"></i>
+                                <p>Choose a conversation from the sidebar</p>
+                                <small>Your messages will appear here</small>
                             </div>
                         </div>
                     </div>
@@ -127,10 +129,10 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
     <script>
         // Make PHP variables available to JavaScript
         window.currentUser = {
-            id: <?php echo $landlord_id; ?>,
-            type: 'landlord',
-            name: '<?php echo htmlspecialchars($landlord_name); ?>',
-            email: '<?php echo htmlspecialchars($landlord['email']); ?>'
+            id: <?php echo $tenant_id; ?>,
+            type: 'tenant',
+            name: '<?php echo htmlspecialchars($tenant_name); ?>',
+            email: '<?php echo htmlspecialchars($tenant['email']); ?>'
         };
         
         // Debug info
@@ -144,8 +146,8 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
     <!-- SCROLL REVEAL -->
     <script src="https://unpkg.com/scrollreveal"></script>
 
-    <!-- Updated Chat System JS -->
-    <script src="../js/chatsys.js" defer></script>
+    <!-- Chat System JS -->
+    <script src="../js/tenant-chat.js" defer></script>
 
 </body>
 </html>
