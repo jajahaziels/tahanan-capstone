@@ -25,7 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ID_image'])) {
 
     if (move_uploaded_file($_FILES["ID_image"]["tmp_name"], $targetFile)) {
         // Save relative path for web access
-        $dbPath = "..LANDLORD/uploads/ids" . $fileName;
+        $dbPath = "../LANDLORD/uploads/ids" . $fileName;
 
         $sql = "UPDATE landlordtbl 
                     SET ID_image = ?, verification_status = 'pending' 
