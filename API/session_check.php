@@ -3,65 +3,94 @@
 session_start();
 header('Content-Type: application/json');
 
-// Include database connection
-require_once '../connection.php';
-
-// Check if user is logged in
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {
+// Include database connection - use correct path
+$conn_path = dirname(__FILE__) . '/../connection.php';
+if (file_exists($conn_path)) {
+    require_once $conn_path;
+} else {
     echo json_encode([
         "success" => false,
-        "error" => "User not logged in",
-        "redirect" => "../login.php"
+        "error" => "Database connection file not found"
     ]);
     exit;
 }
 
-$user_id = $_SESSION['user_id'];
+// Check if user is logged in
+if (!isset($_SESSION['user_type'])) {
+    echo json_encode([
+        "success" => false,
+        "error" => "User not logged in",
+        "redirect" => "../LOGIN/login.php"
+    ]);
+    exit;
+}
+
 $user_type = $_SESSION['user_type'];
 
-// Verify user exists in the appropriate table
+// Get user ID based on type
 if ($user_type === 'landlord') {
-    $stmt = $conn->prepare("SELECT ID, firstName, middleName, lastName, email FROM landlord WHERE ID = ?");
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $user = $stmt->get_result()->fetch_assoc();
-    
-    if ($user) {
-        $full_name = trim($user['firstName'] . ' ' . ($user['middleName'] ? $user['middleName'] . ' ' : '') . $user['lastName']);
+    if (!isset($_SESSION['landlord_id'])) {
+        echo json_encode([
+            "success" => false,
+            "error" => "Landlord ID not found in session",
+            "redirect" => "../LOGIN/login.php"
+        ]);
+        exit;
     }
+    $user_id = $_SESSION['landlord_id'];
+    $table = 'landlordtbl';
 } else if ($user_type === 'tenant') {
-    $stmt = $conn->prepare("SELECT ID, firstName, middleName, lastName, email FROM tenant WHERE ID = ?");
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $user = $stmt->get_result()->fetch_assoc();
-    
-    if ($user) {
-        $full_name = trim($user['firstName'] . ' ' . ($user['middleName'] ? $user['middleName'] . ' ' : '') . $user['lastName']);
+    if (!isset($_SESSION['tenant_id'])) {
+        echo json_encode([
+            "success" => false,
+            "error" => "Tenant ID not found in session",
+            "redirect" => "../LOGIN/login.php"
+        ]);
+        exit;
     }
+    $user_id = $_SESSION['tenant_id'];
+    $table = 'tenanttbl';
 } else {
     echo json_encode([
         "success" => false,
         "error" => "Invalid user type",
-        "redirect" => "../login.php"
+        "redirect" => "../LOGIN/login.php"
     ]);
     exit;
 }
 
-// Check if user was found
-if (!$user) {
+// Verify user exists in the appropriate table
+try {
+    $stmt = $conn->prepare("SELECT ID, firstName, middleName, lastName, email FROM $table WHERE ID = ?");
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $user = $stmt->get_result()->fetch_assoc();
+    
+    if ($user) {
+        $full_name = trim($user['firstName'] . ' ' . ($user['middleName'] ? $user['middleName'] . ' ' : '') . $user['lastName']);
+        
+        echo json_encode([
+            "success" => true,
+            "user_id" => $user_id,
+            "user_type" => $user_type,
+            "name" => $full_name,
+            "email" => $user['email']
+        ]);
+    } else {
+        echo json_encode([
+            "success" => false,
+            "error" => "User not found in database",
+            "redirect" => "../LOGIN/login.php"
+        ]);
+    }
+    
+    $stmt->close();
+} catch (Exception $e) {
     echo json_encode([
         "success" => false,
-        "error" => "User not found in database",
-        "redirect" => "../login.php"
+        "error" => "Database error: " . $e->getMessage()
     ]);
-    exit;
 }
 
-echo json_encode([
-    "success" => true,
-    "user_id" => $user_id,
-    "user_type" => $user_type,
-    "name" => $full_name,
-    "email" => $user['email']
-]);
+$conn->close();
 ?>

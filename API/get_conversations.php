@@ -14,7 +14,7 @@ if (!$user_id || !$user_type) {
     exit;
 }
 
-// Get conversations for this user with proper names from landlord/tenant tables
+// Get conversations for this user with proper names from landlordtbl/tenanttbl tables
 $stmt = $conn->prepare("
     SELECT 
         c.id as conversation_id,
@@ -38,8 +38,8 @@ $stmt = $conn->prepare("
     FROM conversations c
     JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = ?
     JOIN conversation_members cm_other ON cm_other.conversation_id = c.id AND cm_other.user_id != ?
-    LEFT JOIN landlord l ON cm_other.user_type = 'landlord' AND cm_other.user_id = l.ID
-    LEFT JOIN tenant t ON cm_other.user_type = 'tenant' AND cm_other.user_id = t.ID
+    LEFT JOIN landlordtbl l ON cm_other.user_type = 'landlord' AND cm_other.user_id = l.ID
+    LEFT JOIN tenanttbl t ON cm_other.user_type = 'tenant' AND cm_other.user_id = t.ID
     WHERE cm.user_type = ?
     ORDER BY COALESCE(last_message_time, c.created_at) DESC
 ");
