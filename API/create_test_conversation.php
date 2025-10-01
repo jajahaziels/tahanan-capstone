@@ -3,7 +3,7 @@
 require_once '../connection.php';
 
 // Change these to your actual IDs
-$landlord_id = 5; // Change this to your actual landlord ID
+$landlord_id = 2; // Change this to your actual landlord ID
 $tenant_id = 4;   // Change this to your actual tenant ID
 
 // Check if landlord exists - FIXED: using lowercase column names

@@ -197,58 +197,120 @@
 
 .message {
     max-width: 70%;
-    margin-bottom: 15px;
-    padding: 12px 18px;
-    border-radius: 18px;
-    font-size: 14px;
-    line-height: 1.5;
-    position: relative;
-    word-wrap: break-word;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
     animation: messageSlide 0.3s ease-out;
 }
 
-@keyframes messageSlide {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.message.sent {
+    margin-left: auto;
+    flex-direction: row-reverse;
 }
 
-.message.sent {
+.message.received {
+    margin-right: auto;
+    flex-direction: row;
+}
+
+/* Avatar styling */
+.message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Message bubble container */
+.message-bubble {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%;
+}
+
+/* Message content */
+.message-content {
+    padding: 12px 16px;
+    border-radius: 18px;
+    font-size: 14px;
+    line-height: 1.5;
+    word-wrap: break-word;
+    position: relative;
+}
+
+.message.sent .message-content {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    margin-left: auto;
     border-bottom-right-radius: 6px;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
 }
 
-.message.received {
+.message.received .message-content {
     background: white;
     color: #495057;
-    margin-right: auto;
     border-bottom-left-radius: 6px;
     border: 1px solid #e9ecef;
     box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-.message:hover::after {
-    content: attr(title);
-    position: absolute;
-    bottom: -25px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.8);
-    color: white;
-    padding: 4px 8px;
-    border-radius: 6px;
+/* Message timestamp and status */
+.message-meta {
+    display: flex;
+    align-items: center;
+    gap: 6px;
     font-size: 11px;
-    white-space: nowrap;
-    z-index: 1000;
-    opacity: 0.9;
+    margin-top: 4px;
+    padding: 0 4px;
+}
+
+.message.sent .message-meta {
+    justify-content: flex-end;
+    color: rgba(102, 126, 234, 0.7);
+}
+
+.message.received .message-meta {
+    justify-content: flex-start;
+    color: #adb5bd;
+}
+
+.message-time {
+    font-weight: 500;
+}
+
+.message-status {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Status icons */
+.message-status i {
+    font-size: 12px;
+}
+
+.status-sent {
+    color: #adb5bd;
+}
+
+.status-delivered {
+    color: #667eea;
+}
+
+.status-read {
+    color: #667eea;
+}
+
+/* Hover effect to show full timestamp */
+.message:hover .message-meta {
+    opacity: 1;
+}
+
+.message-meta {
+    opacity: 0.7;
+    transition: opacity 0.2s;
 }
 
 /* Empty Chat State */
