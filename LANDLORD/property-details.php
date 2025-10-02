@@ -2,16 +2,57 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-// Get the landlord_id from the session
-$landlord_id = $_SESSION['landlord_id'];
+// property id from URL
+$listingID = intval($_GET['ID'] ?? 0);
+if ($listingID <= 0) {
+    die("Invalid property ID.");
+}
 
-$sql = "SELECT * FROM listingtbl WHERE landlord_id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $landlord_id);
+// ✅ Query 1: Get Property + Landlord Info
+$sqlProperty = "
+    SELECT l.*, ld.firstName AS landlord_fname, ld.lastName AS landlord_lname, ld.profilePic 
+    FROM listingtbl l
+    JOIN landlordtbl ld ON l.landlord_id = ld.ID
+    WHERE l.ID = ?
+    LIMIT 1
+";
+$stmt = $conn->prepare($sqlProperty);
+$stmt->bind_param("i", $listingID);
 $stmt->execute();
-$result = $stmt->get_result();
-?>
+$resultProperty = $stmt->get_result();
 
+if ($resultProperty->num_rows === 0) {
+    die("Property not found.");
+}
+$property = $resultProperty->fetch_assoc();
+$images = json_decode($property['images'], true) ?? [];
+$stmt->close();
+
+// ✅ Query 2: Get Tenant Applications
+$sqlApplications = "
+    SELECT r.ID as request_id, r.status, r.date,
+           t.firstName, t.lastName, t.phoneNum, t.email
+    FROM renttbl r
+    JOIN tenanttbl t ON r.tenant_id = t.ID
+    WHERE r.listing_id = ?
+";
+$stmt2 = $conn->prepare($sqlApplications);
+$stmt2->bind_param("i", $listingID);
+$stmt2->execute();
+$applications = $stmt2->get_result();
+
+// PHP
+$propertyImg = "../img/house1.jpeg";
+if (!empty($rental['images'])) {
+    $images = json_decode($rental['images'], true);
+    if (!empty($images[0])) {
+        $propertyImg = "../uploads/" . $images[0];
+    }
+}
+
+
+
+?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -93,6 +134,11 @@ $result = $stmt->get_result();
             font-size: 16px;
             border-radius: 20px;
         }
+
+        .property-img {
+            width: 300px;
+            border-radius: 10px;
+        }
     </style>
 </head>
 
@@ -127,14 +173,14 @@ $result = $stmt->get_result();
     <div class="landlord-page">
         <div class="container m-auto d-flex justify-content-between align-items-center">
             <div class="property-title d-flex ">
-                <h1>My Properties</h1>
+                <h1>Property Details</h1>
                 <div class="d-flex align-items-center justify-content-center">
                     <p class="available mx-3">Available</p>
                     <p class="occupied">Occupied</p>
                 </div>
             </div>
             <div class="d-flex">
-                <button class="main-button" onclick="location.href='add-property.php'">Add Property</button>
+                <button class="main-button" onclick="location.href='landlord-properties.php'">Back</button>
             </div>
         </div>
     </div>
@@ -145,66 +191,53 @@ $result = $stmt->get_result();
             <div class="row justify-content-center">
                 <div class="col-lg-10">
                     <div class="row justify-content-center">
-                        <?php if ($result && $result->num_rows > 0): ?>
-                            <?php while ($row = $result->fetch_assoc()): ?>
-                                <div class="col-lg-4 col-sm-12">
-                                    <div class="cards mb-4">
-                                        <div class="position-relative">
-                                            <?php
-                                            $images = json_decode($row['images'], true);
-                                            $imagePath = '../LANDLORD/uploads/placeholder.jpg';
-                                            if (!empty($images) && is_array($images) && isset($images[0])) {
-                                                $imagePath = '../LANDLORD/uploads/' . $images[0];
-                                            }
-                                            ?>
-                                            <img src="<?= htmlspecialchars($imagePath); ?>"
-                                                alt="Property Image"
-                                                class="property-img"
-                                                style="width:100%; max-height:200px; object-fit:cover;">
+                        <!-- Property Info -->
+                        <div class="col-lg-4 col-sm-12">
+                            <h1 class="text-center">Property</h1>
+                            <div class="d-flex justify-content-center align-items-center">
+                                <?php if (!empty($images) && is_array($images)): ?>
+                                    <?php foreach ($images as $img): ?>
+                                        <img src="../LANDLORD/uploads/<?php echo htmlspecialchars($img); ?>"
+                                            alt="Property Image" class="property-img mb-2">
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <img src="../img/house1.jpeg" alt="Property Image" class="property-img">
+                                <?php endif; ?>
 
-                                            <div class="status">
-                                                <p class="status-label">Available</p>
-                                            </div>
 
-                                            <!-- Price -->
-                                            <div class="price-tag">₱ <?= number_format($row['price']); ?></div>
-                                        </div>
+                            </div>
+                            <p><strong><?php echo htmlspecialchars($property['listingName']); ?></strong></p>
+                            <p><?php echo htmlspecialchars($property['address']); ?></p>
+                        </div>
 
-                                        <div class="cards-content">
-                                            <!-- Property Name -->
-                                            <h5 class="mb-2 house-name"><?= htmlspecialchars($row['listingName']); ?></h5>
+                        <!-- Requests -->
+                        <div class="col-lg-4 col-sm-12">
+                            <h1 class="text-center">Requests</h1>
+                            <?php if ($applications->num_rows > 0): ?>
+                                <?php while ($req = $applications->fetch_assoc()): ?>
+                                    <div class="p-2 border rounded mb-2">
+                                        <p><strong><?php echo $req['firstName'] . ' ' . $req['lastName']; ?></strong></p>
+                                        <p><?php echo $req['email']; ?> | <?php echo $req['phoneNum']; ?></p>
+                                        <p>Status: <span class="badge bg-secondary"><?php echo ucfirst($req['status']); ?></span></p>
 
-                                            <!-- Address -->
-                                            <div class="mb-2 location">
-                                                <i class="fas fa-map-marker-alt"></i>
-                                                <?= htmlspecialchars($row['address']); ?>
-                                            </div>
+                                        <!-- Accept/Reject -->
+                                        <form method="post" action="update-request.php" class="d-flex gap-2">
+                                            <input type="hidden" name="request_id" value="<?php echo $req['request_id']; ?>">
+                                            <input type="hidden" name="listing_id" value="<?php echo $listingID; ?>">
+                                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">✅ Approve</button>
+                                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">❌ Reject</button>
+                                        </form>
 
-                                            <!-- Features -->
-                                            <div class="features">
-                                                <div class="m-2">
-                                                    <i class="fas fa-bed"></i> <?= htmlspecialchars($row['rooms']); ?> Bedroom
-                                                </div>
-                                                <div class="m-2">
-                                                    <i class="fa-solid fa-building"></i> <?= htmlspecialchars($row['category']); ?>
-                                                </div>
-                                            </div>
 
-                                            <div class="divider my-3"></div>
-
-                                            <!-- LANDLORD ACTIONS -->
-                                            <div class="d-flex justify-content-center align-items-center">
-                                                <button class="small-button mx-2" onclick="location.href='edit-property.php?ID=<?= $row['ID'] ?>'">Edit</button>
-                                                <button class="small-button" onclick="location.href='property-details.php?ID=<?= $row['ID'] ?>'">View</button>
-                                            </div>
-                                        </div>
                                     </div>
-                                </div>
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <p>No listings found.</p>
-                        <?php endif; ?>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <p>No tenant requests yet.</p>
+                            <?php endif; ?>
+                        </div>
                     </div>
+
+
                 </div>
             </div>
         </div>

@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Oct 02, 2025 at 11:22 AM
+-- Host: 127.0.0.1:3306
+-- Generation Time: Oct 02, 2025 at 02:04 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -55,7 +55,8 @@ CREATE TABLE `conversations` (
 --
 
 INSERT INTO `conversations` (`id`, `type`, `title`, `created_at`) VALUES
-(1, 'private', 'Chat between allen mina and oliber olivera', '2025-10-02 09:13:58');
+(2, 'private', 'Chat between samuel alcazar and sam aaa', '2025-09-30 07:44:18'),
+(3, 'private', 'Chat between samuel landlord and sam aaa', '2025-09-30 15:05:45');
 
 -- --------------------------------------------------------
 
@@ -77,8 +78,10 @@ CREATE TABLE `conversation_members` (
 --
 
 INSERT INTO `conversation_members` (`id`, `conversation_id`, `user_type`, `user_id`, `joined_at`, `last_read_message_id`) VALUES
-(1, 1, 'landlord', 1, '2025-10-02 09:13:58', NULL),
-(2, 1, 'tenant', 4, '2025-10-02 09:13:58', NULL);
+(3, 2, 'landlord', 5, '2025-09-30 07:44:18', NULL),
+(4, 2, 'tenant', 4, '2025-09-30 07:44:18', NULL),
+(5, 3, 'landlord', 2, '2025-09-30 15:05:45', NULL),
+(6, 3, 'tenant', 4, '2025-09-30 15:05:45', NULL);
 
 -- --------------------------------------------------------
 
@@ -107,17 +110,16 @@ CREATE TABLE `landlordtbl` (
   `profilePic` varchar(255) DEFAULT NULL,
   `dateJoin` date DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `verification_status` enum('not_submitted','pending','verified','rejected') DEFAULT 'not_submitted',
-  `ID_image` varchar(255) DEFAULT NULL
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `landlordtbl`
 --
 
-INSERT INTO `landlordtbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `phoneNum`, `verificationId`, `birthday`, `street`, `barangay`, `city`, `province`, `zipCode`, `country`, `gender`, `profilePic`, `dateJoin`, `status`, `created_at`, `verification_status`, `ID_image`) VALUES
-(1, 'allen', 'allen', 'mina', NULL, 'allen@gmail.com', '$2y$10$GkbWeG2n1owen.YATCsyQ.qUCDxAVnRI1BZzHxE88eeUhYqXxx906', '45346323', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-02 03:27:32', 'verified', '../LANDLORD/uploads/ids1759375774_468223193_122120882294401719_4910812637509051064_n.jpg');
+INSERT INTO `landlordtbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `phoneNum`, `verificationId`, `birthday`, `street`, `barangay`, `city`, `province`, `zipCode`, `country`, `gender`, `profilePic`, `dateJoin`, `status`, `created_at`) VALUES
+(2, 'samuelll', 'samuel', 'landlord', NULL, 'salmuel.alcazar@cdsp.edu.ph', '$2y$10$43oeO3tDnPZzzFNT6i0Oxec5RkSIANMmBlFnDXD4/YHVd9oykYI3a', '09asdsadsda', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-09-30 06:55:30'),
+(5, 'Justmnc30', 'samuel', 'alcazar', NULL, 'minceydicey@gmail.com', '$2y$10$2X0OxFNwX/WWVtZYqxvEoeS3/UGXhow/uFT7j55/k0F9JLKnCCK8W', '09421323121', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-09-27 01:43:33');
 
 -- --------------------------------------------------------
 
@@ -146,11 +148,7 @@ CREATE TABLE `listingtbl` (
 --
 
 INSERT INTO `listingtbl` (`ID`, `listingName`, `price`, `listingDesc`, `images`, `address`, `barangay`, `rooms`, `listingDate`, `category`, `landlord_id`, `latitude`, `longitude`) VALUES
-(1, 'BAHAY NI KENJI', 2523, '.......................', '[\"1759375816_68ddf1c848252_468223193_122120882294401719_4910812637509051064_n.jpg\"]', 'DOON LAGN', 'Bagong Silang', 4, '2025-10-02', 'Townhouse', 1, 14.3551935, 121.0526181),
-(2, 'BAHAY NI CARLO', 432423, '......................', '[\"1759379452_68ddfffc7b50f_1758977990_68d7dfc6f135a_382486546_6612322138887282_4039537186339714220_n.jpg\"]', 'DONN', 'Bagong Silang', 3, '2025-10-02', 'Townhouse', 1, 14.3451736, 121.0560083),
-(3, 'BAHAY NI BERHEL', 1324, '132................', '[\"1759382927_68de0d8f89d16_1758205268_68cc1554bd4f0_INFORMATION TECHNOLOGY SOCIETY.png\",\"1759382927_68de0d8f8a03a_1758205593_68cc1699aa447_Gemini_Generated_Image_8b6dsy8b6dsy8b6d.png\"]', 'AsdASDA', 'Calendola', 2, '2025-10-02', 'Single-family home', 1, 14.3506106, 121.0541439),
-(4, 'bahay ni oliiber', 5232, '..............................', '[\"1759387936_68de2120cf9bb_1759050360_68d8fa787f1e7_340328863_137665385938079_6705222439846490113_n.jpg\"]', '........................', 'Bagong Silang', 2, '2025-10-02', 'Single-family home', 1, 14.3516134, 121.0526610),
-(5, 'KJAKD', 342, 'asdasdasdassssssssss', '[\"1759389277_68de265daff21_1758988260_68d807e45a387_381687360_298767639568410_6505632902293883757_n.jpg\"]', 'asjdajh', 'Bagong Silang', 2, '2025-10-02', 'Single-family home', 1, 14.3566902, 121.0560512);
+(1, 'BAHAY NI KUYA', 3332, '.........................', '[\"1758370391_68ce9a57ab50f_INFORMATION TECHNOLOGY SOCIETY.png\"]', 'JAN LANG SA KANTO', 'Calendola', 1, '2025-09-20', 'Low-rise apartment', NULL, 14.3653411, 121.0512023);
 
 -- --------------------------------------------------------
 
@@ -175,10 +173,42 @@ CREATE TABLE `messages` (
 --
 
 INSERT INTO `messages` (`id`, `conversation_id`, `sender_id`, `content`, `content_type`, `status`, `created_at`, `updated_at`, `is_read`) VALUES
-(1, 1, 4, 'Hello! I have a question about the property.', 'text', 'active', '2025-10-02 09:13:58', NULL, 0),
-(2, 1, 4, 'asjdaksdasdha', 'text', 'active', '2025-10-02 09:14:27', NULL, 0),
-(3, 1, 1, 'ihihi', 'text', 'active', '2025-10-02 09:14:34', NULL, 0),
-(4, 1, 4, 'okii', 'text', 'active', '2025-10-02 09:16:14', NULL, 0);
+(2, 2, 4, 'Hello! I have a question about the property.', 'text', 'active', '2025-09-30 07:44:18', NULL, 0),
+(3, 2, 5, 'sadasdsa', 'text', 'active', '2025-09-30 07:44:29', NULL, 0),
+(4, 2, 4, 'adasda', 'text', 'active', '2025-09-30 07:44:38', NULL, 0),
+(5, 2, 5, 'sadasda', 'text', 'active', '2025-09-30 07:44:40', NULL, 0),
+(6, 2, 4, 'dasdas', 'text', 'active', '2025-09-30 07:44:42', NULL, 0),
+(7, 2, 5, 'sadsda', 'text', 'active', '2025-09-30 07:44:44', NULL, 0),
+(8, 2, 4, 'asdasdas', 'text', 'active', '2025-09-30 07:44:47', NULL, 0),
+(9, 2, 5, 'adsadas', 'text', 'active', '2025-09-30 07:44:49', NULL, 0),
+(10, 2, 4, 'asdasdad', 'text', 'active', '2025-09-30 07:44:52', NULL, 0),
+(11, 2, 4, 'dsaasda', 'text', 'active', '2025-09-30 07:45:37', NULL, 0),
+(12, 2, 5, 'asdasda', 'text', 'active', '2025-09-30 07:45:41', NULL, 0),
+(13, 2, 5, 'adsadsa', 'text', 'active', '2025-09-30 07:45:44', NULL, 0),
+(14, 2, 4, 'sadasd', 'text', 'active', '2025-09-30 07:45:46', NULL, 0),
+(15, 2, 4, 'asdadsad', 'text', 'active', '2025-09-30 15:01:58', NULL, 0),
+(16, 3, 4, 'Hello! I have a question about the property.', 'text', 'active', '2025-09-30 15:05:45', NULL, 0),
+(17, 3, 2, 'adsada', 'text', 'active', '2025-09-30 15:06:04', NULL, 0),
+(18, 2, 4, 'asdasda', 'text', 'active', '2025-09-30 15:06:09', NULL, 0),
+(19, 3, 4, 'hi', 'text', 'active', '2025-09-30 15:06:16', NULL, 0),
+(20, 3, 2, 'hello', 'text', 'active', '2025-09-30 15:06:20', NULL, 0),
+(21, 3, 4, 'sadsa', 'text', 'active', '2025-10-01 13:04:19', NULL, 0),
+(22, 3, 4, 'hello', 'text', 'active', '2025-10-01 13:04:23', NULL, 0),
+(23, 3, 4, 'hi', 'text', 'active', '2025-10-01 13:04:25', NULL, 0),
+(24, 3, 4, 'musa', 'text', 'active', '2025-10-01 13:04:28', NULL, 0),
+(25, 2, 5, 'adsadas', 'text', 'active', '2025-10-01 13:06:19', NULL, 0),
+(26, 2, 5, 'asdas', 'text', 'active', '2025-10-01 13:06:42', NULL, 0),
+(27, 2, 5, 'hello', 'text', 'active', '2025-10-01 13:06:57', NULL, 0),
+(28, 2, 5, 'hi', 'text', 'active', '2025-10-01 13:06:59', NULL, 0),
+(29, 2, 5, 'sup', 'text', 'active', '2025-10-01 13:07:02', NULL, 0),
+(30, 2, 4, 'hello', 'text', 'active', '2025-10-01 23:50:36', NULL, 0),
+(31, 3, 4, 'hello', 'text', 'active', '2025-10-01 23:50:58', NULL, 0),
+(32, 2, 4, 'hi', 'text', 'active', '2025-10-01 23:51:07', NULL, 0),
+(33, 2, 4, 'hi', 'text', 'active', '2025-10-01 23:51:14', NULL, 0),
+(34, 2, 5, 'hey', 'text', 'active', '2025-10-01 23:53:22', NULL, 0),
+(35, 2, 4, 'asdas', 'text', 'active', '2025-10-01 23:54:26', NULL, 0),
+(36, 3, 4, 'hi', 'text', 'active', '2025-10-01 23:54:33', NULL, 0),
+(37, 3, 4, 'hello', 'text', 'active', '2025-10-01 23:54:49', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -189,26 +219,10 @@ INSERT INTO `messages` (`id`, `conversation_id`, `sender_id`, `content`, `conten
 CREATE TABLE `renttbl` (
   `ID` int(11) NOT NULL,
   `date` date NOT NULL,
-  `status` enum('pending','approved','rejected') DEFAULT 'pending',
   `landlord_id` int(11) DEFAULT NULL,
   `tenant_id` int(11) DEFAULT NULL,
   `listing_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `renttbl`
---
-
-INSERT INTO `renttbl` (`ID`, `date`, `status`, `landlord_id`, `tenant_id`, `listing_id`) VALUES
-(1, '2025-10-02', 'approved', 1, 1, 1),
-(2, '2025-10-02', 'pending', NULL, 3, NULL),
-(3, '2025-10-02', 'pending', NULL, 3, NULL),
-(4, '2025-10-02', 'pending', NULL, 3, NULL),
-(5, '2025-10-02', 'pending', NULL, 3, NULL),
-(6, '2025-10-02', 'pending', NULL, 3, NULL),
-(7, '2025-10-02', 'rejected', NULL, 3, 1),
-(8, '2025-10-02', 'rejected', NULL, 3, 4),
-(9, '2025-10-02', 'approved', NULL, 4, 4);
 
 -- --------------------------------------------------------
 
@@ -241,7 +255,7 @@ CREATE TABLE `tenanttbl` (
   `birthday` date DEFAULT NULL,
   `gender` varchar(50) DEFAULT NULL,
   `profilePic` varchar(255) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT NULL,
+  `datejoin` date DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
   `phoneNum` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -250,11 +264,10 @@ CREATE TABLE `tenanttbl` (
 -- Dumping data for table `tenanttbl`
 --
 
-INSERT INTO `tenanttbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `verificationId`, `birthday`, `gender`, `profilePic`, `created_at`, `status`, `phoneNum`) VALUES
-(1, 'mina', 'mina', 'mina', NULL, 'mina@gmail.com', '$2y$10$WcyN9bKppu1gXv5plvKZtO/hNT59Kw/mD.9fFfxSdMK365rQDtqVC', NULL, NULL, NULL, NULL, NULL, NULL, 2147483647),
-(2, 'sam', 'sam', 'hayop', NULL, 'sam@gmail.com', '$2y$10$47U13TSs7UJGmULauosR1e2MOuBGJ.2KS6YPpW63IEp8TlxKdnMr6', NULL, NULL, NULL, NULL, NULL, NULL, 7825428),
-(3, 'berhel', 'berhel', 'abella', NULL, 'berhel@gmail.com', '$2y$10$np9lY.f4ngKnhsG58VqXOe0j5jzpMwtauuLkysmS3RnBLRlT49lIW', NULL, NULL, NULL, NULL, NULL, NULL, 254265347),
-(4, 'oliber', 'oliber', 'olivera', NULL, 'oliber@gmail.com', '$2y$10$uiU9Va54jhFfEXYTcos1p.AHxonYfp/KaWoKGSm0RacDypGi28C7G', NULL, NULL, NULL, NULL, NULL, NULL, 5644566);
+INSERT INTO `tenanttbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `verificationId`, `birthday`, `gender`, `profilePic`, `datejoin`, `status`, `phoneNum`) VALUES
+(1, 'Justmnc30', 'samuel', 'alcazar', NULL, 'psalmuelalcazar30@gmail.com', '$2y$10$6gL84WNCRqTQTQwe03KLTOQ/z7.5IMkifQJf4ZkKEyugRAnXAE9XW', NULL, NULL, NULL, NULL, NULL, NULL, 2147483647),
+(3, 'Minceydicey2', 'samuel', 'alcazar', NULL, 'salmuel.alcazar@scha.edu.ph', '$2y$10$EijIIuuCfHA/.zOWvljC3.dX0UL7d2p2mCy6o76mGDetDtB5Itf1S', NULL, NULL, NULL, NULL, NULL, NULL, 13123123),
+(4, 'samueltnt', 'sam', 'aaa', NULL, 'salmuel.alcazar@sa.edu.ph', '$2y$10$48Zm01eYRKFb43GqSkBqme5.NiYUTlGpSSpEKW7aUbEA5NtbCRl4S', NULL, NULL, NULL, NULL, NULL, NULL, 0);
 
 --
 -- Indexes for dumped tables
@@ -270,7 +283,8 @@ ALTER TABLE `conversations`
 -- Indexes for table `conversation_members`
 --
 ALTER TABLE `conversation_members`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `conversation_id` (`conversation_id`);
 
 --
 -- Indexes for table `landlordtbl`
@@ -291,7 +305,8 @@ ALTER TABLE `listingtbl`
 -- Indexes for table `messages`
 --
 ALTER TABLE `messages`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_conv_created` (`conversation_id`,`created_at`);
 
 --
 -- Indexes for table `renttbl`
@@ -327,37 +342,37 @@ ALTER TABLE `tenanttbl`
 -- AUTO_INCREMENT for table `conversations`
 --
 ALTER TABLE `conversations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `conversation_members`
 --
 ALTER TABLE `conversation_members`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `landlordtbl`
 --
 ALTER TABLE `landlordtbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `listingtbl`
 --
 ALTER TABLE `listingtbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
 
 --
 -- AUTO_INCREMENT for table `renttbl`
 --
 ALTER TABLE `renttbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `requesttbl`
@@ -376,10 +391,22 @@ ALTER TABLE `tenanttbl`
 --
 
 --
+-- Constraints for table `conversation_members`
+--
+ALTER TABLE `conversation_members`
+  ADD CONSTRAINT `conversation_members_ibfk_1` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `listingtbl`
 --
 ALTER TABLE `listingtbl`
   ADD CONSTRAINT `fk_listing_landlord` FOREIGN KEY (`landlord_id`) REFERENCES `landlordtbl` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `messages`
+--
+ALTER TABLE `messages`
+  ADD CONSTRAINT `messages_ibfk_1` FOREIGN KEY (`conversation_id`) REFERENCES `conversations` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `renttbl`

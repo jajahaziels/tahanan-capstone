@@ -2,24 +2,32 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
+// property id from URL (case-insensitive)
 $idParam = $_GET['id'] ?? $_GET['ID'] ?? null;
 
 if (!$idParam || !is_numeric($idParam)) {
     die("Invalid property ID.");
 }
 
-$ID = intval($idParam);
+$listingID = intval($idParam);
 
-// Fetch property + landlord info
+// Fetch property, landlord, rental, and tenant info
 $sql = "
-    SELECT l.*, 
-           ld.firstName, ld.lastName, ld.profilePic 
+    SELECT l.ID AS listing_id, l.listingName, l.address, l.images, l.barangay, l.category, l.rooms, l.price, l.listingDesc,
+           ld.ID AS landlord_id, ld.firstName AS landlord_fname, ld.lastName AS landlord_lname, ld.profilePic, ld.phoneNum AS landlord_phone, ld.email AS landlord_email,
+           r.ID AS rental_id, r.date AS rental_date,
+           t.firstName AS tenant_fname, t.lastName AS tenant_lname, t.phoneNum AS tenant_phone, t.email AS tenant_email
     FROM listingtbl l
     JOIN landlordtbl ld ON l.landlord_id = ld.ID
+    LEFT JOIN renttbl r ON r.listing_id = l.ID
+    LEFT JOIN tenanttbl t ON r.tenant_id = t.ID
     WHERE l.ID = ?
+    ORDER BY r.date DESC
+    LIMIT 1
 ";
+
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $ID);
+$stmt->bind_param("i", $listingID);
 $stmt->execute();
 $result = $stmt->get_result();
 
@@ -31,6 +39,8 @@ $property = $result->fetch_assoc();
 $images = json_decode($property['images'], true) ?? [];
 $stmt->close();
 ?>
+
+
 
 
 <!DOCTYPE html>
@@ -133,6 +143,7 @@ $stmt->close();
                 <button class="main-button back-button" onclick="location.href='tenant.php'">Back</button>
             </div>
         </div>
+
         <div class="row justify-content-center align-items-center mt-5">
             <div class="col-lg-6 prorperty-details p-3">
 
@@ -166,7 +177,7 @@ $stmt->close();
                         <?php endif; ?>
                     </div>
 
-                    <!-- Controls -->
+                    <!-- Carousel Controls -->
                     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
                         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                         <span class="visually-hidden">Previous</span>
@@ -179,22 +190,28 @@ $stmt->close();
 
                 <!-- Property Info -->
                 <div class="d-flex justify-content-between align-items-center">
-                    <p class="mb-0"><?= htmlspecialchars($property['barangay']); ?>, San Pedro, Laguna </p>
-                    <button class="main-button mx-5">Apply</button>
+                    <p class="mb-0"><?= htmlspecialchars($property['barangay'] ?? ''); ?>, San Pedro, Laguna</p>
+                    <form action="apply.php" method="POST">
+                        <input type="hidden" name="listing_id" value="<?= htmlspecialchars($property['listing_id']); ?>">
+                        <button type="submit" class="main-button mx-5">Apply</button>
+                    </form>
+
                 </div>
                 <h4><?= htmlspecialchars($property['listingName']); ?></h4>
-                <h1 class="price">₱ <?= number_format($property['price']); ?>.00<small class="text-muted fs-5">/month</small></h1>
+                <h1 class="price">
+                    ₱ <?= number_format($property['price']); ?>.00
+                    <small class="text-muted fs-5">/month</small>
+                </h1>
 
-                <!-- LANDLORD INFOF -->
+                <!-- Landlord Info -->
                 <div class="d-flex align-items-center p-2 border rounded mb-4 mt-4">
                     <!-- Avatar -->
                     <div class="avatar me-3">
                         <?php if (!empty($property['profilePic'])): ?>
-                            <img src="<?= htmlspecialchars($property['profilePic']); ?>"
-                                alt="Profile">
+                            <img src="../LANDLORD/uploads/<?= htmlspecialchars($property['profilePic']); ?>" alt="Profile">
                         <?php else: ?>
                             <div class="landlord-info">
-                                <?= strtoupper(substr($property['firstName'], 0, 1)); ?>
+                                <?= strtoupper(substr($property['landlord_fname'], 0, 1)); ?>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -202,9 +219,8 @@ $stmt->close();
                     <!-- Landlord Info -->
                     <div class="info flex-grow-1 mt-2">
                         <h1 class="mb-0">
-                            <?= htmlspecialchars(ucwords(strtolower($property['firstName'] . ' ' . $property['lastName']))); ?>
+                            <?= htmlspecialchars(ucwords(strtolower($property['landlord_fname'] . ' ' . $property['landlord_lname']))); ?>
                         </h1>
-
                         <p class="text-muted">Landlord</p>
                     </div>
 
@@ -220,6 +236,7 @@ $stmt->close();
                     </div>
                 </div>
 
+                <!-- Property Description -->
                 <h3>Property Description</h3>
                 <p><?= nl2br(htmlspecialchars($property['listingDesc'] ?? "No description available.")); ?></p>
                 <ul>
@@ -228,33 +245,34 @@ $stmt->close();
                     <li><strong>Rooms:</strong> <?= htmlspecialchars($property['rooms']); ?> Bedroom(s)</li>
                 </ul>
 
-
                 <!-- Map -->
                 <div id="map"></div>
             </div>
         </div>
+    </div>
 
 
 
-        <!-- MAIN JS -->
-        <script src="../js/script.js" defer></script>
-        <!-- BS JS -->
-        <script src="../js/bootstrap.bundle.min.js"></script>
-        <!-- SCROLL REVEAL -->
-        <script src="https://unpkg.com/scrollreveal"></script>
-        <!-- LEAFLET JS -->
-        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-        <script>
-            var lat = <?= $property['latitude'] ?: 14.3647 ?>;
-            var lng = <?= $property['longitude'] ?: 121.0556 ?>;
+    <!-- MAIN JS -->
+    <script src="../js/script.js" defer></script>
+    <!-- BS JS -->
+    <script src="../js/bootstrap.bundle.min.js"></script>
+    <!-- SCROLL REVEAL -->
+    <script src="https://unpkg.com/scrollreveal"></script>
+    <!-- LEAFLET JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 
-            var map = L.map('map').setView([lat, lng], 15);
+    <script>
+        var lat = <?= $property['latitude'] ?: 14.3647 ?>;
+        var lng = <?= $property['longitude'] ?: 121.0556 ?>;
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
+        var map = L.map('map').setView([lat, lng], 15);
 
-            L.marker([lat, lng]).addTo(map).bindPopup("<?= htmlspecialchars($property['listingName']); ?>");
-        </script>
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        L.marker([lat, lng]).addTo(map).bindPopup("<?= htmlspecialchars($property['listingName']); ?>");
+    </script>
 </body>
