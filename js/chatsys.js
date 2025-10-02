@@ -200,20 +200,83 @@ document.addEventListener("DOMContentLoaded", async () => {
           return;
         }
 
-        data.messages.forEach(msg => {
-          const div = document.createElement("div");
-          div.classList.add("message");
-          div.classList.add(msg.sender_id == currentUserId ? "sent" : "received");
-          div.textContent = msg.message;
+        data.messages.forEach((msg, index) => {
+          const messageDiv = document.createElement("div");
+          messageDiv.classList.add("message");
+          messageDiv.classList.add(msg.sender_id == currentUserId ? "sent" : "received");
+          messageDiv.style.animationDelay = `${index * 0.05}s`;
           
-          // Add timestamp
-          const time = new Date(msg.created_at).toLocaleTimeString('en-US', {
+          // Create avatar
+          const avatar = document.createElement("img");
+          avatar.classList.add("message-avatar");
+          avatar.src = "../img/home.png"; // Default avatar
+          avatar.alt = "User avatar";
+          avatar.onerror = function() { this.src = "../img/home.png"; };
+          
+          // Create message bubble container
+          const bubbleDiv = document.createElement("div");
+          bubbleDiv.classList.add("message-bubble");
+          
+          // Create message content
+          const contentDiv = document.createElement("div");
+          contentDiv.classList.add("message-content");
+          contentDiv.textContent = msg.message;
+          
+          // Create message meta (timestamp and status)
+          const metaDiv = document.createElement("div");
+          metaDiv.classList.add("message-meta");
+          
+          // Format timestamp
+          const messageDate = new Date(msg.created_at);
+          const now = new Date();
+          const diffMs = now - messageDate;
+          const diffMins = Math.floor(diffMs / 60000);
+          const diffHours = Math.floor(diffMs / 3600000);
+          const diffDays = Math.floor(diffMs / 86400000);
+          
+          let timeText;
+          if (diffMins < 1) {
+            timeText = "Just now";
+          } else if (diffMins < 60) {
+            timeText = `${diffMins}m ago`;
+          } else if (diffHours < 24) {
+            timeText = `${diffHours}h ago`;
+          } else if (diffDays === 1) {
+            timeText = "Yesterday";
+          } else if (diffDays < 7) {
+            timeText = `${diffDays}d ago`;
+          } else {
+            timeText = messageDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          }
+          
+          const timeSpan = document.createElement("span");
+          timeSpan.classList.add("message-time");
+          timeSpan.textContent = timeText;
+          timeSpan.title = messageDate.toLocaleString('en-US', {
+            month: 'short',
+            day: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
           });
-          div.title = time;
           
-          chatMessages.appendChild(div);
+          metaDiv.appendChild(timeSpan);
+          
+          // Add status icon for sent messages
+          if (msg.sender_id == currentUserId) {
+            const statusSpan = document.createElement("span");
+            statusSpan.classList.add("message-status");
+            statusSpan.innerHTML = '<i class="fa-solid fa-check-double status-read"></i>';
+            metaDiv.appendChild(statusSpan);
+          }
+          
+          // Assemble the message
+          bubbleDiv.appendChild(contentDiv);
+          bubbleDiv.appendChild(metaDiv);
+          
+          messageDiv.appendChild(avatar);
+          messageDiv.appendChild(bubbleDiv);
+          
+          chatMessages.appendChild(messageDiv);
         });
 
         chatMessages.scrollTop = chatMessages.scrollHeight;

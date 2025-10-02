@@ -40,7 +40,7 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="../css/style.css">
     <title>MESSAGE - <?php echo htmlspecialchars($landlord_name); ?></title>
-    <link rel="stylesheet" href="ll-messages.css">
+    <link rel="stylesheet" href="../css/chat-messages.css">
 </head>
 
 <body>
@@ -84,14 +84,14 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
                     <input class="search-chats" type="text" placeholder=" Search Chats">
                     
                     <!-- Loading state -->
-                    <div id="conversations-loading" style="text-align: center; color: #666; margin-top: 30px;">
+                    <div id="conversations-loading" class="loading-state">
                         <i class="fa-solid fa-spinner fa-spin"></i>
                         <p>Loading conversations...</p>
                     </div>
                     
                     <!-- No conversations state -->
-                    <div id="no-conversations" style="text-align: center; color: #666; margin-top: 50px; display: none;">
-                        <i class="fa-solid fa-comments" style="font-size: 48px; opacity: 0.3;"></i>
+                    <div id="no-conversations" class="no-conversations-state">
+                        <i class="fa-solid fa-comments"></i>
                         <p>No conversations yet</p>
                         <small>Start a conversation with a tenant</small>
                     </div>
@@ -105,10 +105,10 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
 
                     <div class="chat-messages">
                         <div class="empty-chat">
-                            <div style="text-align: center;">
-                                <i class="fa-solid fa-comment-dots" style="font-size: 64px; color: #ccc;"></i>
-                                <p style="color: #666; margin-top: 20px;">Choose a conversation from the sidebar</p>
-                                <small style="color: #999;">Your messages will appear here</small>
+                            <div class="empty-chat-content">
+                                <i class="fa-solid fa-comment-dots"></i>
+                                <p>Choose a conversation from the sidebar</p>
+                                <small>Your messages will appear here</small>
                             </div>
                         </div>
                     </div>

@@ -40,7 +40,7 @@ $tenant_name = trim($tenant['firstName'] . ' ' . ($tenant['middleName'] ? $tenan
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="../css/style.css">
     <title>TENANT MESSAGE - <?php echo htmlspecialchars($tenant_name); ?></title>
-    <link rel="stylesheet" href="tenant-messages.css">
+    <link rel="stylesheet" href="../css/chat-messages.css">
 </head>
 
 <body>
@@ -78,7 +78,7 @@ $tenant_name = trim($tenant['firstName'] . ' ' . ($tenant['middleName'] ? $tenan
     <!-- TENANT MSG CONTENT -->
     <div class="tenant-page">
         <div class="container m-auto">
-            <h2 class="my-4">Chats <i class="fa-solid fa-pen-to-square"></i></h2>
+            <!-- <h2 class="my-4">Chats <i class="fa-solid fa-pen-to-square"></i></h2> -->
             <div class="row chat-box">
                 
                 <!-- Sidebar -->
