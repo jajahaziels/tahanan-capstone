@@ -54,7 +54,7 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
             <li><a href="landlord.php">Home</a></li>
             <li><a href="landlord-properties.php">Properties</a></li>
             <li><a href="landlord-message.php" class="active">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         
         <!-- NAV ICON / NAME -->

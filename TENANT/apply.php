@@ -2,37 +2,49 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-// Check tenant session
-if (!isset($_SESSION['tenant_id'])) {
-    die("Unauthorized access.");
-}
-
-$tenant_id = (int) $_SESSION['tenant_id'];
-$listing_id = isset($_POST['listing_id']) ? (int) $_POST['listing_id'] : 0;
+$tenant_id = $_SESSION['tenant_id'];
+$listing_id = intval($_POST['listing_id'] ?? 0);
 
 if ($listing_id <= 0) {
     die("Invalid property ID.");
 }
 
-// Prevent duplicate applications
-$check = $conn->prepare("SELECT ID FROM renttbl WHERE tenant_id=? AND listing_id=?");
-$check->bind_param("ii", $tenant_id, $listing_id);
+// === OPTION 1: Prevent tenant from renting another property ===
+$check = $conn->prepare("SELECT ID FROM renttbl WHERE tenant_id=? AND status='approved'");
+$check->bind_param("i", $tenant_id);
 $check->execute();
 $result = $check->get_result();
 
 if ($result->num_rows > 0) {
-    die("⚠️ You already applied for this property.");
+        echo "<script>
+        alert('⚠️ You already have a property rented. You cannot rent another one.');
+        window.history.back();
+    </script>";
+    exit;
+}
+
+// Prevent duplicate applications (your existing code)
+$checkDup = $conn->prepare("SELECT ID FROM renttbl WHERE tenant_id=? AND listing_id=?");
+$checkDup->bind_param("ii", $tenant_id, $listing_id);
+$checkDup->execute();
+$dupResult = $checkDup->get_result();
+
+if ($dupResult->num_rows > 0) {
+        echo "<script>
+        alert('⚠️ You already applied for this property..');
+        window.history.back();
+    </script>";
+    exit;
 }
 
 // Insert request
-$sql = "INSERT INTO renttbl (tenant_id, listing_id, date, status) VALUES (?, ?, NOW(), 'pending')";
-$stmt = $conn->prepare($sql);
+$stmt = $conn->prepare("INSERT INTO renttbl (tenant_id, listing_id, date, status) VALUES (?, ?, NOW(), 'pending')");
 $stmt->bind_param("ii", $tenant_id, $listing_id);
+$stmt->execute();
 
-if ($stmt->execute()) {
-    header("Location: tenant-rental.php?success=1");
-    exit;
-} else {
-    echo "Error: " . $stmt->error;
-}
+        echo "<script>
+        alert('Request submitted successfully!');
+        window.history.back();
+    </script>";
+exit;
 ?>

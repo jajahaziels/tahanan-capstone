@@ -2,7 +2,7 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-// property id from URL (case-insensitive)
+// Get property ID from URL (case-insensitive)
 $idParam = $_GET['id'] ?? $_GET['ID'] ?? null;
 
 if (!$idParam || !is_numeric($idParam)) {
@@ -11,18 +11,29 @@ if (!$idParam || !is_numeric($idParam)) {
 
 $listingID = intval($idParam);
 
-// Fetch property, landlord, rental, and tenant info
+// Fetch property and landlord info (for tenant view)
 $sql = "
-    SELECT l.ID AS listing_id, l.listingName, l.address, l.images, l.barangay, l.category, l.rooms, l.price, l.listingDesc,
-           ld.ID AS landlord_id, ld.firstName AS landlord_fname, ld.lastName AS landlord_lname, ld.profilePic, ld.phoneNum AS landlord_phone, ld.email AS landlord_email,
-           r.ID AS rental_id, r.date AS rental_date,
-           t.firstName AS tenant_fname, t.lastName AS tenant_lname, t.phoneNum AS tenant_phone, t.email AS tenant_email
+    SELECT 
+        l.ID AS listing_id,
+        l.listingName,
+        l.address,
+        l.barangay,
+        l.category,
+        l.rooms,
+        l.price,
+        l.listingDesc,
+        l.images,
+        l.latitude,
+        l.longitude,
+        ld.ID AS landlord_id,
+        ld.firstName AS landlord_fname,
+        ld.lastName AS landlord_lname,
+        ld.profilePic,
+        ld.phoneNum AS landlord_phone,
+        ld.email AS landlord_email
     FROM listingtbl l
     JOIN landlordtbl ld ON l.landlord_id = ld.ID
-    LEFT JOIN renttbl r ON r.listing_id = l.ID
-    LEFT JOIN tenanttbl t ON r.tenant_id = t.ID
     WHERE l.ID = ?
-    ORDER BY r.date DESC
     LIMIT 1
 ";
 
@@ -39,6 +50,7 @@ $property = $result->fetch_assoc();
 $images = json_decode($property['images'], true) ?? [];
 $stmt->close();
 ?>
+
 
 
 
@@ -119,7 +131,7 @@ $stmt->close();
             <li><a href="tenant-favorite.php">Favorite</a></li>
             <li><a href="tenant-map.php">Map</a></li>
             <li><a href="tenant-messages.php">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
         <div class="nav-icons">

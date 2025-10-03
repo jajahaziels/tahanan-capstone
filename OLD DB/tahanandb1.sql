@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Oct 03, 2025 at 04:35 PM
+-- Generation Time: Oct 02, 2025 at 11:22 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -117,7 +117,7 @@ CREATE TABLE `landlordtbl` (
 --
 
 INSERT INTO `landlordtbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `phoneNum`, `verificationId`, `birthday`, `street`, `barangay`, `city`, `province`, `zipCode`, `country`, `gender`, `profilePic`, `dateJoin`, `status`, `created_at`, `verification_status`, `ID_image`) VALUES
-(1, 'allen', 'allen', 'mina', NULL, 'allen@gmail.com', '$2y$10$oJoo23RJo0AeSW0MTOELHujAJcwYrF.hgrYFQEOK8zYFvt1I8riY.', '9234234628', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-03 10:07:22', 'verified', '../LANDLORD/uploads/ids1759486130_291913091_461215042674350_1577437394873495254_n.jpg');
+(1, 'allen', 'allen', 'mina', NULL, 'allen@gmail.com', '$2y$10$GkbWeG2n1owen.YATCsyQ.qUCDxAVnRI1BZzHxE88eeUhYqXxx906', '45346323', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-02 03:27:32', 'verified', '../LANDLORD/uploads/ids1759375774_468223193_122120882294401719_4910812637509051064_n.jpg');
 
 -- --------------------------------------------------------
 
@@ -146,12 +146,11 @@ CREATE TABLE `listingtbl` (
 --
 
 INSERT INTO `listingtbl` (`ID`, `listingName`, `price`, `listingDesc`, `images`, `address`, `barangay`, `rooms`, `listingDate`, `category`, `landlord_id`, `latitude`, `longitude`) VALUES
-(1, 'APARTMENT1', 4534, '................................', '[\"1759501746_68dfddb267850_house1.jpeg\"]', 'OVER THERE', 'Bagong Silang', 1, '2025-10-03', 'Condominium', 1, 14.3475161, 121.0588020),
-(2, 'APARTMENT2', 7855, '......................................', '[\"1759501782_68dfddd629559_house2.jpg\"]', 'OVER THERE', 'Calendola', 2, '2025-10-03', 'Low-rise apartment', 1, 14.3529735, 121.0567760),
-(3, 'APARTMENT3', 7219, '.................................', '[\"1759501812_68dfddf44d493_house3.jpg\"]', 'OVER THERE', 'Chrysanthemum', 3, '2025-10-03', 'Townhouse', 1, 14.3481784, 121.0521412),
-(4, 'APARTMENT4', 3875, '.............................', '[\"1759501835_68dfde0bb77df_house4.jpg\"]', 'OVER THERE', 'Calendola', 2, '2025-10-03', 'Single-family home', 1, 14.3555374, 121.0548019),
-(5, 'APARTMENT5', 56756, '.....................................................', '[\"1759501871_68dfde2fb3867_house5.jpg\"]', 'OVER THERE', 'Chrysanthemum', 5, '2025-10-03', 'Single-family home', 1, 14.3589465, 121.0604668),
-(6, 'APARTMENT6', 9856, '..................', '[\"1759501899_68dfde4b94c63_house6.jpg\"]', 'OVER THERE', 'Bagong Silang', 4, '2025-10-03', 'Apartment complex', 1, 14.3557868, 121.0600805);
+(1, 'BAHAY NI KENJI', 2523, '.......................', '[\"1759375816_68ddf1c848252_468223193_122120882294401719_4910812637509051064_n.jpg\"]', 'DOON LAGN', 'Bagong Silang', 4, '2025-10-02', 'Townhouse', 1, 14.3551935, 121.0526181),
+(2, 'BAHAY NI CARLO', 432423, '......................', '[\"1759379452_68ddfffc7b50f_1758977990_68d7dfc6f135a_382486546_6612322138887282_4039537186339714220_n.jpg\"]', 'DONN', 'Bagong Silang', 3, '2025-10-02', 'Townhouse', 1, 14.3451736, 121.0560083),
+(3, 'BAHAY NI BERHEL', 1324, '132................', '[\"1759382927_68de0d8f89d16_1758205268_68cc1554bd4f0_INFORMATION TECHNOLOGY SOCIETY.png\",\"1759382927_68de0d8f8a03a_1758205593_68cc1699aa447_Gemini_Generated_Image_8b6dsy8b6dsy8b6d.png\"]', 'AsdASDA', 'Calendola', 2, '2025-10-02', 'Single-family home', 1, 14.3506106, 121.0541439),
+(4, 'bahay ni oliiber', 5232, '..............................', '[\"1759387936_68de2120cf9bb_1759050360_68d8fa787f1e7_340328863_137665385938079_6705222439846490113_n.jpg\"]', '........................', 'Bagong Silang', 2, '2025-10-02', 'Single-family home', 1, 14.3516134, 121.0526610),
+(5, 'KJAKD', 342, 'asdasdasdassssssssss', '[\"1759389277_68de265daff21_1758988260_68d807e45a387_381687360_298767639568410_6505632902293883757_n.jpg\"]', 'asjdajh', 'Bagong Silang', 2, '2025-10-02', 'Single-family home', 1, 14.3566902, 121.0560512);
 
 -- --------------------------------------------------------
 
@@ -179,9 +178,7 @@ INSERT INTO `messages` (`id`, `conversation_id`, `sender_id`, `content`, `conten
 (1, 1, 4, 'Hello! I have a question about the property.', 'text', 'active', '2025-10-02 09:13:58', NULL, 0),
 (2, 1, 4, 'asjdaksdasdha', 'text', 'active', '2025-10-02 09:14:27', NULL, 0),
 (3, 1, 1, 'ihihi', 'text', 'active', '2025-10-02 09:14:34', NULL, 0),
-(4, 1, 4, 'okii', 'text', 'active', '2025-10-02 09:16:14', NULL, 0),
-(5, 1, 1, 'hey', 'text', 'active', '2025-10-03 14:03:15', NULL, 0),
-(6, 1, 4, 'wazzup', 'text', 'active', '2025-10-03 14:03:23', NULL, 0);
+(4, 1, 4, 'okii', 'text', 'active', '2025-10-02 09:16:14', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -203,10 +200,15 @@ CREATE TABLE `renttbl` (
 --
 
 INSERT INTO `renttbl` (`ID`, `date`, `status`, `landlord_id`, `tenant_id`, `listing_id`) VALUES
-(1, '2025-10-03', 'approved', NULL, 4, 1),
-(2, '2025-10-03', 'approved', NULL, 3, 2),
-(3, '2025-10-03', 'approved', NULL, 1, 3),
-(4, '2025-10-03', 'approved', NULL, 2, 4);
+(1, '2025-10-02', 'approved', 1, 1, 1),
+(2, '2025-10-02', 'pending', NULL, 3, NULL),
+(3, '2025-10-02', 'pending', NULL, 3, NULL),
+(4, '2025-10-02', 'pending', NULL, 3, NULL),
+(5, '2025-10-02', 'pending', NULL, 3, NULL),
+(6, '2025-10-02', 'pending', NULL, 3, NULL),
+(7, '2025-10-02', 'rejected', NULL, 3, 1),
+(8, '2025-10-02', 'rejected', NULL, 3, 4),
+(9, '2025-10-02', 'approved', NULL, 4, 4);
 
 -- --------------------------------------------------------
 
@@ -218,8 +220,7 @@ CREATE TABLE `requesttbl` (
   `ID` int(11) NOT NULL,
   `date` date DEFAULT NULL,
   `tenant_id` int(11) DEFAULT NULL,
-  `listing_id` int(11) DEFAULT NULL,
-  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending'
+  `listing_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -250,10 +251,10 @@ CREATE TABLE `tenanttbl` (
 --
 
 INSERT INTO `tenanttbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `verificationId`, `birthday`, `gender`, `profilePic`, `created_at`, `status`, `phoneNum`) VALUES
-(1, 'gio', 'gio', 'gonzales', NULL, 'gio@gmail.com', '$2y$10$AnRvRECgB/IzBnRKTyFL7.beR9eOdhIY/1Qo0MFtrrKaeE0jNecSW', NULL, NULL, NULL, NULL, NULL, NULL, 43324132),
-(2, 'sam', 'sam', 'alcazar', NULL, 'sam@gmail.com', '$2y$10$rCt0B4mW/iSCpTKJMqLgf.zSmO8JQcNOo6wZbuZ6dh9EDDx3SKs7C', NULL, NULL, NULL, NULL, NULL, NULL, 1231231231),
-(3, 'jahaziel', 'jahaziel', 'sison', NULL, 'jahaziel@gmail.com', '$2y$10$aQLvcgtlUhhxX/r9vX7HFu/QJ9H47FoXecGgQG4YaNodI0SmYur.C', NULL, NULL, NULL, NULL, NULL, NULL, 2147483647),
-(4, 'alen', 'alen', 'wagas', NULL, 'alen@gmail.com', '$2y$10$2BW43vPDVWS/SKZpn2vloOd.TsKFZpc639OXTe6e8kRWN0MPkUhg6', NULL, NULL, NULL, NULL, NULL, NULL, 95423632);
+(1, 'mina', 'mina', 'mina', NULL, 'mina@gmail.com', '$2y$10$WcyN9bKppu1gXv5plvKZtO/hNT59Kw/mD.9fFfxSdMK365rQDtqVC', NULL, NULL, NULL, NULL, NULL, NULL, 2147483647),
+(2, 'sam', 'sam', 'hayop', NULL, 'sam@gmail.com', '$2y$10$47U13TSs7UJGmULauosR1e2MOuBGJ.2KS6YPpW63IEp8TlxKdnMr6', NULL, NULL, NULL, NULL, NULL, NULL, 7825428),
+(3, 'berhel', 'berhel', 'abella', NULL, 'berhel@gmail.com', '$2y$10$np9lY.f4ngKnhsG58VqXOe0j5jzpMwtauuLkysmS3RnBLRlT49lIW', NULL, NULL, NULL, NULL, NULL, NULL, 254265347),
+(4, 'oliber', 'oliber', 'olivera', NULL, 'oliber@gmail.com', '$2y$10$uiU9Va54jhFfEXYTcos1p.AHxonYfp/KaWoKGSm0RacDypGi28C7G', NULL, NULL, NULL, NULL, NULL, NULL, 5644566);
 
 --
 -- Indexes for dumped tables
@@ -344,19 +345,19 @@ ALTER TABLE `landlordtbl`
 -- AUTO_INCREMENT for table `listingtbl`
 --
 ALTER TABLE `listingtbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `renttbl`
 --
 ALTER TABLE `renttbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `requesttbl`

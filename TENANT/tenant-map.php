@@ -60,7 +60,7 @@ while ($row = $result->fetch_assoc()) {
             <li><a href="tenant-favorite.php">Favorite</a></li>
             <li><a href="tenant-map.php" class="active">Map</a></li>
             <li><a href="tenant-messages.php">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
         <div class="nav-icons">

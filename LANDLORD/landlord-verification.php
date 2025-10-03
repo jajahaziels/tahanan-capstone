@@ -97,7 +97,7 @@ if ($status === 'pending' && empty($id_image)) {
             <li><a href="landlord.php">Home</a></li>
             <li><a href="landlord-properties.php" class="active">Properties</a></li>
             <li><a href="landlord-message.php">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
         <div class="nav-icons">

@@ -54,8 +54,8 @@ $tenant_name = trim($tenant['firstName'] . ' ' . ($tenant['middleName'] ? $tenan
             <li><a href="tenant.php">Home</a></li>
             <li><a href="tenant-rental.php">My Rental</a></li>
             <li><a href="tenant-favorite.php">Favorite</a></li>
-            <li><a href="tenant-message.php" class="active">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="tenant-messages.php" class="active">Messages</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         
         <!-- NAV ICON / NAME -->

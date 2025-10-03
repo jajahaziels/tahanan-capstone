@@ -36,7 +36,7 @@ include '../session_auth.php';
             <li><a href="landlord.php" class="active">Home</a></li>
             <li><a href="landlord-properties.php">Properties</a></li>
             <li><a href="landlord-message.php">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
         <div class="nav-icons">
