@@ -39,6 +39,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // Check if there's a conversation_id in URL (from contact landlord)
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetConversationId = urlParams.get('conversation_id');
+
   // Load conversations
   async function loadConversations() {
     try {
