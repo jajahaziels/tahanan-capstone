@@ -271,7 +271,7 @@ $result = $conn->query($sql);
                                     <i class="fa-regular fa-message mb-4 mt-5"></i>
                                     <p>"This platform has been a game-changer for managing our apartments. Everything is in one place—tenant requests, payments, and updates—so I no longer waste time juggling multiple tools. It keeps everything organized and stress-free."</p>
                                     <div class="person mt-5">
-                                        <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
+                                        <img src="../TAHANAN/img/mina.jpg" alt="" width="10%">
                                         <h5 class="mt-3">Jonathan Allen Mina</h5>
                                         <div class="stars">
                                             <i class="fa-solid fa-star"></i>
@@ -315,7 +315,7 @@ $result = $conn->query($sql);
                                     <i class="fa-regular fa-message mb-4 mt-5"></i>
                                     <p>"Collecting rent used to be a hassle, but now it’s effortless. The platform’s payment system is reliable and secure, making the entire process smooth for both tenants and management. It’s a win-win!"</p>
                                     <div class="person mt-5">
-                                        <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
+                                        <img src="../TAHANAN/img/sam.png" alt="" width="10%">
                                         <h5 class="mt-3">Salmuel Whyette Alcazar</h5>
                                         <div class="stars">
                                             <i class="fa-solid fa-star"></i>
@@ -337,7 +337,7 @@ $result = $conn->query($sql);
                                     <i class="fa-regular fa-message mb-4 mt-5"></i>
                                     <p>"This apartment management platform has elevated the way we operate. It gives off a professional, modern feel that tenants notice and appreciate. It’s not just a tool—it’s part of delivering excellent service."</p>
                                     <div class="person mt-5">
-                                        <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
+                                        <img src="../TAHANAN/img/gio.jpg" alt="" width="10%">
                                         <h5 class="mt-3">Giorj Allen Gonzales</h5>
                                         <div class="stars">
                                             <i class="fa-solid fa-star"></i>
