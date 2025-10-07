@@ -280,7 +280,8 @@ $stmt->close();
                             onclick="window.location.href='landlord-profile.php?id=<?= $property['landlord_id']; ?>'">
                             <i class="fa-solid fa-user"></i>
                         </button>
-                        <button class="small-button mx-3">
+                        <button class="small-button mx-3" 
+                            onclick="contactLandlord(<?= $property['landlord_id']; ?>, <?= $property['listing_id']; ?>, '<?= htmlspecialchars(addslashes($property['listingName'])); ?>')">
                             <i class="fas fa-comment-dots"></i>
                         </button>
                     </div>
@@ -312,7 +313,7 @@ $stmt->close();
     <script src="https://unpkg.com/scrollreveal"></script>
     <!-- LEAFLET JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
+    <script src="../js/contact-landlord.js"></script>                       
     <script>
         var lat = <?= $property['latitude'] ?: 14.3647 ?>;
         var lng = <?= $property['longitude'] ?: 121.0556 ?>;
@@ -325,4 +326,5 @@ $stmt->close();
 
         L.marker([lat, lng]).addTo(map).bindPopup("<?= htmlspecialchars($property['listingName']); ?>");
     </script>
+    
 </body>

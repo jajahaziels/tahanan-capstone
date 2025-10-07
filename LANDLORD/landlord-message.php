@@ -114,8 +114,26 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
                     </div>
 
                     <div class="chat-input">
+                        <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls">
+                        <button type="button" class="file-upload-btn" onclick="document.getElementById('file-input').click()">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </button>
                         <input type="text" placeholder="Select a conversation first..." disabled>
-                        <button disabled><i class="fa-solid fa-paper-plane"></i></button>
+                        <button type="submit" disabled><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+
+                    <!-- File Preview (hidden by default) -->
+                    <div class="file-preview" id="file-preview">
+                        <div class="file-preview-icon">
+                            <i class="fa-solid fa-file"></i>
+                        </div>
+                        <div class="file-preview-info">
+                            <p class="file-preview-name"></p>
+                            <p class="file-preview-size"></p>
+                        </div>
+                        <button class="file-preview-remove" onclick="removeFile()">
+                            <i class="fa-solid fa-times"></i> Remove
+                        </button>
                     </div>
                 </div>
 
@@ -146,6 +164,6 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
 
     <!-- Updated Chat System JS -->
     <script src="../js/chatsys.js" defer></script>
-
+    <script src="../js/chat-file-upload.js" defer></script>
 </body>
 </html>
