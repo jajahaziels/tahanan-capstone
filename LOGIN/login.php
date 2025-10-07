@@ -1,12 +1,37 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 require_once '../connection.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = trim($_POST['username']);
     $password = trim($_POST['password']);
+    $error = "";
 
-    // First, check landlords
+    // First, check admins (login with email)
+    $stmt = $conn->prepare("SELECT * FROM admintbl WHERE email = ?");
+    $stmt->bind_param("s", $username);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows === 1) {
+        $row = $result->fetch_assoc();
+
+        if (password_verify($password, $row['password'])) {
+            $_SESSION['user_type'] = "admin";
+            $_SESSION['admin_id']  = $row['ID'];
+            $_SESSION['email']     = $row['email'];
+            $_SESSION['firstName'] = $row['firstName'];
+            $_SESSION['lastName']  = $row['lastName'];
+
+            header("Location: ../ADMIN/admin.php");
+            exit;
+        }
+    }
+
+    // Second, check landlords
     $stmt = $conn->prepare("SELECT * FROM landlordtbl WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
@@ -25,7 +50,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // If not landlord, check tenants
+    // Third, check tenants
     $stmt = $conn->prepare("SELECT * FROM tenanttbl WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
@@ -44,7 +69,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 
-    // If neither table matches
+    // If no match found
     $error = "Invalid username or password.";
 }
 
@@ -80,8 +105,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <h2 class="text-center mb-4">Log in</h2>
                 <form method="POST" action="">
                     <div class="mb-3">
-                        <label class="form-label">User Name</label>
+                        <label class="form-label">User Name or Email</label>
                         <input type="text" name="username" class="form-control" required>
+                        <small class="text-muted">Admins: use your email address</small>
                     </div>
 
                     <div class="mb-3">
@@ -93,10 +119,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </div>
                 </form>
 
-                <!-- Show PHP Message -->
-                <div class="mt-3 text-center">
-                    <?php if (!empty($message)) echo "<p class='text-danger'>$message</p>"; ?>
-                </div>
+                <!-- Show Error Message -->
+                <?php if (!empty($error)): ?>
+                    <div class="alert alert-danger text-center" role="alert">
+                        <?= htmlspecialchars($error) ?>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
