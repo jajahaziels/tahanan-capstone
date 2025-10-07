@@ -166,6 +166,5 @@ $tenant_name = trim($tenant['firstName'] . ' ' . ($tenant['middleName'] ? $tenan
 
     <!-- Chat System JS -->
     <script src="../js/tenant-chat.js" defer></script>
-    <script src="../js/chat-file-upload.js" defer></script>
 </body>
 </html>

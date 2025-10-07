@@ -89,7 +89,7 @@ if (empty($message) && empty($file_path)) {
 
 // Insert into messages table with file info
 $stmt = $conn->prepare("INSERT INTO messages (conversation_id, sender_id, content, content_type, status, file_path, file_type, file_size, created_at) VALUES (?, ?, ?, ?, 'active', ?, ?, ?, NOW())");
-$stmt->bind_param("iisssi", $conversation_id, $sender_id, $message, $content_type, $file_path, $file_type, $file_size);
+$stmt->bind_param("iissssi", $conversation_id, $sender_id, $message, $content_type, $file_path, $file_type, $file_size);
 
 if ($stmt->execute()) {
     echo json_encode([

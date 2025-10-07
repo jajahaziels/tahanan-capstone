@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
   const chatMessages = document.querySelector(".chat-messages");
-  const chatInput = document.querySelector(".chat-input input");
-  const sendBtn = document.querySelector(".chat-input button");
+  const chatInput = document.querySelector(".chat-input input[type='text']");
+  const sendBtn = document.querySelector(".chat-input button[type='submit']");
   const conversationsList = document.querySelector(".side1");
   const chatHeader = document.querySelector(".chat-header");
 
@@ -9,27 +9,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   let currentConversationId = null;
   let currentUserType = null;
   let loadMessagesInterval = null;
+  let selectedFile = null;
 
-  // Check session and get user info
+  // Check session
   try {
     const sessionRes = await fetch("../api/session_check.php");
     const sessionData = await sessionRes.json();
     
     if (!sessionData.success) {
-      // Redirect to login if not authenticated
       window.location.href = sessionData.redirect || "../LOGIN/login.php";
       return;
     }
     
     currentUserId = sessionData.user_id;
     currentUserType = sessionData.user_type;
-    
-    // Load conversations for this user
     loadConversations();
     
   } catch (err) {
     console.error("Session check error:", err);
-    // Use data from PHP if available (fallback for development)
     if (window.currentUser) {
       currentUserId = window.currentUser.id;
       currentUserType = window.currentUser.type;
@@ -39,7 +36,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Load conversations
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetConversationId = urlParams.get('conversation_id');
+
   async function loadConversations() {
     try {
       const res = await fetch(`../api/get_conversations.php?user_id=${currentUserId}&user_type=${currentUserType}`);
@@ -48,111 +47,108 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (data.success) {
         displayConversations(data.conversations);
         
-        // Hide loading, show conversations or no-conversations message
-        document.getElementById('conversations-loading').style.display = 'none';
+        const loadingEl = document.getElementById('conversations-loading');
+        if (loadingEl) loadingEl.style.display = 'none';
+        
         if (data.conversations.length === 0) {
-          document.getElementById('no-conversations').style.display = 'block';
+          const noConvEl = document.getElementById('no-conversations');
+          if (noConvEl) noConvEl.style.display = 'block';
         } else {
-          document.getElementById('no-conversations').style.display = 'none';
-          // Auto-select first conversation if available
-          if (!currentConversationId) {
+          const noConvEl = document.getElementById('no-conversations');
+          if (noConvEl) noConvEl.style.display = 'none';
+          
+          if (targetConversationId) {
+            const targetConv = data.conversations.find(c => c.conversation_id == targetConversationId);
+            if (targetConv) {
+              selectConversation(targetConv);
+              window.history.replaceState({}, document.title, window.location.pathname);
+            } else {
+              selectConversation(data.conversations[0]);
+            }
+          } else if (!currentConversationId) {
             selectConversation(data.conversations[0]);
           }
         }
-      } else {
-        console.error("Error loading conversations:", data.error);
-        document.getElementById('conversations-loading').innerHTML = '<p style="color: red;">Error loading conversations</p>';
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      document.getElementById('conversations-loading').innerHTML = '<p style="color: red;">Network error</p>';
     }
   }
 
-  // Display conversations in sidebar
   function displayConversations(conversations) {
-    // Clear existing conversations (keep search input)
     const searchInput = document.querySelector(".search-chats");
     conversationsList.innerHTML = "";
-    conversationsList.appendChild(searchInput);
+    if (searchInput) {
+      conversationsList.appendChild(searchInput);
+    }
 
-    conversations.forEach(conv => {
+    conversations.forEach((conv, index) => {
       const convDiv = document.createElement("div");
       convDiv.className = "convo d-flex align-items-center";
       convDiv.setAttribute("data-conversation-id", conv.conversation_id);
+      convDiv.style.animationDelay = `${index * 0.1}s`;
       
-      // Use profile picture if available, otherwise default
       const profilePic = conv.other_user_profile_pic ? 
         `../uploads/profiles/${conv.other_user_profile_pic}` : 
-        "../img/default-avatar.png";
+        "../img/home.png";
       
       convDiv.innerHTML = `
         <img src="${profilePic}" alt="" onerror="this.src='../img/home.png'">
         <div style="flex: 1;">
           <h4>${conv.other_user_name || conv.other_user_type + ' (ID: ' + conv.other_user_id + ')'}</h4>
-          <small style="color: #666; font-size: 12px;">${conv.last_message || 'No messages yet'}</small>
+          <small>${conv.last_message || 'No messages yet'}</small>
         </div>
       `;
 
-      convDiv.addEventListener("click", () => {
-        selectConversation(conv);
-      });
-
+      convDiv.addEventListener("click", () => selectConversation(conv));
       conversationsList.appendChild(convDiv);
     });
   }
 
-  // Select a conversation
   function selectConversation(conversation) {
-    // Remove active class from previous selection
-    document.querySelectorAll(".convo").forEach(conv => {
-      conv.classList.remove("active");
-    });
+    document.querySelectorAll(".convo").forEach(conv => conv.classList.remove("active"));
 
-    // Add active class to current selection
     const selectedConv = document.querySelector(`[data-conversation-id="${conversation.conversation_id}"]`);
-    if (selectedConv) {
-      selectedConv.classList.add("active");
-    }
+    if (selectedConv) selectedConv.classList.add("active");
 
     currentConversationId = conversation.conversation_id;
     chatHeader.textContent = `Chat with ${conversation.other_user_name || conversation.other_user_type}`;
     
-    // Enable input
-    chatInput.disabled = false;
-    sendBtn.disabled = false;
-    chatInput.placeholder = "Type a message...";
+    if (chatInput) chatInput.disabled = false;
+    if (sendBtn) sendBtn.disabled = false;
+    if (chatInput) chatInput.placeholder = "Type a message...";
     
-    // Clear previous interval
-    if (loadMessagesInterval) {
-      clearInterval(loadMessagesInterval);
-    }
+    if (loadMessagesInterval) clearInterval(loadMessagesInterval);
     
-    // Load messages for this conversation
     loadMessages();
-    
-    // Start auto-refresh
     loadMessagesInterval = setInterval(loadMessages, 2000);
   }
 
-  // Send message
-  sendBtn.addEventListener("click", sendMessage);
+  if (sendBtn) {
+    sendBtn.addEventListener("click", sendMessage);
+  }
   
-  // Send message on Enter key
-  chatInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
-      sendMessage();
-    }
-  });
+  if (chatInput) {
+    chatInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
+  }
 
   async function sendMessage() {
-    const message = chatInput.value.trim();
-    if (!message || !currentConversationId) return;
+    const message = chatInput ? chatInput.value.trim() : '';
+    
+    if (!message && !selectedFile) return;
+    if (!currentConversationId) return;
+
+    if (chatInput) chatInput.disabled = true;
+    if (sendBtn) sendBtn.disabled = true;
 
     const formData = new FormData();
     formData.append("conversation_id", currentConversationId);
     formData.append("sender_id", currentUserId);
-    formData.append("message", message);
+    
+    if (message) formData.append("message", message);
+    if (selectedFile) formData.append("file", selectedFile);
 
     try {
       const res = await fetch("../api/send_message.php", {
@@ -162,38 +158,43 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const data = await res.json();
       if (data.success) {
-        chatInput.value = "";
-        loadMessages(); // Immediately load messages after sending
-        loadConversations(); // Refresh conversations to update last message
+        if (chatInput) chatInput.value = "";
+        if (selectedFile) removeFile();
+        loadMessages();
+        loadConversations();
       } else {
-        console.error("Error sending message:", data.error);
-        alert("Failed to send message: " + data.error);
+        alert("Failed to send: " + data.error);
       }
     } catch (err) {
-      console.error("Fetch error:", err);
+      console.error("Send error:", err);
       alert("Network error. Please try again.");
+    } finally {
+      if (chatInput) {
+        chatInput.disabled = false;
+        chatInput.focus();
+      }
+      if (sendBtn) sendBtn.disabled = false;
     }
   }
 
-  // Load messages
   async function loadMessages() {
-    if (!currentConversationId) return;
+    if (!currentConversationId || !chatMessages) return;
 
     try {
       const res = await fetch(`../api/get_messages.php?conversation_id=${currentConversationId}`);
       const data = await res.json();
 
       if (data.success) {
+        const wasAtBottom = chatMessages.scrollTop + chatMessages.clientHeight >= chatMessages.scrollHeight - 10;
         chatMessages.innerHTML = "";
         
-        // If no messages, show empty state
         if (data.messages.length === 0) {
           chatMessages.innerHTML = `
             <div class="empty-chat">
-              <div style="text-align: center;">
-                <i class="fa-solid fa-comment-dots" style="font-size: 48px; color: #ccc;"></i>
-                <p style="color: #666; margin-top: 15px;">No messages yet</p>
-                <small style="color: #999;">Start the conversation!</small>
+              <div class="empty-chat-content">
+                <i class="fa-solid fa-comment-dots"></i>
+                <p>No messages yet</p>
+                <small>Start the conversation!</small>
               </div>
             </div>
           `;
@@ -202,66 +203,74 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         data.messages.forEach((msg, index) => {
           const messageDiv = document.createElement("div");
-          messageDiv.classList.add("message");
-          messageDiv.classList.add(msg.sender_id == currentUserId ? "sent" : "received");
+          messageDiv.classList.add("message", msg.sender_id == currentUserId ? "sent" : "received");
           messageDiv.style.animationDelay = `${index * 0.05}s`;
           
-          // Create avatar
           const avatar = document.createElement("img");
           avatar.classList.add("message-avatar");
-          avatar.src = "../img/home.png"; // Default avatar
-          avatar.alt = "User avatar";
+          avatar.src = "../img/home.png";
           avatar.onerror = function() { this.src = "../img/home.png"; };
           
-          // Create message bubble container
           const bubbleDiv = document.createElement("div");
           bubbleDiv.classList.add("message-bubble");
           
-          // Create message content
           const contentDiv = document.createElement("div");
           contentDiv.classList.add("message-content");
-          contentDiv.textContent = msg.message;
           
-          // Create message meta (timestamp and status)
+          if (msg.file_path) {
+            const fileDiv = document.createElement("div");
+            fileDiv.classList.add("message-file");
+            
+            if (msg.file_type === 'image') {
+              const img = document.createElement("img");
+              img.src = msg.file_path;
+              img.onclick = () => window.open(msg.file_path, '_blank');
+              fileDiv.appendChild(img);
+              
+              if (msg.message) {
+                const caption = document.createElement("p");
+                caption.textContent = msg.message;
+                caption.style.marginTop = "8px";
+                fileDiv.appendChild(caption);
+              }
+            } else {
+              const link = document.createElement("a");
+              link.href = msg.file_path;
+              link.download = msg.message;
+              link.innerHTML = `
+                <i class="fa-solid fa-file"></i>
+                <span>${msg.message}</span>
+                <i class="fa-solid fa-download"></i>
+              `;
+              fileDiv.appendChild(link);
+            }
+            
+            contentDiv.appendChild(fileDiv);
+          } else {
+            contentDiv.textContent = msg.message;
+          }
+          
           const metaDiv = document.createElement("div");
           metaDiv.classList.add("message-meta");
           
-          // Format timestamp
           const messageDate = new Date(msg.created_at);
           const now = new Date();
-          const diffMs = now - messageDate;
-          const diffMins = Math.floor(diffMs / 60000);
-          const diffHours = Math.floor(diffMs / 3600000);
-          const diffDays = Math.floor(diffMs / 86400000);
+          const diffMins = Math.floor((now - messageDate) / 60000);
+          const diffHours = Math.floor((now - messageDate) / 3600000);
+          const diffDays = Math.floor((now - messageDate) / 86400000);
           
-          let timeText;
-          if (diffMins < 1) {
-            timeText = "Just now";
-          } else if (diffMins < 60) {
-            timeText = `${diffMins}m ago`;
-          } else if (diffHours < 24) {
-            timeText = `${diffHours}h ago`;
-          } else if (diffDays === 1) {
-            timeText = "Yesterday";
-          } else if (diffDays < 7) {
-            timeText = `${diffDays}d ago`;
-          } else {
-            timeText = messageDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          }
+          let timeText = "Just now";
+          if (diffMins >= 1 && diffMins < 60) timeText = `${diffMins}m ago`;
+          else if (diffHours >= 1 && diffHours < 24) timeText = `${diffHours}h ago`;
+          else if (diffDays === 1) timeText = "Yesterday";
+          else if (diffDays > 1 && diffDays < 7) timeText = `${diffDays}d ago`;
+          else if (diffDays >= 7) timeText = messageDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           
           const timeSpan = document.createElement("span");
           timeSpan.classList.add("message-time");
           timeSpan.textContent = timeText;
-          timeSpan.title = messageDate.toLocaleString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-          
           metaDiv.appendChild(timeSpan);
           
-          // Add status icon for sent messages
           if (msg.sender_id == currentUserId) {
             const statusSpan = document.createElement("span");
             statusSpan.classList.add("message-status");
@@ -269,59 +278,82 @@ document.addEventListener("DOMContentLoaded", async () => {
             metaDiv.appendChild(statusSpan);
           }
           
-          // Assemble the message
           bubbleDiv.appendChild(contentDiv);
           bubbleDiv.appendChild(metaDiv);
-          
           messageDiv.appendChild(avatar);
           messageDiv.appendChild(bubbleDiv);
-          
           chatMessages.appendChild(messageDiv);
         });
 
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      } else {
-        console.error("Error loading messages:", data.error);
-        chatMessages.innerHTML = `
-          <div class="empty-chat">
-            <div style="text-align: center;">
-              <i class="fa-solid fa-exclamation-triangle" style="font-size: 48px; color: #dc3545;"></i>
-              <p style="color: #dc3545; margin-top: 15px;">Error loading messages</p>
-              <small style="color: #666;">${data.error}</small>
-            </div>
-          </div>
-        `;
+        if (wasAtBottom) chatMessages.scrollTop = chatMessages.scrollHeight;
       }
     } catch (err) {
-      console.error("Fetch error:", err);
-      chatMessages.innerHTML = `
-        <div class="empty-chat">
-          <div style="text-align: center;">
-            <i class="fa-solid fa-wifi" style="font-size: 48px; color: #dc3545;"></i>
-            <p style="color: #dc3545; margin-top: 15px;">Connection error</p>
-            <small style="color: #666;">Please check your internet connection</small>
-          </div>
-        </div>
-      `;
+      console.error("Load messages error:", err);
     }
   }
 
-  // Search functionality
+  const fileInput = document.getElementById('file-input');
+  if (fileInput) {
+    fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        if (file.size > 10485760) {
+          alert("File too large. Max 10MB.");
+          fileInput.value = '';
+          return;
+        }
+        selectedFile = file;
+        showFilePreview(file);
+      }
+    });
+  }
+
+  function showFilePreview(file) {
+    const preview = document.getElementById('file-preview');
+    if (!preview) return;
+    
+    const icon = preview.querySelector('.file-preview-icon i');
+    const nameElem = preview.querySelector('.file-preview-name');
+    const sizeElem = preview.querySelector('.file-preview-size');
+    
+    if (!icon || !nameElem || !sizeElem) return;
+    
+    if (file.type.startsWith('image/')) icon.className = 'fa-solid fa-image';
+    else if (file.type.includes('pdf')) icon.className = 'fa-solid fa-file-pdf';
+    else icon.className = 'fa-solid fa-file';
+    
+    nameElem.textContent = file.name;
+    sizeElem.textContent = formatFileSize(file.size);
+    preview.classList.add('show');
+  }
+
+  window.removeFile = function() {
+    selectedFile = null;
+    const fileInput = document.getElementById('file-input');
+    if (fileInput) fileInput.value = '';
+    const preview = document.getElementById('file-preview');
+    if (preview) preview.classList.remove('show');
+  }
+
+  function formatFileSize(bytes) {
+    if (!bytes) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  }
+
   const searchInput = document.querySelector(".search-chats");
   if (searchInput) {
     searchInput.addEventListener("input", (e) => {
       const searchTerm = e.target.value.toLowerCase();
       document.querySelectorAll(".convo").forEach(conv => {
-        const text = conv.textContent.toLowerCase();
-        conv.style.display = text.includes(searchTerm) ? "flex" : "none";
+        conv.style.display = conv.textContent.toLowerCase().includes(searchTerm) ? "flex" : "none";
       });
     });
   }
 
-  // Cleanup on page unload
   window.addEventListener("beforeunload", () => {
-    if (loadMessagesInterval) {
-      clearInterval(loadMessagesInterval);
-    }
+    if (loadMessagesInterval) clearInterval(loadMessagesInterval);
   });
 });

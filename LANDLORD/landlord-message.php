@@ -164,6 +164,5 @@ $landlord_name = trim($landlord['firstName'] . ' ' . ($landlord['middleName'] ? 
 
     <!-- Updated Chat System JS -->
     <script src="../js/chatsys.js" defer></script>
-    <script src="../js/chat-file-upload.js" defer></script>
 </body>
 </html>
