@@ -1,39 +1,64 @@
 <?php
 require_once '../connection.php';
-include '../session_auth.php';
+require_once '../session_auth.php';
 
-$request_id = isset($_GET['request_id']) ? intval($_GET['request_id']) : 0;
+$rental = null;
+$error = '';
 
-if ($request_id <= 0) {
-    die("Invalid request ID.");
+// Check landlord session
+if (!isset($_SESSION['landlord_id'])) {
+    $error = "Unauthorized access. Please log in.";
+} else {
+    $landlord_id = (int) $_SESSION['landlord_id'];
+
+    // Get request_id from URL
+    $request_id = isset($_GET['request_id']) ? (int) $_GET['request_id'] : 0;
+
+    if ($request_id <= 0) {
+        $error = "No rental selected.";
+    } else {
+        // Fetch the selected rental info
+        $sql = "SELECT r.ID AS rental_id, r.start_date, r.end_date,
+                       t.firstName AS tenant_name, t.phoneNum AS tenant_phone, t.email AS tenant_email,
+                       ls.listingName, ls.address, ls.images,
+                       l.firstName AS landlord_name, l.phoneNum AS landlord_phone, l.email AS landlord_email
+                FROM renttbl r
+                JOIN listingtbl ls ON r.listing_id = ls.ID
+                JOIN tenanttbl t ON r.tenant_id = t.ID
+                JOIN landlordtbl l ON ls.landlord_id = l.ID
+                WHERE r.ID = ? AND ls.landlord_id = ? AND r.status = 'approved'
+                LIMIT 1";
+
+        if ($stmt = $conn->prepare($sql)) {
+            $stmt->bind_param('ii', $request_id, $landlord_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result && $result->num_rows > 0) {
+                $rental = $result->fetch_assoc();
+            } else {
+                $error = "No approved rental found for this selection.";
+            }
+
+            $stmt->close();
+        } else {
+            $error = "Database error: " . $conn->error;
+        }
+    }
 }
 
-// Fetch the approved rental based on request ID
-$stmt = $conn->prepare("
-    SELECT r.*, t.firstName, t.lastName, t.email, t.phoneNum,
-           l.listingName, l.address, l.images
-    FROM renttbl r
-    JOIN tenanttbl t ON r.tenant_id = t.ID
-    JOIN listingtbl l ON r.listing_id = l.ID
-    WHERE r.ID = ? AND r.status='approved'
-");
-$stmt->bind_param("i", $request_id);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows === 0) {
-    die("No approved rental found for this request.");
+// Default property image
+$propertyImg = "../img/house1.jpeg";
+if ($rental) {
+    $images = json_decode($rental['images'], true);
+    if (!empty($images)) {
+        $propertyImg = "../LANDLORD/uploads/" . $images[0];
+    }
 }
-
-$approvedRental = $result->fetch_assoc();
-
-
-// Get first property image
-$images = json_decode($approvedRental['images'], true);
-$propertyImg = !empty($images) && isset($images[0])
-    ? '../LANDLORD/uploads/' . $images[0]
-    : '../LANDLORD/uploads/placeholder.jpg';
 ?>
+
+
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -56,7 +81,7 @@ $propertyImg = !empty($images) && isset($images[0])
     <!-- CALENDAR CDN -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-    <title>LISTING</title>
+    <title>LANDLORD RENTAL</title>
     <style>
         #map {
             height: 400px;
@@ -138,54 +163,76 @@ $propertyImg = !empty($images) && isset($images[0])
         </div>
     </header>
 
-    <section class="home-listing" id="home-listing">
-        <div class="container m-auto">
-            <h1 class="mb-4">Rental Information</h1>
+<section class="home-listing" id="home-listing">
+    <div class="container m-auto">
+        <h1 class="mb-1">Rental Info</h1>
 
-            <?php if ($approvedRental): ?>
-                <div class="row justify-content-center gy-4">
-                    <div class="col-lg-5 col-sm-12 text-center">
-                        <img src="<?= htmlspecialchars($propertyImg); ?>" alt="Property Image" class="property-img mt-3">
-                    </div>
-                    <div class="col-lg-5 col-sm-12">
-                        <div id="calendar" class="mt-3 border p-3 rounded">
-                            📅 Calendar placeholder
-                        </div>
-                    </div>
+        <?php if ($rental): ?>
+            <!-- ROW 1: Image + Calendar -->
+            <div class="row justify-content-center gy-5">
+                <div class="col-lg-5 col-sm-12 property-imgs">
+                    <img src="<?php echo htmlspecialchars($propertyImg); ?>"
+                         alt="Property Image" class="property-img mt-5">
                 </div>
 
-                <div class="row justify-content-center gy-4 mt-4">
-                    <div class="col-lg-5 col-sm-12">
-                        <h3><?= htmlspecialchars($approvedRental['listingName']); ?></h3>
-                        <p><strong>Address:</strong> <?= htmlspecialchars($approvedRental['address']); ?></p>
-                        <p><strong>Rental Start Date:</strong> <?= date("F j, Y", strtotime($approvedRental['date'])); ?></p>
-                    </div>
-                    <div class="col-lg-5 col-sm-12">
-                        <h3>Tenant Information</h3>
-                        <p><strong>Name:</strong> <?= htmlspecialchars($approvedRental['firstName'] . " " . $approvedRental['lastName']); ?></p>
-                        <p><strong>Phone:</strong> <?= htmlspecialchars($approvedRental['phoneNum']); ?></p>
-                        <p><strong>Email:</strong> <?= htmlspecialchars($approvedRental['email']); ?></p>
-                    </div>
+                <div class="col-lg-5 col-sm-12 property-imgs">
+                    <div id="calendar" class="mt-5"></div>
                 </div>
-            <?php else: ?>
-                <p class="text-danger">No approved rental found for this property.</p>
-            <?php endif; ?>
+            </div>
 
-        </div>
-    </section>
+            <!-- ROW 2: Property + Tenant Info -->
+            <div class="row justify-content-center gy-5 mt-4">
+                <div class="col-lg-5 col-sm-12">
+                    <h2><?php echo htmlspecialchars($rental['listingName']); ?></h2>
+                    <p><strong>Tenant:</strong> <?php echo htmlspecialchars($rental['tenant_name']); ?></p>
+                    <p><strong>Address:</strong> <?php echo htmlspecialchars($rental['address']); ?></p>
+                    <p><strong>Rental Start Date:</strong>
+                        <?php echo date("F j, Y", strtotime($rental['start_date'])); ?>
+                    </p>
+                    <p><strong>Rental Due Date:</strong>
+                        <?php echo date("F j, Y", strtotime($rental['end_date'])); ?>
+                    </p>
+                </div>
+
+                <div class="col-lg-5 col-sm-12">
+                    <h2>Landlord Information</h2>
+                    <p><strong>Name:</strong> <?php echo htmlspecialchars($rental['landlord_name']); ?></p>
+                    <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['landlord_phone']); ?></p>
+                    <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['landlord_email']); ?></p>
+                </div>
+            </div>
+        <?php else: ?>
+            <p><?php echo $error; ?></p>
+        <?php endif; ?>
+    </div>
+</section>
+
 
 </body>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
 
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth'
-        });
-
-        calendar.render();
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        events: [
+            {
+                title: 'Rent Start',
+                start: '<?php echo $rental ? $rental['start_date'] : ''; ?>',
+                color: 'green'
+            },
+            {
+                title: 'Rent Due',
+                start: '<?php echo $rental ? $rental['end_date'] : ''; ?>',
+                color: 'red'
+            }
+        ]
     });
+
+    calendar.render();
+});
 </script>
+
 
 </html>

@@ -5,14 +5,12 @@ require_once '../session_auth.php';
 $rental = null;
 $error = '';
 
-// check tenant session
 if (!isset($_SESSION['tenant_id'])) {
     $error = "Unauthorized access. Please log in.";
 } else {
     $tenant_id = (int) $_SESSION['tenant_id'];
 
-    // fetch approved rental info
-    $sql = "SELECT r.ID AS rental_id, r.date,
+    $sql = "SELECT r.ID AS rental_id, r.date, r.start_date, r.end_date,
                    l.firstName AS landlord_name, l.phoneNum AS landlord_phone, l.email AS landlord_email,
                    t.firstName AS tenant_name, t.phoneNum AS tenant_phone, t.email AS tenant_email,
                    ls.listingName, ls.address, ls.images
@@ -40,8 +38,8 @@ if (!isset($_SESSION['tenant_id'])) {
     }
 }
 
-// handle images
-$propertyImg = "../img/house1.jpeg"; // default placeholder
+// Handle images
+$propertyImg = "../img/house1.jpeg";
 if ($rental) {
     $images = json_decode($rental['images'], true);
     if (!empty($images)) {
@@ -49,7 +47,6 @@ if ($rental) {
     }
 }
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -155,65 +152,69 @@ if ($rental) {
         </div>
     </header>
 
-    <section class="home-listing" id="home-listing">
-        <div class="container m-auto">
-            <h1 class="mb-1">Rental Info</h1>
+<section class="home-listing" id="home-listing">
+    <div class="container m-auto">
+        <h1 class="mb-1">Rental Info</h1>
 
-            <?php if ($rental): ?>
-                <!-- ROW 1 -->
-                <div class="row justify-content-center gy-5">
-                    <!-- Property Image -->
-                    <div class="col-lg-5 col-sm-12 property-imgs">
-                        <div class="d-flex justify-content-center align-items-center">
-                            <img src="<?php echo htmlspecialchars($propertyImg); ?>"
-                                alt="Property Image" class="property-img mt-5">
-                        </div>
-                    </div>
-
-                    <!-- Calendar -->
-                    <div class="col-lg-5 col-sm-12 property-imgs">
-                        <div id="calendar" class="mt-5"></div>
+        <?php if ($rental): ?>
+            <!-- ROW 1 -->
+            <div class="row justify-content-center gy-5">
+                <!-- Property Image -->
+                <div class="col-lg-5 col-sm-12 property-imgs">
+                    <div class="d-flex justify-content-center align-items-center">
+                        <img src="<?php echo htmlspecialchars($propertyImg); ?>"
+                             alt="Property Image" class="property-img mt-5">
                     </div>
                 </div>
 
-                <!-- ROW 2 -->
-                <div class="row justify-content-center gy-5">
-                    <!-- Property Info -->
-                    <div class="col-lg-5 col-sm-12">
-                        <h2><?php echo htmlspecialchars($rental['listingName']); ?></h2>
-                        <p><strong>Address:</strong> <?php echo htmlspecialchars($rental['address']); ?></p>
-                        <p><strong>Rental Start Date:</strong>
-                            <?php echo date("F j, Y", strtotime($rental['date'])); ?>
-                        </p>
-                    </div>
+                <!-- Calendar -->
+                <div class="col-lg-5 col-sm-12 property-imgs">
+                    <div id="calendar" class="mt-5"></div>
+                </div>
+            </div>
 
-                    <!-- Landlord Info -->
-                    <div class="col-lg-5 col-sm-12">
-                        <h2>Landlord Information</h2>
-                        <p><strong>Name:</strong> <?php echo htmlspecialchars($rental['landlord_name']); ?></p>
-                        <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['landlord_phone']); ?></p>
-                        <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['landlord_email']); ?></p>
-                    </div>
+            <!-- ROW 2 -->
+            <div class="row justify-content-center gy-5">
+                <!-- Property Info -->
+                <div class="col-lg-5 col-sm-12">
+                    <h2><?php echo htmlspecialchars($rental['listingName']); ?></h2>
+                    <p><strong>Address:</strong> <?php echo htmlspecialchars($rental['address']); ?></p>
+                    <p><strong>Rental Start Date:</strong>
+                        <?php echo date("F j, Y", strtotime($rental['start_date'])); ?>
+                    </p>
+                    <p><strong>Rental Due Date:</strong>
+                        <?php echo date("F j, Y", strtotime($rental['end_date'])); ?>
+                    </p>
                 </div>
 
-            <?php else: ?>
-                <p><?php echo $error; ?></p>
-            <?php endif; ?>
-        </div>
-    </section>
+                <!-- Landlord Info -->
+                <div class="col-lg-5 col-sm-12">
+                    <h2>Landlord Information</h2>
+                    <p><strong>Name:</strong> <?php echo htmlspecialchars($rental['landlord_name']); ?></p>
+                    <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['landlord_phone']); ?></p>
+                    <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['landlord_email']); ?></p>
+                </div>
+            </div>
+
+        <?php else: ?>
+            <p><?php echo $error; ?></p>
+        <?php endif; ?>
+    </div>
+</section>
 
 </body>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var calendarEl = document.getElementById('calendar');
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
 
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth'
-        });
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        events: 'calendar.php', // fetch Rent Start & Due Date
 
-        calendar.render();
     });
-</script>
 
+    calendar.render();
+});
+</script>
 </html>

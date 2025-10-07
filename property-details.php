@@ -1,17 +1,15 @@
 <?php
-require_once '../connection.php';
-include '../session_auth.php';
+require_once 'connection.php';
 
-// Get property ID from URL (case-insensitive)
+// Get property ID safely
 $idParam = $_GET['id'] ?? $_GET['ID'] ?? null;
-
 if (!$idParam || !is_numeric($idParam)) {
-    die("Invalid property ID.");
+    echo "<div class='text-center mt-5 text-danger fw-bold'>⚠️ Invalid property ID.</div>";
+    exit;
 }
-
 $listingID = intval($idParam);
 
-// Fetch property and landlord info (for tenant view)
+// Fetch property (only if available)
 $sql = "
     SELECT 
         l.ID AS listing_id,
@@ -28,24 +26,21 @@ $sql = "
         ld.ID AS landlord_id,
         ld.firstName AS landlord_fname,
         ld.lastName AS landlord_lname,
-        ld.profilePic,
-        ld.phoneNum AS landlord_phone,
-        ld.email AS landlord_email
+        ld.profilePic
     FROM listingtbl l
     JOIN landlordtbl ld ON l.landlord_id = ld.ID
     WHERE l.ID = ?
+      AND l.ID NOT IN (SELECT listing_id FROM renttbl WHERE status = 'approved')
     LIMIT 1
 ";
-
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $listingID);
 $stmt->execute();
 $result = $stmt->get_result();
-
 if ($result->num_rows === 0) {
-    die("Property not found.");
+    echo "<div class='text-center mt-5 text-danger fw-bold'>⚠️ Property not found or already rented.</div>";
+    exit;
 }
-
 $property = $result->fetch_assoc();
 $images = json_decode($property['images'], true) ?? [];
 $stmt->close();
@@ -68,9 +63,9 @@ $stmt->close();
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- BS -->
-    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../TAHANAN/css/bootstrap.min.css">
     <!-- MAIN CSS -->
-    <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
+    <link rel="stylesheet" href="../TAHANAN/css/style.css?v=<?= time(); ?>">
     <!-- LEAFLET -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <title><?= htmlspecialchars($property['listingName']); ?> - Details</title>
@@ -105,13 +100,6 @@ $stmt->close();
             font-size: 20px;
         }
 
-        .avatar img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
-
 
         #map {
             height: 500px;
@@ -124,27 +112,19 @@ $stmt->close();
 <body>
     <!-- HEADER -->
     <header>
-        <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png" alt="">Tahanan</a>
+        <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="img/logo.png" alt="">Tahanan</a>
+
         <ul class="nav-links">
-            <li><a href="tenant.php">Home</a></li>
-            <li><a href="tenant-rental.php">My Rental</a></li>
-            <li><a href="tenant-favorite.php">Favorite</a></li>
-            <li><a href="tenant-map.php">Map</a></li>
-            <li><a href="tenant-messages.php">Messages</a></li>
-            <li><a href="support.php">Support</a></li>
+            <li><a href="index.php#home">Home</a></li>
+            <li><a href="index.php#services">Services</a></li>
+            <li><a href="index.php#home-listing">Listing</a></li>
+            <li><a href="index.php#testimonials">Testimonials</a></li>
+            <li><a href="index.php#footer">Contact</a></li>
         </ul>
-        <!-- NAV ICON / NAME -->
+        <!-- SIGN UP -->
         <div class="nav-icons">
-            <!-- DROP DOWN -->
-            <div class="dropdown">
-                <i class="fa-solid fa-user"></i>
-                Tenant
-                <div class="dropdown-content">
-                    <a href="account.php">Account</a>
-                    <a href="settings.php">Settings</a>
-                    <a href="../LOGIN/logout.php">Log out</a>
-                </div>
-            </div>
+            <i class="fa-solid fa-user"></i>
+            <a href="../TAHANAN/LOGIN/login.php">Sign In</a>
             <!-- NAVMENU -->
             <div class="fa-solid fa-bars" id="navmenu"></div>
         </div>
@@ -152,22 +132,22 @@ $stmt->close();
     <div class="tenant-page">
         <div class="container m-auto">
             <div class="d-flex justify-content-start align-items-center">
-                <button class="main-button back-button" onclick="location.href='tenant.php'">Back</button>
+                <button class="main-button back-button" onclick="location.href='index.php#home-listing'">Back</button>
             </div>
         </div>
 
         <div class="row justify-content-center align-items-center mt-5">
-            <div class="col-lg-6 prorperty-details p-3">
+            <div class="col-lg-6 property-details p-3">
 
-                <!-- Bootstrap Carousel -->
-                <div id="carouselExample" class="carousel slide mb-4">
+                <!-- Carousel -->
+                <div id="carouselExample" class="carousel slide">
                     <div class="carousel-inner">
                         <?php if (!empty($images)): ?>
                             <?php foreach ($images as $index => $img): ?>
                                 <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
                                     <div class="row justify-content-center">
                                         <div class="col-lg-12">
-                                            <img src="../LANDLORD/uploads/<?= htmlspecialchars($img); ?>"
+                                            <img src="LANDLORD/uploads/<?= htmlspecialchars($img); ?>"
                                                 class="d-block w-100"
                                                 style="max-height:400px; object-fit:cover;"
                                                 alt="Property Image">
@@ -177,76 +157,33 @@ $stmt->close();
                             <?php endforeach; ?>
                         <?php else: ?>
                             <div class="carousel-item active">
-                                <div class="row justify-content-center">
-                                    <div class="col-lg-12">
-                                        <img src="../LANDLORD/uploads/placeholder.jpg"
-                                            class="d-block w-100"
-                                            style="max-height:400px; object-fit:cover;"
-                                            alt="No Image">
-                                    </div>
-                                </div>
+                                <img src="LANDLORD/uploads/placeholder.jpg" class="d-block w-100"
+                                    style="max-height:400px; object-fit:cover;" alt="No Image">
                             </div>
                         <?php endif; ?>
                     </div>
 
-                    <!-- Carousel Controls -->
+                    <!-- Controls -->
                     <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="carousel-control-prev-icon"></span>
                         <span class="visually-hidden">Previous</span>
                     </button>
                     <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="carousel-control-next-icon"></span>
                         <span class="visually-hidden">Next</span>
                     </button>
                 </div>
 
                 <!-- Property Info -->
                 <div class="d-flex justify-content-between align-items-center">
-                    <p class="mb-0"><?= htmlspecialchars($property['barangay'] ?? ''); ?>, San Pedro, Laguna</p>
-                    <!-- Apply Button (triggers modal) -->
-                    <button type="button" class="main-button mx-5" data-bs-toggle="modal" data-bs-target="#applyModal">
-                        Apply
+                    <p class="mb-0"><?= htmlspecialchars($property['barangay']); ?>, San Pedro, Laguna</p>
+
+                    <!-- Instead of Apply button, show Login prompt -->
+                    <button type="button" class="main-button mx-5" onclick="window.location.href='../TAHANAN/LOGIN/login.php'">
+                        Log in to Apply
                     </button>
-
-                    <!-- Modal -->
-                    <div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-
-                                <!-- Modal Header -->
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="applyModalLabel">Apply for Rental</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-
-                                <!-- Modal Body (Form) -->
-                                <div class="modal-body">
-                                    <form id="applyForm" action="apply.php" method="POST">
-                                        <input type="hidden" name="listing_id" value="<?= htmlspecialchars($property['listing_id']); ?>">
-
-                                        <div class="mb-3">
-                                            <label for="start_date" class="form-label">Rental Start Date</label>
-                                            <input type="date" class="form-control" name="start_date" id="start_date" required>
-                                        </div>
-
-                                        <div class="mb-3">
-                                            <label for="end_date" class="form-label">Rental End Date</label>
-                                            <input type="date" class="form-control" name="end_date" id="end_date" required>
-                                        </div>
-                                    </form>
-                                </div>
-
-                                <!-- Modal Footer -->
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" form="applyForm" class="btn btn-primary">Submit Application</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-
                 </div>
+
                 <h4><?= htmlspecialchars($property['listingName']); ?></h4>
                 <h1 class="price">
                     ₱ <?= number_format($property['price']); ?>.00
@@ -255,18 +192,15 @@ $stmt->close();
 
                 <!-- Landlord Info -->
                 <div class="d-flex align-items-center p-2 border rounded mb-4 mt-4">
-                    <!-- Avatar -->
                     <div class="avatar me-3">
                         <?php if (!empty($property['profilePic'])): ?>
-                            <img src="../LANDLORD/uploads/<?= htmlspecialchars($property['profilePic']); ?>" alt="Profile">
+                            <img src="LANDLORD/uploads/<?= htmlspecialchars($property['profilePic']); ?>" alt="Profile">
                         <?php else: ?>
                             <div class="landlord-info">
                                 <?= strtoupper(substr($property['landlord_fname'], 0, 1)); ?>
                             </div>
                         <?php endif; ?>
                     </div>
-
-                    <!-- Landlord Info -->
                     <div class="info flex-grow-1 mt-2">
                         <h1 class="mb-0">
                             <?= htmlspecialchars(ucwords(strtolower($property['landlord_fname'] . ' ' . $property['landlord_lname']))); ?>
@@ -274,13 +208,12 @@ $stmt->close();
                         <p class="text-muted">Landlord</p>
                     </div>
 
-                    <!-- Actions -->
+                    <!-- Actions (disabled for guests) -->
                     <div class="d-flex">
-                        <button class="small-button"
-                            onclick="window.location.href='landlord-profile.php?id=<?= $property['landlord_id']; ?>'">
+                        <button class="small-button" disabled title="Login to view landlord profile">
                             <i class="fa-solid fa-user"></i>
                         </button>
-                        <button class="small-button mx-3">
+                        <button class="small-button mx-3" disabled title="Login to chat">
                             <i class="fas fa-comment-dots"></i>
                         </button>
                     </div>
@@ -295,7 +228,6 @@ $stmt->close();
                     <li><strong>Rooms:</strong> <?= htmlspecialchars($property['rooms']); ?> Bedroom(s)</li>
                 </ul>
 
-                <!-- Map -->
                 <div id="map"></div>
             </div>
         </div>
