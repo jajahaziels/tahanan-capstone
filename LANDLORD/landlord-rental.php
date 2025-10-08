@@ -18,16 +18,31 @@ if (!isset($_SESSION['landlord_id'])) {
         $error = "No rental selected.";
     } else {
         // Fetch the selected rental info
-        $sql = "SELECT r.ID AS rental_id, r.start_date, r.end_date,
-                       t.firstName AS tenant_name, t.phoneNum AS tenant_phone, t.email AS tenant_email,
-                       ls.listingName, ls.address, ls.images,
-                       l.firstName AS landlord_name, l.phoneNum AS landlord_phone, l.email AS landlord_email
-                FROM renttbl r
-                JOIN listingtbl ls ON r.listing_id = ls.ID
-                JOIN tenanttbl t ON r.tenant_id = t.ID
-                JOIN landlordtbl l ON ls.landlord_id = l.ID
-                WHERE r.ID = ? AND ls.landlord_id = ? AND r.status = 'approved'
-                LIMIT 1";
+$sql = "
+    SELECT 
+        r.ID AS rental_id, 
+        r.listing_id,
+        r.start_date, 
+        r.end_date,
+        t.firstName AS tenant_name, 
+        t.phoneNum AS tenant_phone, 
+        t.email AS tenant_email,
+        ls.listingName, 
+        ls.address, 
+        ls.images,
+        l.firstName AS landlord_name, 
+        l.phoneNum AS landlord_phone, 
+        l.email AS landlord_email
+    FROM renttbl r
+    JOIN listingtbl ls ON r.listing_id = ls.ID
+    JOIN tenanttbl t ON r.tenant_id = t.ID
+    JOIN landlordtbl l ON ls.landlord_id = l.ID
+    WHERE r.ID = ? 
+      AND ls.landlord_id = ? 
+      AND r.status = 'approved'
+    LIMIT 1
+";
+
 
         if ($stmt = $conn->prepare($sql)) {
             $stmt->bind_param('ii', $request_id, $landlord_id);
@@ -165,7 +180,15 @@ if ($rental) {
 
 <section class="home-listing" id="home-listing">
     <div class="container m-auto">
+        <div class="d-flex justify-content-between">
         <h1 class="mb-1">Rental Info</h1>
+            <form method="post" action="cancel-rental.php" onsubmit="return confirm('Are you sure you want to cancel this rental?');">
+    <input type="hidden" name="rental_id" value="<?php echo $rental['rental_id']; ?>">
+    <input type="hidden" name="listing_id" value="<?php echo htmlspecialchars($rental['listing_id']); ?>">
+    <button type="submit" class="main-button">Cancel Rental</button>
+</form>
+
+        </div>
 
         <?php if ($rental): ?>
             <!-- ROW 1: Image + Calendar -->

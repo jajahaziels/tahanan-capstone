@@ -8,10 +8,16 @@ $landlord_id = $_SESSION['landlord_id'];
 // Fetch all landlord properties + check if they have approved tenants
 $sql = "
     SELECT l.*, 
+           (SELECT r.ID 
+            FROM renttbl r 
+            WHERE r.listing_id = l.ID 
+              AND r.status = 'approved' 
+            LIMIT 1) AS approved_rental_id,
            (SELECT COUNT(*) 
             FROM renttbl r 
             WHERE r.listing_id = l.ID 
-              AND r.status = 'approved') AS approved_count
+              AND r.status = 'approved') AS approved_count,
+           l.availability
     FROM listingtbl l
     WHERE l.landlord_id = ?
 ";
@@ -215,11 +221,16 @@ $result = $stmt->get_result();
 
                                                 <?php if ($isApproved): ?>
                                                     <button class="small-button"
-                                                        onclick="location.href='landlord-rental.php?request_id=<?= $row['ID'] ?>'">View</button>
+                                                        onclick="location.href='landlord-rental.php?request_id=<?= $row['approved_rental_id'] ?>'">
+                                                        View
+                                                    </button>
                                                 <?php else: ?>
                                                     <button class="small-button"
-                                                        onclick="location.href='property-details.php?ID=<?= $row['ID'] ?>'">View</button>
+                                                        onclick="location.href='property-details.php?ID=<?= $row['ID'] ?>'">
+                                                        View
+                                                    </button>
                                                 <?php endif; ?>
+
 
 
                                             </div>
