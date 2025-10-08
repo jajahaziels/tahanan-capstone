@@ -29,7 +29,7 @@ if ($end_date < $start_date) {
     exit;
 }
 
-// --- Prevent tenant from renting another property ---
+// --- Prevent tenant from renting another approved property ---
 $check = $conn->prepare("SELECT ID FROM renttbl WHERE tenant_id=? AND status='approved'");
 $check->bind_param("i", $tenant_id);
 $check->execute();
@@ -43,18 +43,31 @@ if ($result->num_rows > 0) {
     exit;
 }
 
-// --- Prevent duplicate applications for the same property ---
-$checkDup = $conn->prepare("SELECT ID FROM renttbl WHERE tenant_id=? AND listing_id=?");
+// --- Prevent duplicate or active applications for the same property ---
+$checkDup = $conn->prepare("
+    SELECT ID, status 
+    FROM renttbl 
+    WHERE tenant_id=? AND listing_id=? 
+    ORDER BY ID DESC 
+    LIMIT 1
+");
 $checkDup->bind_param("ii", $tenant_id, $listing_id);
 $checkDup->execute();
 $dupResult = $checkDup->get_result();
 
 if ($dupResult->num_rows > 0) {
-    echo "<script>
-        alert('⚠️ You already applied for this property.');
-        window.history.back();
-    </script>";
-    exit;
+    $existing = $dupResult->fetch_assoc();
+
+    // 🔹 Block if the existing one is still pending or already approved
+    if (in_array($existing['status'], ['pending', 'approved'])) {
+        echo "<script>
+            alert('⚠️ You already have an active request for this property.');
+            window.history.back();
+        </script>";
+        exit;
+    }
+
+    // 🔹 If rejected, allow to apply again (continue execution)
 }
 
 // --- Get landlord_id from listing ---
@@ -71,7 +84,10 @@ $listing = $listingResult->fetch_assoc();
 $landlord_id = $listing['landlord_id'];
 
 // --- Insert application into renttbl ---
-$stmt = $conn->prepare("INSERT INTO renttbl (tenant_id, listing_id, landlord_id, start_date, end_date, status) VALUES (?, ?, ?, ?, ?, 'pending')");
+$stmt = $conn->prepare("
+    INSERT INTO renttbl (tenant_id, listing_id, landlord_id, start_date, end_date, status)
+    VALUES (?, ?, ?, ?, ?, 'pending')
+");
 $stmt->bind_param("iiiss", $tenant_id, $listing_id, $landlord_id, $start_date, $end_date);
 $stmt->execute();
 

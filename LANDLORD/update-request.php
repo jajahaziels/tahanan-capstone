@@ -5,9 +5,33 @@ include '../session_auth.php';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $request_id = intval($_POST['request_id']);
     $listing_id = intval($_POST['listing_id']);
-    $action = $_POST['action'];
+    $action = $_POST['action'] ?? '';
 
-    // Validate action
+    $landlord_id = $_SESSION['landlord_id'] ?? 0;
+    if ($landlord_id <= 0) {
+        die("❌ Unauthorized action. Please log in as landlord.");
+    }
+
+    // ✅ Verify that this rental belongs to the landlord
+    $verify = $conn->prepare("
+        SELECT r.ID 
+        FROM renttbl r
+        JOIN listingtbl l ON r.listing_id = l.ID
+        WHERE r.ID = ? AND l.landlord_id = ?
+    ");
+    $verify->bind_param("ii", $request_id, $landlord_id);
+    $verify->execute();
+    $verifyResult = $verify->get_result();
+
+    if ($verifyResult->num_rows === 0) {
+        echo "<script>
+            alert('❌ Invalid request or unauthorized action.');
+            window.history.back();
+        </script>";
+        exit;
+    }
+
+    // ✅ Validate action
     if ($action === "approve") {
         $status = "approved";
 
@@ -16,28 +40,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $check->bind_param("i", $listing_id);
         $check->execute();
         if ($check->get_result()->num_rows > 0) {
-            die("⚠️ This property already has an approved tenant.");
+            echo "<script>
+                alert('⚠️ This property already has an approved tenant.');
+                window.history.back();
+            </script>";
+            exit;
         }
+
     } elseif ($action === "reject") {
         $status = "rejected";
     } else {
-        die("Invalid action.");
+        echo "<script>
+            alert('❌ Invalid action.');
+            window.history.back();
+        </script>";
+        exit;
     }
 
-    // Update renttbl
-    $sql = "UPDATE renttbl SET status=? WHERE ID=?";
-    $stmt = $conn->prepare($sql);
+    // ✅ Update rental status
+    $stmt = $conn->prepare("UPDATE renttbl SET status=? WHERE ID=?");
     $stmt->bind_param("si", $status, $request_id);
 
     if ($stmt->execute() && $stmt->affected_rows > 0) {
-        if ($status === "approved") {
-            header("Location: landlord-rental.php?success=1");
-        } else {
-            header("Location: property-details.php?ID=$listing_id&rejected=1");
+        // ✅ Update listing availability
+        if ($status === 'approved') {
+            $conn->query("UPDATE listingtbl SET availability='occupied' WHERE ID=$listing_id");
+            echo "<script>
+                alert('✅ Rental request approved successfully!');
+                window.location.href='landlord-rental.php?ID=$listing_id';
+            </script>";
+        } elseif ($status === 'rejected') {
+            $conn->query("UPDATE listingtbl SET availability='available' WHERE ID=$listing_id");
+            echo "<script>
+                alert('❌ Rental request rejected.');
+                window.location.href='property-details.php?ID=$listing_id';
+            </script>";
         }
-        exit;
     } else {
-        echo "⚠️ Update failed (maybe already $status or invalid request_id: $request_id)";
+        echo "<script>
+            alert('⚠️ Failed to update request. Please try again.');
+            window.history.back();
+        </script>";
     }
 }
 ?>

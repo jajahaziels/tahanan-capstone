@@ -34,7 +34,8 @@ $sqlApplications = "
            t.firstName, t.lastName, t.phoneNum, t.email
     FROM renttbl r
     JOIN tenanttbl t ON r.tenant_id = t.ID
-    WHERE r.listing_id = ?
+    WHERE r.listing_id = ? 
+      AND r.status != 'rejected'
 ";
 $stmt2 = $conn->prepare($sqlApplications);
 $stmt2->bind_param("i", $listingID);

@@ -184,7 +184,6 @@ if ($rental) {
             <div class="row justify-content-center gy-5 mt-4">
                 <div class="col-lg-5 col-sm-12">
                     <h2><?php echo htmlspecialchars($rental['listingName']); ?></h2>
-                    <p><strong>Tenant:</strong> <?php echo htmlspecialchars($rental['tenant_name']); ?></p>
                     <p><strong>Address:</strong> <?php echo htmlspecialchars($rental['address']); ?></p>
                     <p><strong>Rental Start Date:</strong>
                         <?php echo date("F j, Y", strtotime($rental['start_date'])); ?>
@@ -195,10 +194,10 @@ if ($rental) {
                 </div>
 
                 <div class="col-lg-5 col-sm-12">
-                    <h2>Landlord Information</h2>
-                    <p><strong>Name:</strong> <?php echo htmlspecialchars($rental['landlord_name']); ?></p>
-                    <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['landlord_phone']); ?></p>
-                    <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['landlord_email']); ?></p>
+                    <h2>Tenant Information</h2>
+                    <p><strong>Name:</strong> <?php echo htmlspecialchars($rental['tenant_name']); ?></p>
+                    <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['tenant_phone']); ?></p>
+                    <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['tenant_email']); ?></p>
                 </div>
             </div>
         <?php else: ?>
