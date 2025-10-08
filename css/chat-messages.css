@@ -31,14 +31,15 @@
 
 /* Sidebar Styling */
 .side1 {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    height: 500px;
+    background: #8d0b41;
+    height: 600px;
     padding: 20px;
     border-top-left-radius: 20px;
     border-bottom-left-radius: 20px;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(255,255,255,0.3) transparent;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 1);
 }
 
 .side1::-webkit-scrollbar {
@@ -185,11 +186,12 @@
 /* Chat Area */
 .side2 {
     background: #f8f9fa;
-    height: 500px;
+    height: 600px;  
     border-top-right-radius: 20px;
     border-bottom-right-radius: 20px;
     display: flex;
     flex-direction: column;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 1);
 }
 
 .chat-header {
@@ -284,7 +286,7 @@
 }
 
 .message.sent .message-content {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #8d0b41;
     color: white;
     border-bottom-right-radius: 6px;
     box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
@@ -497,7 +499,7 @@
 
 .chat-input button[type="submit"] {
     border: none;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: #8d0b41;
     color: white;
     padding: 12px 20px;
     border-radius: 25px;

@@ -275,20 +275,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             fileDiv.classList.add("message-file");
             
             if (msg.file_type === 'image') {
+              // Just show the image, no background, no caption
               const img = document.createElement("img");
               img.src = msg.file_path;
-              img.alt = msg.message;
+              img.alt = "Image";
               img.onclick = function() {
                 window.open(msg.file_path, '_blank');
               };
+              img.style.background = 'none';
+              img.style.border = 'none';
               fileDiv.appendChild(img);
-              
-              if (msg.message) {
-                const caption = document.createElement("p");
-                caption.textContent = msg.message;
-                caption.style.marginTop = "8px";
-                fileDiv.appendChild(caption);
-              }
+              contentDiv.appendChild(fileDiv);
+              contentDiv.style.background = 'none';
+              contentDiv.style.border = 'none';
+              contentDiv.style.padding = '0';
+              contentDiv.style.boxShadow = 'none';
             } else {
               const link = document.createElement("a");
               link.href = msg.file_path;
@@ -304,9 +305,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <i class="fa-solid fa-download"></i>
               `;
               fileDiv.appendChild(link);
+              contentDiv.appendChild(fileDiv);
             }
-            
-            contentDiv.appendChild(fileDiv);
           } else {
             contentDiv.textContent = msg.message;
           }

@@ -1,5 +1,5 @@
 <?php
-require_once '../LOGIN/session_auth.php';
+require_once '../session_auth.php';
 require_once '../connection.php';
 
 // Only admins can approve
