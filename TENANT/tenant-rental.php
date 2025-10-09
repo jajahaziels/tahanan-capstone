@@ -72,6 +72,8 @@ if ($rental) {
     <!-- CALENDAR CDN -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <!-- SWEETALERT -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>LISTING</title>
     <style>
         #map {
@@ -194,6 +196,30 @@ if ($rental) {
                         <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['landlord_phone']); ?></p>
                         <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['landlord_email']); ?></p>
                     </div>
+                </div>
+                <div>
+                    <button id="success">Success</button>
+                    <?php
+                    if (isset($_GET['success']) && $_GET['success'] == 1) {
+                        echo "
+                    <script>
+                    Swal.fire({
+                    title: 'Success!',
+                    text: 'Your rental info has been loaded successfully.',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                    });
+                    </script>
+                    ";
+                    }
+                    ?>
+                    
+                <script>
+                    document.getElementById('success').addEventListener('click', function() {
+                        // ✅ Redirect to the same page with ?success=1
+                        window.location.href = '?success=1';
+                    });
+                </script>
                 </div>
 
             <?php else: ?>

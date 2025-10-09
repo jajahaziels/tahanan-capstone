@@ -300,8 +300,17 @@ if (!empty($_SESSION['success'])) {
                             </div>
                         </div>
                         <div class="mb-5">
-                        <button type="submit" class="main-button mx-2">Add property</button>
-                        <button class="main-button" onclick="location.href='landlord-properties.php'">Cancel</button>
+                            if (isset($_GET['success'])) {
+                            echo "<script>
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: 'Success!',
+                                    text: 'Record deleted successfully!'
+                                });
+                            </script>";
+                        }
+                            <button type="submit" class="main-button mx-2">Add property</button>
+                            <button class="main-button" onclick="location.href='landlord-properties.php'">Cancel</button>
                         </div>
                     </form>
                 </div>
