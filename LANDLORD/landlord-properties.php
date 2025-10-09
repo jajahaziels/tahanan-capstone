@@ -2,15 +2,31 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-// Get the landlord_id from the session
+// Get landlord ID from session
 $landlord_id = $_SESSION['landlord_id'];
 
-$sql = "SELECT * FROM listingtbl WHERE landlord_id = ?";
+// Fetch all landlord properties + check if they have approved tenants
+$sql = "
+    SELECT l.*, 
+           (SELECT r.ID 
+            FROM renttbl r 
+            WHERE r.listing_id = l.ID 
+              AND r.status = 'approved' 
+            LIMIT 1) AS approved_rental_id,
+           (SELECT COUNT(*) 
+            FROM renttbl r 
+            WHERE r.listing_id = l.ID 
+              AND r.status = 'approved') AS approved_count,
+           l.availability
+    FROM listingtbl l
+    WHERE l.landlord_id = ?
+";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $landlord_id);
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
+
 
 
 <!DOCTYPE html>
@@ -32,7 +48,7 @@ $result = $stmt->get_result();
     <title>PROPERTIES</title>
     <style>
         .landlord-page {
-            margin: 140px 0px 80px 0px !important;
+            margin-top: 140px;
         }
 
         .available {
@@ -58,7 +74,7 @@ $result = $stmt->get_result();
             color: white;
             padding: 8px;
             border-radius: 20px;
-            color: var(--text-color);
+            color: var(--bg-color);
         }
 
         .status-available {
@@ -66,7 +82,7 @@ $result = $stmt->get_result();
             color: white;
             padding: 8px;
             border-radius: 20px;
-            color: var(--text-color);
+            color: var(--bg-color);
         }
 
         .status {
@@ -85,14 +101,6 @@ $result = $stmt->get_result();
             border-radius: 14px;
         }
 
-        .edit {
-            background-color: #0000ff59;
-            color: var(--text-color);
-            width: 45px;
-            height: 45px;
-            font-size: 16px;
-            border-radius: 20px;
-        }
     </style>
 </head>
 
@@ -105,7 +113,7 @@ $result = $stmt->get_result();
             <li><a href="landlord.php">Home</a></li>
             <li><a href="landlord-properties.php" class="active">Properties</a></li>
             <li><a href="landlord-message.php">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
         <div class="nav-icons">
@@ -140,13 +148,16 @@ $result = $stmt->get_result();
     </div>
     </div>
     <!-- PROPERTY LIST -->
-    <div class="property-list">
+    <div class="property-list mt-4">
         <div class="container m-auto">
             <div class="row justify-content-center">
                 <div class="col-lg-10">
                     <div class="row justify-content-center">
+
                         <?php if ($result && $result->num_rows > 0): ?>
                             <?php while ($row = $result->fetch_assoc()): ?>
+                                <?php $isApproved = $row['approved_count'] > 0; ?>
+
                                 <div class="col-lg-4 col-sm-12">
                                     <div class="cards mb-4">
                                         <div class="position-relative">
@@ -162,8 +173,11 @@ $result = $stmt->get_result();
                                                 class="property-img"
                                                 style="width:100%; max-height:200px; object-fit:cover;">
 
+                                            <!-- Status -->
                                             <div class="status">
-                                                <p class="status-label">Available</p>
+                                                <p class="<?= $isApproved ? 'status-occupied' : 'status-available'; ?>">
+                                                    <?= $isApproved ? "Occupied" : "Available"; ?>
+                                                </p>
                                             </div>
 
                                             <!-- Price -->
@@ -194,20 +208,38 @@ $result = $stmt->get_result();
 
                                             <!-- LANDLORD ACTIONS -->
                                             <div class="d-flex justify-content-center align-items-center">
-                                                <button class="small-button mx-2" onclick="location.href='edit-property.php?ID=<?= $row['ID'] ?>'">Edit</button>
-                                                <button class="small-button" onclick="location.href='property-details.php?ID=<?= $row['ID'] ?>'">View</button>
+                                                <button class="small-button mx-2"
+                                                    onclick="location.href='edit-property.php?ID=<?= $row['ID'] ?>'">Edit</button>
+
+                                                <?php if ($isApproved): ?>
+                                                    <button class="small-button"
+                                                        onclick="location.href='landlord-rental.php?request_id=<?= $row['approved_rental_id'] ?>'">
+                                                        View
+                                                    </button>
+                                                <?php else: ?>
+                                                    <button class="small-button"
+                                                        onclick="location.href='property-details.php?ID=<?= $row['ID'] ?>'">
+                                                        View
+                                                    </button>
+                                                <?php endif; ?>
+
+
+
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+
                             <?php endwhile; ?>
                         <?php else: ?>
                             <p>No listings found.</p>
                         <?php endif; ?>
+
                     </div>
                 </div>
             </div>
         </div>
+
     </div>
 
     <!-- MAIN JS -->

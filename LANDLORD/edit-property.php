@@ -41,42 +41,42 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     if (empty($category)) $errors[] = "Category is required.";
     if (empty($latitude) || empty($longitude)) $errors[] = "Location must be pinned on the map.";
 
-        // Get current images from DB
-        $uploadedImages = json_decode($property['images'], true) ?? [];
+    // Get current images from DB
+    $uploadedImages = json_decode($property['images'], true) ?? [];
 
 
-        if (!empty($_POST['remove_images'])) {
-            foreach ($_POST['remove_images'] as $removeImg) {
-                // Delete from array
-                if (($key = array_search($removeImg, $uploadedImages)) !== false) {
-                    unset($uploadedImages[$key]);
+    if (!empty($_POST['remove_images'])) {
+        foreach ($_POST['remove_images'] as $removeImg) {
+            // Delete from array
+            if (($key = array_search($removeImg, $uploadedImages)) !== false) {
+                unset($uploadedImages[$key]);
 
-                    // (Optional) also delete the actual file from server
-                    $filePath = "uploads/" . $removeImg;
-                    if (file_exists($filePath)) {
-                        unlink($filePath);
-                    }
+                // (Optional) also delete the actual file from server
+                $filePath = "uploads/" . $removeImg;
+                if (file_exists($filePath)) {
+                    unlink($filePath);
                 }
             }
-            // Reindex array
-            $uploadedImages = array_values($uploadedImages);
         }
+        // Reindex array
+        $uploadedImages = array_values($uploadedImages);
+    }
 
     if (!empty($_FILES['image']['name'][0])) {
-    foreach ($_FILES['image']['name'] as $key => $name) {
-        $tmpName = $_FILES['image']['tmp_name'][$key];
-        $error   = $_FILES['image']['error'][$key];
+        foreach ($_FILES['image']['name'] as $key => $name) {
+            $tmpName = $_FILES['image']['tmp_name'][$key];
+            $error   = $_FILES['image']['error'][$key];
 
-        if ($error === UPLOAD_ERR_OK && !empty($tmpName)) {
-            $newName = time() . "_" . uniqid() . "_" . basename($name);
-            $targetFile = "uploads/" . $newName;
+            if ($error === UPLOAD_ERR_OK && !empty($tmpName)) {
+                $newName = time() . "_" . uniqid() . "_" . basename($name);
+                $targetFile = "uploads/" . $newName;
 
-            if (move_uploaded_file($tmpName, $targetFile)) {
-                $uploadedImages[] = $newName;
+                if (move_uploaded_file($tmpName, $targetFile)) {
+                    $uploadedImages[] = $newName;
+                }
             }
         }
     }
-}
     // // Limit to max 5 images
     // if (count($uploadedImages) > 5) {
     //     $errors[] = "You can upload a maximum of 5 images.";
@@ -143,19 +143,32 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             margin: 140px 0px 80px 0px !important;
         }
 
-        .add-property {
-            background-color: #0000ffb6;
-            color: white;
-            padding: 8px;
+        form {
+            background-color: var(--bg-color);
+            padding: 30px;
             border-radius: 20px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.165);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border: 2px solid var(--main-color) !important;
+            background: var(--bg-alt-color) !important;
+            outline: none !important;
+            box-shadow: none !important;
         }
 
         .form-control {
-            border: 2px solid var(--button-color);
+            background: var(--bg-alt-color);
+        }
+
+        textarea {
+            height: 190px;
         }
 
         #map {
-            height: 400px;
+            height: 300px;
             padding: 0 !important;
             margin: auto;
         }
@@ -171,7 +184,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <li><a href="landlord.php">Home</a></li>
             <li><a href="landlord-properties.php">Properties</a></li>
             <li><a href="landlord-message.php">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
         <div class="nav-icons">
@@ -196,7 +209,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             <div class="row gy-4 justify-content-center">
                 <div class="col-6">
                     <form method="POST" enctype="multipart/form-data">
-                        <div class="row mb-3">
+                        <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Listing Name</label>
                                 <input type="text" name="listingName" class="form-control"
@@ -204,7 +217,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </div>
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Address</label>
                                 <input type="text" name="address" class="form-control"
@@ -212,35 +225,61 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </div>
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Barangay</label>
                                 <select name="barangay" class="form-control" required>
-                                    <option value="Bagong Silang" <?= $property['barangay'] == "Bagong Silang" ? 'selected' : '' ?>>Bagong Silang</option>
-                                    <option value="Calendola" <?= $property['barangay'] == "Calendola" ? 'selected' : '' ?>>Calendola</option>
-                                    <option value="Chrysanthemum" <?= $property['barangay'] == "Chrysanthemum" ? 'selected' : '' ?>>Chrysanthemum</option>
-                                    <!-- add more -->
+                                    <option value="" disabled selected>Select Barangay</option>
+                                    <option value="Bagong Silang">Bagong Silang</option>
+                                    <option value="Calendola">Calendola</option>
+                                    <option value="Chrysanthemum">Chrysanthemum</option>
+                                    <option value="Cuyab">Cuyab</option>
+                                    <option value="Estrella">Estrella</option>
+                                    <option value="Fatima">Fatima</option>
+                                    <option value="G.S.I.S.">G.S.I.S.</option>
+                                    <option value="Landayan">Landayan</option>
+                                    <option value="Langgam">Langgam</option>
+                                    <option value="Laram">Laram</option>
+                                    <option value="Magsaysay">Magsaysay</option>
+                                    <option value="Maharlika">Maharlika</option>
+                                    <option value="Narra">Narra</option>
+                                    <option value="Nueva">Nueva</option>
+                                    <option value="Pacita 1">Pacita 1</option>
+                                    <option value="Pacita 2">Pacita 2</option>
+                                    <option value="Poblacion">Poblacion</option>
+                                    <option value="Riverside">Riverside</option>
+                                    <option value="Rosario">Rosario</option>
+                                    <option value="Sampaguita Village">Sampaguita Village</option>
+                                    <option value="San Antonio">San Antonio</option>
+                                    <option value="San Roque">San Roque</option>
+                                    <option value="San Vicente">San Vicente</option>
+                                    <option value="San Lorenzo Ruiz">San Lorenzo Ruiz</option>
+                                    <option value="Santo Niño">Santo Niño</option>
+                                    <option value="United Bayanihan">United Bayanihan</option>
+                                    <option value="United Better Living">United Better Living</option>
                                 </select>
                             </div>
                             <div class="col">
                                 <label class="form-label">City</label>
-                                <input type="text" name="city" class="form-control" value="San Pedro" readonly>
+                                <input type="text" name="city" class="form-control" value="San Pedro" readonly disabled>
                             </div>
                             <div class="col">
                                 <label class="form-label">Province</label>
-                                <input type="text" name="province" class="form-control" value="Laguna" readonly>
+                                <input type="text" name="province" class="form-control" value="Laguna" readonly disabled>
                             </div>
                         </div>
 
                         <!-- same for price, rooms, category -->
-                        <div class="row mb-3">
+                        <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Price</label>
-                                <input type="number" name="price" class="form-control"
-                                    value="<?= $property['price'] ?>" required>
+                                <div style="position: relative;">
+                                    <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">₱</span>
+                                    <input type="text" name="price" class="form-control" placeholder="0.00" style="padding-left: 25px;" value="<?= $property['price'] ?>" required>
+                                </div>
                             </div>
                             <div class="col">
-                                <label class="form-label">Number of Rooms</label>
+                                <label class="form-label">No. of Rooms</label>
                                 <select name="rooms" class="form-control" required>
                                     <option value="1" <?= $property['rooms'] == 1 ? 'selected' : '' ?>>1 Bedroom</option>
                                     <option value="2" <?= $property['rooms'] == 2 ? 'selected' : '' ?>>2 Bedrooms</option>
@@ -262,25 +301,25 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </div>
                         </div>
 
-                        <div class="row mb-3">
+                        <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Description</label>
                                 <textarea name="description" class="form-control"><?= htmlspecialchars($property['listingDesc']) ?></textarea>
                             </div>
-                                <div class="col">
-                                    <label class="form-label">Upload New Images (optional)</label>
-                                    <input type="file" name="image[]" class="form-control" accept="image/*" multiple>
+                            <div class="col">
+                                <label class="form-label">Upload New Images (optional)</label>
+                                <input type="file" name="image[]" class="form-control" accept="image/*" multiple>
 
-                                    <p>Current Images:</p>
-                                    <?php foreach (json_decode($property['images'], true) ?? [] as $img): ?>
-                                        <div style="display:inline-block; margin:5px; text-align:center;">
-                                            <img src="uploads/<?= $img ?>" alt="property image" width="80" style="display:block; margin-bottom:5px;">
-                                            <label>
-                                                <input type="checkbox" name="remove_images[]" value="<?= $img ?>"> Remove
-                                            </label>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
+                                <p>Current Images:</p>
+                                <?php foreach (json_decode($property['images'], true) ?? [] as $img): ?>
+                                    <div style="display:inline-block; margin:5px; text-align:center;">
+                                        <img src="uploads/<?= $img ?>" alt="property image" width="80" style="display:block; margin-bottom:5px;">
+                                        <label>
+                                            <input type="checkbox" name="remove_images[]" value="<?= $img ?>"> Remove
+                                        </label>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
 
                         </div>
 
@@ -294,7 +333,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </div>
                         </div>
 
-                        <div class="mb-5">
+                        <div class="mb-3">
                             <button type="submit" class="main-button mx-2">Update property</button>
                             <button class="main-button" onclick="location.href='landlord-properties.php'">Cancel</button>
                         </div>
@@ -328,7 +367,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if (!isNaN(lat) && !isNaN(lng)) {
             marker = L.marker([lat, lng]).addTo(map).bindPopup("Current Location").openPopup();
         }
-        
+
         map.on('click', function(e) {
             lat = e.latlng.lat;
             lng = e.latlng.lng;

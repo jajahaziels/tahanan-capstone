@@ -1,3 +1,18 @@
+<?php
+require_once 'connection.php';
+
+// Fetch only available listings (not rented)
+$sql = "
+    SELECT l.*, lt.firstName, lt.lastName, lt.profilePic
+    FROM listingtbl AS l
+    JOIN landlordtbl AS lt ON l.landlord_id = lt.ID
+    WHERE l.ID NOT IN (
+        SELECT listing_id FROM renttbl WHERE status = 'approved'
+    )
+    LIMIT 6
+";
+$result = $conn->query($sql);
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -11,9 +26,9 @@
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- BS -->
-    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="../TAHANAN/css/bootstrap.min.css">
     <!-- MAIN CSS -->
-    <link rel="stylesheet" href="css/style.css?v=<?= time(); ?>">
+    <link rel="stylesheet" href="../TAHANAN/css/style.css?v=<?= time(); ?>">
     <!-- LEAFLET -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <title>INDEX</title>
@@ -49,23 +64,19 @@
     </header>
     <!-- HOME SECTION -->
     <div class="home" id="home">
-        <div class="container d-flex align-items-center
-                justify-content-center vh-100 text-center" data-aos="fade-up">
+        <div class="container d-flex align-items-center justify-content-center vh-100">
             <div class="row justify-content-center">
-                <div class="col-lg-12 col-sm-12">
-                    <h1><span>—</span> T a h a n a n <span>—</span></h1> <br>
-                    <div class="InputContainer">
-                        <input
-                            placeholder="Search"
-                            id="input"
-                            class="input"
-                            name="text"
-                            type="text" />
-
-                        <label class="labelforsearch" for="input">
-                            <i class="fa-solid fa-magnifying-glass searchIcon"></i>
-                            <i class="fa-solid fa-filter"></i>
-                        </label>
+                <div class="col-lg-10">
+                    <div class="row justify-content-center">
+                        <div class="col-lg-6 col-sm-12">
+                            <h1 class="mb-0">Tahanan</h1>
+                            <p>We simplify property life for everyone. Landlords can easily track rent, manage maintenance, and handle leasing. Tenants can submit requests, pay rent online, and access community info—all in one intuitive place.</p>
+                            <button class="main-button">Rent Now</button>
+                            <button class="main-button mx-2 mb-4"> <a href="#home-listing" class="text-white">Listing</a></button>
+                        </div>
+                        <div class="col-lg-6 col-sm-12">
+                            <img src="../TAHANAN/img/index.png" alt="" width="100%">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -80,22 +91,19 @@
                     <div class="info-icons d-flex justify-content-center mb-4"><i class="fa-solid fa-comments"></i>
                     </div>
                     <p>Real-Time Communication</p> <br>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas in, alias illum deleniti
-                        reprehenderit repellendus eveniet officia modi iusto rerum.</p>
+                    <p>Directly connect landlords and tenants through an in-app messaging portal. Resolve issues faster and keep a clear record of all exchanges.</p>
                 </div>
                 <div class="col-lg-4 col-sm-12 text-center info-animation mb-5">
                     <div class="info-icons d-flex justify-content-center mb-4"><i class="fa-solid fa-user-check"></i>
                     </div>
                     <p>Verified and Updated Listing</p> <br>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas in, alias illum deleniti
-                        reprehenderit repellendus eveniet officia modi iusto rerum.</p>
+                    <p>Every listing on Tahanan is vetted for safety and accuracy. View high-quality, up-to-date photos, check transparent pricing, and feel confident in your search.</p>
                 </div>
                 <div class="col-lg-4 col-sm-12 text-center info-animation mb-5">
                     <div class="info-icons d-flex justify-content-center mb-4"><i class="fa-solid fa-location-dot"></i>
                     </div>
                     <p>Mapping</p> <br>
-                    <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quas in, alias illum deleniti
-                        reprehenderit repellendus eveniet officia modi iusto rerum.</p>
+                    <p>See exactly where your future home is located. Use our interactive map search to filter listings by proximity to work, schools, and transportation hubs.</p>
                 </div>
             </div>
         </div>
@@ -108,126 +116,81 @@
             Featured Properties <br> <br>
             <!-- START ROW -->
             <div class="row gy-5">
-                <!-- CARD 1 -->
-                <div class="col-lg-4 col-sm-12">
-                    <div class="cards mb-4">
-                        <div class="position-relative">
-                            <img src="img/home.png" alt="" class="property-img">
-                            <div class="labels">
-                                <div class="listing-label"> <i class="fa-regular fa-star"></i>Featured</div>
-                                <div class="listing-label">Specials</div>
-                            </div>
-                            <div class="price-tag">₱ 20,000</div>
-                        </div>
+                <?php if ($result && $result->num_rows > 0): ?>
+                    <?php while ($row = $result->fetch_assoc()): ?>
+                        <div class="col-lg-4 col-sm-12">
+                            <div class="cards mb-4" onclick="window.location='property-details.php?id=<?= $row['ID']; ?>'">
+                                <div class="position-relative">
+                                    <?php
+                                    $images = json_decode($row['images'], true);
+                                    $imagePath = 'LANDLORD/uploads/placeholder.jpg';
+                                    if (!empty($images) && is_array($images) && isset($images[0])) {
+                                        $imagePath = 'LANDLORD/uploads/' . $images[0];
+                                    }
+                                    ?>
+                                    <img src="<?= htmlspecialchars($imagePath); ?>"
+                                        alt="Property Image"
+                                        class="property-img"
+                                        style="width:100%; max-height:200px; object-fit:cover;">
 
-                        <div class="cards-content">
-                            <h5 class="mb-2 house-name">Lorem ipsum dolor sit ame</h5>
-                            <div class="mb-2 location"><i class="fas fa-map-marker-alt"></i> Phase 1B, Blk 8 Lot 3, Pacita 1</div>
+                                    <div class="labels">
+                                        <div class="label"><i class="fa-regular fa-star"></i> Featured</div>
+                                        <div class="label">Specials</div>
+                                    </div>
 
-                            <div class="features">
-                                <div class="m-2"><i class="fas fa-bed"></i> 3 Bedroom</div>
-                                <div class="m-2"><i class="fa-solid fa-building"></i> Condominium</div>
-                            </div>
+                                    <div class="price-tag">₱ <?= number_format($row['price']); ?></div>
+                                </div>
 
-                            <div class="divider my-3"></div>
+                                <div class="cards-content">
+                                    <h5 class="mb-2 house-name"><?= htmlspecialchars($row['listingName']); ?></h5>
+                                    <div class="mb-2 location">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <?= htmlspecialchars($row['address']); ?>
+                                    </div>
 
-                            <div class="landlord-info">
-                                <div class="landlord-left">
-                                    <img src="img/home.png" alt="Landlord">
-                                    <div>
-                                        <div class="landlord-name">Doe Allen</div>
-                                        <div class="landlord-role">Landlord</div>
+                                    <div class="features">
+                                        <div class="m-2">
+                                            <i class="fas fa-bed"></i> <?= htmlspecialchars($row['rooms']); ?> Bedroom
+                                        </div>
+                                        <div class="m-2">
+                                            <i class="fa-solid fa-building"></i> <?= htmlspecialchars($row['category']); ?>
+                                        </div>
+                                    </div>
+
+                                    <div class="divider my-3"></div>
+
+                                    <div class="landlord-info">
+                                        <div class="landlord-left d-flex align-items-center">
+                                            <?php if (!empty($row['profilePic'])): ?>
+                                                <img src="LANDLORD/uploads/<?= htmlspecialchars($row['profilePic']); ?>"
+                                                    alt="Landlord"
+                                                    style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
+                                            <?php else: ?>
+                                                <div class="avatar">
+                                                    <?= ucwords(substr($row['firstName'], 0, 1)); ?>
+                                                </div>
+                                            <?php endif; ?>
+
+                                            <div class="ms-2">
+                                                <div class="landlord-name">
+                                                    <?= ucwords(htmlspecialchars($row['firstName'] . ' ' . $row['lastName'])); ?>
+                                                </div>
+                                                <div class="landlord-role">Landlord</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="landlord-actions">
+                                            <div class="btn"><i class="fa-solid fa-user"></i></div>
+                                            <div class="btn"><i class="fas fa-comment-dots"></i></div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="landlord-actions">
-                                    <div class="btn"><i class="fa-solid fa-user"></i></div>
-                                    <div class="btn"><i class="fas fa-comment-dots"></i></div>
-                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
-                <!-- CARD 1 END -->
-                <!-- CARD 2 -->
-                <div class="col-lg-4 col-sm-12">
-                    <div class="cards mb-4">
-                        <div class="position-relative">
-                            <img src="img/home.png" alt="" class="property-img">
-                            <div class="labels">
-                                <div class="listing-label"> <i class="fa-regular fa-star"></i>Featured</div>
-                                <div class="listing-label">Specials</div>
-                            </div>
-                            <div class="price-tag">₱ 20,000</div>
-                        </div>
-
-                        <div class="cards-content">
-                            <h5 class="mb-2 house-name">Lorem ipsum dolor sit ame</h5>
-                            <div class="mb-2 location"><i class="fas fa-map-marker-alt"></i> Phase 1B, Blk 8 Lot 3, Pacita 1</div>
-
-                            <div class="features">
-                                <div class="m-2"><i class="fas fa-bed"></i> 3 Bedroom</div>
-                                <div class="m-2"><i class="fa-solid fa-building"></i> Condominium</div>
-                            </div>
-
-                            <div class="divider my-3"></div>
-
-                            <div class="landlord-info">
-                                <div class="landlord-left">
-                                    <img src="img/home.png" alt="Landlord">
-                                    <div>
-                                        <div class="landlord-name">Doe Allen</div>
-                                        <div class="landlord-role">Landlord</div>
-                                    </div>
-                                </div>
-                                <div class="landlord-actions">
-                                    <div class="btn"><i class="fa-solid fa-user"></i></div>
-                                    <div class="btn"><i class="fas fa-comment-dots"></i></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- CARD 2 END -->
-                <!-- CARD 3 -->
-                <div class="col-lg-4 col-sm-12">
-                    <div class="cards mb-4">
-                        <div class="position-relative">
-                            <img src="img/home.png" alt="" class="property-img">
-                            <div class="labels">
-                                <div class="listing-label"> <i class="fa-regular fa-star"></i>Featured</div>
-                                <div class="listing-label">Specials</div>
-                            </div>
-                            <div class="price-tag">₱ 20,000</div>
-                        </div>
-
-                        <div class="cards-content">
-                            <h5 class="mb-2 house-name">Lorem ipsum dolor sit ame</h5>
-                            <div class="mb-2 location"><i class="fas fa-map-marker-alt"></i> Phase 1B, Blk 8 Lot 3, Pacita 1</div>
-
-                            <div class="features">
-                                <div class="m-2"><i class="fas fa-bed"></i> 3 Bedroom</div>
-                                <div class="m-2"><i class="fa-solid fa-building"></i> Condominium</div>
-                            </div>
-
-                            <div class="divider my-3"></div>
-
-                            <div class="landlord-info">
-                                <div class="landlord-left">
-                                    <img src="img/home.png" alt="Landlord">
-                                    <div>
-                                        <div class="landlord-name">Doe Allen</div>
-                                        <div class="landlord-role">Landlord</div>
-                                    </div>
-                                </div>
-                                <div class="landlord-actions">
-                                    <div class="btn"><i class="fa-solid fa-user"></i></div>
-                                    <div class="btn"><i class="fas fa-comment-dots"></i></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <!-- CARD 3 END -->
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <p class="text-center mt-4">No available apartments right now.</p>
+                <?php endif; ?>
             </div>
             <!-- END NG ROW -->
             <div class="d-flex justify-content-center align-items-center mt-4 button-animation">
@@ -235,13 +198,29 @@
             </div>
         </div>
     </section>
-
     <!-- MAP SECTION -->
     <div id="map-section">
         <div class="container m-auto mb-4">
             <h1>Listing Locations</h1>
             <div class="row">
                 <div class="col-lg-6 col-sm-12">
+                    <?php
+                    $sql = "
+                        SELECT ID AS listing_id, listingName, latitude, longitude 
+                        FROM listingtbl 
+                        WHERE latitude IS NOT NULL 
+                        AND longitude IS NOT NULL
+                        AND ID NOT IN (
+                            SELECT listing_id FROM renttbl WHERE status = 'approved'
+                        )
+                    ";
+                    $result = $conn->query($sql);
+
+                    $listings = [];
+                    while ($row = $result->fetch_assoc()) {
+                        $listings[] = $row;
+                    }
+                    ?>
                     <!-- Only one actual map div -->
                     <div id="map"></div>
                 </div>
@@ -279,8 +258,6 @@
             </div>
         </div>
     </div>
-
-
     <!-- TESTIMONIALS SECTION -->
     <section id="testimonials" class="mt-5 testimonials">
         <div class="container m-auto">
@@ -294,7 +271,7 @@
                                     <i class="fa-regular fa-message mb-4 mt-5"></i>
                                     <p>"This platform has been a game-changer for managing our apartments. Everything is in one place—tenant requests, payments, and updates—so I no longer waste time juggling multiple tools. It keeps everything organized and stress-free."</p>
                                     <div class="person mt-5">
-                                        <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
+                                        <img src="../TAHANAN/img/mina.jpg" alt="" width="10%">
                                         <h5 class="mt-3">Jonathan Allen Mina</h5>
                                         <div class="stars">
                                             <i class="fa-solid fa-star"></i>
@@ -338,7 +315,7 @@
                                     <i class="fa-regular fa-message mb-4 mt-5"></i>
                                     <p>"Collecting rent used to be a hassle, but now it’s effortless. The platform’s payment system is reliable and secure, making the entire process smooth for both tenants and management. It’s a win-win!"</p>
                                     <div class="person mt-5">
-                                        <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
+                                        <img src="../TAHANAN/img/sam.png" alt="" width="10%">
                                         <h5 class="mt-3">Salmuel Whyette Alcazar</h5>
                                         <div class="stars">
                                             <i class="fa-solid fa-star"></i>
@@ -360,7 +337,7 @@
                                     <i class="fa-regular fa-message mb-4 mt-5"></i>
                                     <p>"This apartment management platform has elevated the way we operate. It gives off a professional, modern feel that tenants notice and appreciate. It’s not just a tool—it’s part of delivering excellent service."</p>
                                     <div class="person mt-5">
-                                        <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
+                                        <img src="../TAHANAN/img/gio.jpg" alt="" width="10%">
                                         <h5 class="mt-3">Giorj Allen Gonzales</h5>
                                         <div class="stars">
                                             <i class="fa-solid fa-star"></i>
@@ -470,21 +447,28 @@
 <!-- LEAFLET JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
-    // INITIALIZE MAP IN SAN PEDRO
-    var map = L.map('map').setView([14.3647, 121.0556], 15);
+    // Pass PHP array to JS as JSON
+    var listings = <?= json_encode($listings); ?>;
+
+    // Default center (if no data)
+    var map = L.map('map').setView([14.3647, 121.0556], 13);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    var marker;
+    listings.forEach(function(item) {
+        if (item.latitude && item.longitude) {
+            // create popup content with a button
+            var popupContent = `
+            <button class="small-button" onclick="window.location.href='property-details.php?id=${item.listing_id}'">
+                View
+            </button>
+        `;
 
-    map.on('click', function(e) {
-        var lat = e.latlng.lat;
-        var lng = e.latlng.lng;
-
-        if (marker) {
-            map.removeLayer(marker);
+            L.marker([item.latitude, item.longitude])
+                .addTo(map)
+                .bindPopup(popupContent);
         }
     });
 </script>

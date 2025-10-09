@@ -5,46 +5,73 @@ require_once '../session_auth.php';
 $rental = null;
 $error = '';
 
+// Check landlord session
 if (!isset($_SESSION['landlord_id'])) {
     $error = "Unauthorized access. Please log in.";
 } else {
     $landlord_id = (int) $_SESSION['landlord_id'];
-    $request_id = intval($_GET['request_id'] ?? 0);
 
-    $sql = "SELECT r.ID AS rental_id, r.date,
-                   ls.listingName, ls.address, ls.images,
-                   t.firstName AS tenant_fname, t.lastName AS tenant_lname,
-                   t.phoneNum AS tenant_phone, t.email AS tenant_email
-            FROM renttbl r
-            JOIN listingtbl ls ON r.listing_id = ls.ID
-            JOIN tenanttbl t ON r.tenant_id = t.ID
-            WHERE r.ID = ? AND ls.landlord_id = ? AND r.status = 'approved'
-            LIMIT 1";
+    // Get request_id from URL
+    $request_id = isset($_GET['request_id']) ? (int) $_GET['request_id'] : 0;
 
-    if ($stmt = $conn->prepare($sql)) {
-        $stmt->bind_param('ii', $request_id, $landlord_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result && $result->num_rows > 0) {
-            $rental = $result->fetch_assoc();
-        } else {
-            $error = "No approved rental found for this request.";
-        }
-        $stmt->close();
+    if ($request_id <= 0) {
+        $error = "No rental selected.";
     } else {
-        $error = "Database error: " . $conn->error;
+        // Fetch the selected rental info
+        $sql = "
+    SELECT 
+        r.ID AS rental_id, 
+        r.listing_id,
+        r.start_date, 
+        r.end_date,
+        t.firstName AS tenant_name, 
+        t.phoneNum AS tenant_phone, 
+        t.email AS tenant_email,
+        ls.listingName, 
+        ls.address, 
+        ls.images,
+        l.firstName AS landlord_name, 
+        l.phoneNum AS landlord_phone, 
+        l.email AS landlord_email
+    FROM renttbl r
+    JOIN listingtbl ls ON r.listing_id = ls.ID
+    JOIN tenanttbl t ON r.tenant_id = t.ID
+    JOIN landlordtbl l ON ls.landlord_id = l.ID
+    WHERE r.ID = ? 
+      AND ls.landlord_id = ? 
+      AND r.status = 'approved'
+    LIMIT 1
+";
+
+
+        if ($stmt = $conn->prepare($sql)) {
+            $stmt->bind_param('ii', $request_id, $landlord_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+
+            if ($result && $result->num_rows > 0) {
+                $rental = $result->fetch_assoc();
+            } else {
+                $error = "No approved rental found for this selection.";
+            }
+
+            $stmt->close();
+        } else {
+            $error = "Database error: " . $conn->error;
+        }
     }
 }
-// ✅ Handle property image
-$propertyImg = "../img/house1.jpeg"; // default fallback
-if ($rental && !empty($rental['images'])) {
+
+// Default property image
+$propertyImg = "../img/house1.jpeg";
+if ($rental) {
     $images = json_decode($rental['images'], true);
-    if (!empty($images) && isset($images[0])) {
+    if (!empty($images)) {
         $propertyImg = "../LANDLORD/uploads/" . $images[0];
     }
 }
 ?>
+
 
 
 
@@ -69,8 +96,12 @@ if ($rental && !empty($rental['images'])) {
     <!-- CALENDAR CDN -->
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
-    <title>LISTING</title>
+    <title>LANDLORD RENTAL</title>
     <style>
+        .landlord-page {
+            margin-top: 140px;
+        }
+
         #map {
             height: 400px;
             max-width: 800px;
@@ -78,20 +109,10 @@ if ($rental && !empty($rental['images'])) {
             margin: auto;
         }
 
-        .property-img {
-            width: 500px;
-            border-radius: 10px;
-        }
-
-        /* .property-imgs{
-            border: 5px solid var(--main-color);
-        } */
-
         #calendar {
-            max-width: 550px;
+            max-width: 500px;
             height: 350px;
             margin: 40px auto;
-            border: 2px solid var(--main-color);
         }
 
         .account-img img {
@@ -107,19 +128,19 @@ if ($rental && !empty($rental['images'])) {
             border-radius: 10px;
         }
 
-        /* 
-        .avatar {
-            width: 200px;
-            height: 200px;
-            border-radius: 10px;
-            background: var(--main-color);
-            color: var(--bg-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            font-weight: bold;
-        } */
+        #carouselExample .carousel-inner{
+            height: 400px;
+        }
+        #carouselExample{
+            margin-top: 60px;
+        }
+        .rental-details{
+            background-color: var(--bg-color);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.165);
+        }
+        
     </style>
 </head>
 
@@ -132,7 +153,7 @@ if ($rental && !empty($rental['images'])) {
             <li><a href="landlord.php">Home</a></li>
             <li><a href="landlord-properties.php" class="active">Properties</a></li>
             <li><a href="landlord-message.php">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
         <div class="nav-icons">
@@ -151,60 +172,135 @@ if ($rental && !empty($rental['images'])) {
         </div>
     </header>
 
-    <section class="home-listing" id="home-listing">
+    <div class="landlord-page">
         <div class="container m-auto">
-            <h1 class="mb-4">Rental Information</h1>
+            <div class="d-flex justify-content-between">
+                <h1 class="mb-1">Rental Info</h1>
+                <form method="post" action="cancel-rental.php" onsubmit="return confirm('Are you sure you want to cancel this rental?');">
+                    <input type="hidden" name="rental_id" value="<?php echo $rental['rental_id']; ?>">
+                    <input type="hidden" name="listing_id" value="<?php echo htmlspecialchars($rental['listing_id']); ?>">
+                    <button type="submit" class="main-button">Cancel Rental</button>
+                </form>
+
+            </div>
 
             <?php if ($rental): ?>
-                <!-- Property & Calendar -->
-                <div class="row justify-content-center gy-4">
-                    <div class="col-lg-5 col-sm-12 text-center">
-                        <img src="<?php echo htmlspecialchars($propertyImg); ?>"
-                            alt="Property Image" class="property-img mt-3">
-                    </div>
-                    <div class="col-lg-5 col-sm-12">
-                        <div id="calendar" class="mt-3 border p-3 rounded">
-                            📅 Calendar placeholder
+                <!-- ROW 1: Image + Calendar -->
+                <div class="row justify-content-center">
+                    <div class="col-lg-10">
+                        <div class="row justify-content-center gy-5">
+                            <div class="col-lg-6 col-sm-12">
+                                <!-- Bootstrap Carousel -->
+                                <div id="carouselExample" class="carousel slide">
+                                    <div class="carousel-inner">
+                                        <?php if (!empty($images)): ?>
+                                            <?php foreach ($images as $index => $img): ?>
+                                                <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                                                    <div class="row justify-content-center">
+                                                        <div class="col-lg-12">
+                                                            <img src="../LANDLORD/uploads/<?= htmlspecialchars($img); ?>"
+                                                                class="d-block w-100"
+                                                                style="max-height:300px; object-fit:cover;"
+                                                                alt="Property Image">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <div class="carousel-item active">
+                                                <div class="row justify-content-center">
+                                                    <div class="col-lg-12">
+                                                        <img src="../LANDLORD/uploads/placeholder.jpg"
+                                                            class="d-block w-100"
+                                                            style="max-height:300px; object-fit:cover;"
+                                                            alt="No Image">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+
+                                    <!-- Carousel Controls -->
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-6 col-sm-12">
+                                <div id="calendar" class="mt-5"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Info -->
-                <div class="row justify-content-center gy-4 mt-4">
-                    <div class="col-lg-5 col-sm-12">
-                        <h3><?php echo htmlspecialchars($rental['listingName']); ?></h3>
-                        <p><strong>Address:</strong> <?php echo htmlspecialchars($rental['address']); ?></p>
-                        <p><strong>Rental Start Date:</strong>
-                            <?php echo date("F j, Y", strtotime($rental['date'])); ?>
-                        </p>
-                    </div>
-                    <div class="col-lg-5 col-sm-12">
-                        <h3>Tenant Information</h3>
-                        <p><strong>Name:</strong>
-                            <?php echo htmlspecialchars($rental['tenant_fname'] . " " . $rental['tenant_lname']); ?>
-                        </p>
-                        <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['tenant_phone']); ?></p>
-                        <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['tenant_email']); ?></p>
+                <!-- ROW 2: Property + Tenant Info -->
+                <div class="row justify-content-center">
+                    <div class="col-lg-10 rental-details">
+                        <div class="row justify-content-center gy-5">
+                            <div class="col-lg-6 col-sm-12">
+                                <h2><?php echo htmlspecialchars($rental['listingName']); ?></h2>
+                                <p><strong>Address:</strong> <?php echo htmlspecialchars($rental['address']); ?></p>
+                                <p><strong>Rental Start Date:</strong>
+                                    <?php echo date("F j, Y", strtotime($rental['start_date'])); ?>
+                                </p>
+                                <p><strong>Rental Due Date:</strong>
+                                    <?php echo date("F j, Y", strtotime($rental['end_date'])); ?>
+                                </p>
+                            </div>
+
+                            <div class="col-lg-5 col-sm-12">
+                                <h2>Tenant Information</h2>
+                                <p><strong>Name:</strong> <?php echo htmlspecialchars($rental['tenant_name']); ?></p>
+                                <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['tenant_phone']); ?></p>
+                                <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['tenant_email']); ?></p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             <?php else: ?>
-                <p class="text-danger"><?php echo $error; ?></p>
+                <p><?php echo $error; ?></p>
             <?php endif; ?>
         </div>
-    </section>
+    </div>
+
 
 </body>
-
+<!-- MAIN JS -->
+<script src="../js/script.js"></script>
+<!-- BS JS -->
+<script src="../js/bootstrap.bundle.min.js?v=<?php echo time(); ?>" defer></script>
+<!-- SCROLL REVEAL -->
+<script src="https://unpkg.com/scrollreveal"></script>
+<!-- LEAFLET JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('calendar');
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth'
+            initialView: 'dayGridMonth',
+            events: [{
+                    title: 'Rent Start',
+                    start: '<?php echo $rental ? $rental['start_date'] : ''; ?>',
+                    color: 'green'
+                },
+                {
+                    title: 'Rent Due',
+                    start: '<?php echo $rental ? $rental['end_date'] : ''; ?>',
+                    color: 'red'
+                }
+            ]
         });
 
         calendar.render();
     });
 </script>
+
 
 </html>

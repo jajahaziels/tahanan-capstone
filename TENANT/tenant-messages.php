@@ -54,8 +54,8 @@ $tenant_name = trim($tenant['firstName'] . ' ' . ($tenant['middleName'] ? $tenan
             <li><a href="tenant.php">Home</a></li>
             <li><a href="tenant-rental.php">My Rental</a></li>
             <li><a href="tenant-favorite.php">Favorite</a></li>
-            <li><a href="tenant-message.php" class="active">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="tenant-messages.php" class="active">Messages</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         
         <!-- NAV ICON / NAME -->
@@ -115,9 +115,27 @@ $tenant_name = trim($tenant['firstName'] . ' ' . ($tenant['middleName'] ? $tenan
                         </div>
                     </div>
 
-                    <div class="chat-input">
+                   <div class="chat-input">
+                        <input type="file" id="file-input" accept="image/*,.pdf,.doc,.docx,.txt,.xlsx,.xls">
+                        <button type="button" class="file-upload-btn" onclick="document.getElementById('file-input').click()">
+                            <i class="fa-solid fa-paperclip"></i>
+                        </button>
                         <input type="text" placeholder="Select a conversation first..." disabled>
-                        <button disabled><i class="fa-solid fa-paper-plane"></i></button>
+                        <button type="submit" disabled><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+
+                    <!-- File Preview (hidden by default) -->
+                    <div class="file-preview" id="file-preview">
+                        <div class="file-preview-icon">
+                            <i class="fa-solid fa-file"></i>
+                        </div>
+                        <div class="file-preview-info">
+                            <p class="file-preview-name"></p>
+                            <p class="file-preview-size"></p>
+                        </div>
+                        <button class="file-preview-remove" onclick="removeFile()">
+                            <i class="fa-solid fa-times"></i> Remove
+                        </button>
                     </div>
                 </div>
 
@@ -148,6 +166,5 @@ $tenant_name = trim($tenant['firstName'] . ' ' . ($tenant['middleName'] ? $tenan
 
     <!-- Chat System JS -->
     <script src="../js/tenant-chat.js" defer></script>
-
 </body>
 </html>

@@ -64,7 +64,7 @@
             <li><a href="landlord.php">Home</a></li>
             <li><a href="landlord-properties.php">Properties</a></li>
             <li><a href="landlord-message.php">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         <!-- SIGN UP -->
         <!-- NAV ICON / NAME -->

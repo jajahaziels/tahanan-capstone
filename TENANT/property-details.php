@@ -2,7 +2,7 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-// property id from URL (case-insensitive)
+// Get property ID from URL (case-insensitive)
 $idParam = $_GET['id'] ?? $_GET['ID'] ?? null;
 
 if (!$idParam || !is_numeric($idParam)) {
@@ -11,18 +11,29 @@ if (!$idParam || !is_numeric($idParam)) {
 
 $listingID = intval($idParam);
 
-// Fetch property, landlord, rental, and tenant info
+// Fetch property and landlord info (for tenant view)
 $sql = "
-    SELECT l.ID AS listing_id, l.listingName, l.address, l.images, l.barangay, l.category, l.rooms, l.price, l.listingDesc,
-           ld.ID AS landlord_id, ld.firstName AS landlord_fname, ld.lastName AS landlord_lname, ld.profilePic, ld.phoneNum AS landlord_phone, ld.email AS landlord_email,
-           r.ID AS rental_id, r.date AS rental_date,
-           t.firstName AS tenant_fname, t.lastName AS tenant_lname, t.phoneNum AS tenant_phone, t.email AS tenant_email
+    SELECT 
+        l.ID AS listing_id,
+        l.listingName,
+        l.address,
+        l.barangay,
+        l.category,
+        l.rooms,
+        l.price,
+        l.listingDesc,
+        l.images,
+        l.latitude,
+        l.longitude,
+        ld.ID AS landlord_id,
+        ld.firstName AS landlord_fname,
+        ld.lastName AS landlord_lname,
+        ld.profilePic,
+        ld.phoneNum AS landlord_phone,
+        ld.email AS landlord_email
     FROM listingtbl l
     JOIN landlordtbl ld ON l.landlord_id = ld.ID
-    LEFT JOIN renttbl r ON r.listing_id = l.ID
-    LEFT JOIN tenanttbl t ON r.tenant_id = t.ID
     WHERE l.ID = ?
-    ORDER BY r.date DESC
     LIMIT 1
 ";
 
@@ -39,6 +50,7 @@ $property = $result->fetch_assoc();
 $images = json_decode($property['images'], true) ?? [];
 $stmt->close();
 ?>
+
 
 
 
@@ -119,7 +131,7 @@ $stmt->close();
             <li><a href="tenant-favorite.php">Favorite</a></li>
             <li><a href="tenant-map.php">Map</a></li>
             <li><a href="tenant-messages.php">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
         <div class="nav-icons">
@@ -191,10 +203,48 @@ $stmt->close();
                 <!-- Property Info -->
                 <div class="d-flex justify-content-between align-items-center">
                     <p class="mb-0"><?= htmlspecialchars($property['barangay'] ?? ''); ?>, San Pedro, Laguna</p>
-                    <form action="apply.php" method="POST">
-                        <input type="hidden" name="listing_id" value="<?= htmlspecialchars($property['listing_id']); ?>">
-                        <button type="submit" class="main-button mx-5">Apply</button>
-                    </form>
+                    <!-- Apply Button (triggers modal) -->
+                    <button type="button" class="main-button mx-5" data-bs-toggle="modal" data-bs-target="#applyModal">
+                        Apply
+                    </button>
+
+                    <!-- Modal -->
+                    <div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+
+                                <!-- Modal Header -->
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="applyModalLabel">Apply for Rental</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+
+                                <!-- Modal Body (Form) -->
+                                <div class="modal-body">
+                                    <form id="applyForm" action="apply.php" method="POST">
+                                        <input type="hidden" name="listing_id" value="<?= htmlspecialchars($property['listing_id']); ?>">
+
+                                        <div class="mb-3">
+                                            <label for="start_date" class="form-label">Rental Start Date</label>
+                                            <input type="date" class="form-control" name="start_date" id="start_date" required>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="end_date" class="form-label">Rental End Date</label>
+                                            <input type="date" class="form-control" name="end_date" id="end_date" required>
+                                        </div>
+                                    </form>
+                                </div>
+
+                                <!-- Modal Footer -->
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" form="applyForm" class="btn btn-primary">Submit Application</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
 
                 </div>
                 <h4><?= htmlspecialchars($property['listingName']); ?></h4>
@@ -230,7 +280,8 @@ $stmt->close();
                             onclick="window.location.href='landlord-profile.php?id=<?= $property['landlord_id']; ?>'">
                             <i class="fa-solid fa-user"></i>
                         </button>
-                        <button class="small-button mx-3">
+                        <button class="small-button mx-3" 
+                            onclick="contactLandlord(<?= $property['landlord_id']; ?>, <?= $property['listing_id']; ?>, '<?= htmlspecialchars(addslashes($property['listingName'])); ?>')">
                             <i class="fas fa-comment-dots"></i>
                         </button>
                     </div>
@@ -262,7 +313,7 @@ $stmt->close();
     <script src="https://unpkg.com/scrollreveal"></script>
     <!-- LEAFLET JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
+    <script src="../js/contact-landlord.js"></script>                       
     <script>
         var lat = <?= $property['latitude'] ?: 14.3647 ?>;
         var lng = <?= $property['longitude'] ?: 121.0556 ?>;
@@ -275,4 +326,5 @@ $stmt->close();
 
         L.marker([lat, lng]).addTo(map).bindPopup("<?= htmlspecialchars($property['listingName']); ?>");
     </script>
+    
 </body>

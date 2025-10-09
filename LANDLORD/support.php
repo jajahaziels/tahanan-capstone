@@ -27,10 +27,28 @@ include '../session_auth.php';
             margin-top: 140px !important;
         }
 
-        .form-container {
-            border: 3px solid var(--main-color);
+        form {
+            background-color: var(--bg-color);
             padding: 20px;
             border-radius: 20px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.165);
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border: 2px solid var(--main-color) !important;
+            background: var(--bg-alt-color) !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+
+        .form-control {
+            background: var(--bg-alt-color);
+        }
+
+        textarea {
+            height: 80px;
         }
 
         .grid-icons {
@@ -44,9 +62,10 @@ include '../session_auth.php';
         }
 
         #map {
-            height: 200px;
+            height: 300px;
             padding: 0;
             margin: auto;
+            border-radius: 20px;
         }
     </style>
 </head>
@@ -85,35 +104,31 @@ include '../session_auth.php';
             <div class="col-lg-8">
                 <div class="row justify-content-center support-container mt-4">
                     <div class="col-lg-6 p-4">
-                        <form class="mt-4 form-container" method="POST" enctype="multipart/form-data">
-                            <h1>Contact Us</h1>
+                        <form method="POST" enctype="multipart/form-data">
+                            <h3>Contact Us</h3>
                             <div class="row mb-3">
                                 <div class="col">
-                                    <label class="form-label">Name</label>
-                                    <input type="text" name="listing_name" class="form-control" required>
+                                    <input type="text" name="listing_name" class="form-control" placeholder="Name" required>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col">
-                                    <label class="form-label">Email</label>
-                                    <input type="text" name="address" class="form-control" required>
+                                    <input type="text" name="address" class="form-control" placeholder="Email" required>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col">
-                                    <label class="form-label">Subject</label>
-                                    <input type="text" name="address" class="form-control" required>
+                                    <input type="text" name="address" class="form-control" placeholder="Subject" required>
                                 </div>
                             </div>
 
                             <div class="row mb-3">
                                 <div class="col">
-                                    <label class="form-label">Message</label>
-                                    <textarea name="description" class="form-control" rows="5"></textarea>
+                                    <textarea name="description" class="form-control" rows="5" placeholder="Message"></textarea>
                                 </div>
                             </div>
 
-                            <div class="grid ">
+                            <div class="grid">
                                 <button type="submit" class="main-button mx-2">Send</button>
                             </div>
                         </form>
@@ -143,10 +158,12 @@ include '../session_auth.php';
                                 <p class="fs-6">0912315782</p>
                             </div>
                         </div>
-                        <div id="map" class="mt-2"></div>
                     </div>
                 </div>
             </div>
+        </div>
+        <div class="row justify-content-center">
+            <div id="map" class="mt-2"></div>
         </div>
     </div>
 </div>
@@ -162,7 +179,7 @@ include '../session_auth.php';
 <script src="https://unpkg.com/scrollreveal"></script>
 <!-- LEAFLET JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script>
+<script>
     // Initialize map centered at Colegio de San Pedro
     var map = L.map('map').setView([14.3476602, 121.0594527], 17); // zoomed in closer
 
@@ -174,6 +191,6 @@ include '../session_auth.php';
     // Fixed marker at Colegio de San Pedro
     var marker = L.marker([14.3476602, 121.0594527]).addTo(map)
         .bindPopup("<b>Colegio de San Pedro</b>").openPopup();
-    </script>
+</script>
 
 </html>

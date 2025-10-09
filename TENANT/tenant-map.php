@@ -4,10 +4,16 @@ include '../session_auth.php';
 
 $tenant_id = $_SESSION['tenant_id'];
 
-// Include listing_id in the query
-$sql = "SELECT ID AS listing_id, listingName, latitude, longitude 
-        FROM listingtbl 
-        WHERE latitude IS NOT NULL AND longitude IS NOT NULL";
+$sql = "
+    SELECT ID AS listing_id, listingName, latitude, longitude 
+    FROM listingtbl 
+    WHERE latitude IS NOT NULL 
+      AND longitude IS NOT NULL
+      AND ID NOT IN (
+          SELECT listing_id FROM renttbl WHERE status = 'approved'
+      )
+";
+
 $result = $conn->query($sql);
 
 $listings = [];
@@ -15,6 +21,7 @@ while ($row = $result->fetch_assoc()) {
     $listings[] = $row;
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -60,7 +67,7 @@ while ($row = $result->fetch_assoc()) {
             <li><a href="tenant-favorite.php">Favorite</a></li>
             <li><a href="tenant-map.php" class="active">Map</a></li>
             <li><a href="tenant-messages.php">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
         <div class="nav-icons">

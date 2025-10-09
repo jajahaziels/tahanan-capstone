@@ -4,12 +4,20 @@ include '../session_auth.php';
 
 $tenant_id = $_SESSION['tenant_id'];
 
-// Fetch listings with landlord info
-$sql = "SELECT l.*, lt.firstName, lt.lastName, lt.profilePic 
-        FROM listingtbl AS l
-        JOIN landlordtbl AS lt ON l.landlord_id = lt.ID";
+// Fetch available listings with landlord info
+$sql = "
+    SELECT l.*, lt.firstName, lt.lastName, lt.profilePic
+    FROM listingtbl AS l
+    JOIN landlordtbl AS lt ON l.landlord_id = lt.ID
+    LEFT JOIN renttbl AS r 
+        ON l.ID = r.listing_id AND r.status = 'approved'
+    WHERE r.ID IS NULL
+    ORDER BY l.listingDate DESC
+";
 $result = $conn->query($sql);
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -32,25 +40,6 @@ $result = $conn->query($sql);
             margin-top: 140px !important;
         }
 
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--main-color);
-            color: var(--bg-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 20px;
-        }
-
-        .avatar img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
     </style>
 </head>
 
@@ -64,14 +53,14 @@ $result = $conn->query($sql);
             <li><a href="tenant-favorite.php">Favorite</a></li>
             <li><a href="tenant-map.php">Map</a></li>
             <li><a href="tenant-messages.php">Messages</a></li>
-            <li><a href="../support.php">Support</a></li>
+            <li><a href="support.php">Support</a></li>
         </ul>
         <!-- NAV ICON / NAME -->
         <div class="nav-icons">
             <!-- DROP DOWN -->
             <div class="dropdown">
                 <i class="fa-solid fa-user"></i>
-                Tenant
+                <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>
                 <div class="dropdown-content">
                     <a href="tenant-profile.php">Account</a>
                     <a href="settings.php">Settings</a>
