@@ -76,28 +76,30 @@ $stmt->close();
     <title><?= htmlspecialchars($property['listingName']); ?> - Details</title>
     <style>
         .tenant-page {
-            margin-top: 140px !important;
+            margin-top: 50px !important;
         }
 
         .prorperty-details {
-            border: 3px solid var(--main-color);
-            border-radius: 10px;
+            background-color: var(--bg-color);
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.165);
         }
 
         .back-button {
             position: fixed;
+            margin-top: 160px;
         }
 
         .price {
             font-size: 3rem;
         }
-
-        .landlord-info {
-            width: 60px;
-            height: 60px;
+        .avatar {
+            width: 60px !important;
+            height: 60px !important;
             border-radius: 50%;
             background: var(--main-color);
-            color: #fff;
+            color: var(--bg-color);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -114,16 +116,31 @@ $stmt->close();
 
 
         #map {
-            height: 500px;
+            height: 400px;
             padding: 0;
             margin: auto;
+        }
+
+        .carousel-inner {
+            height: 420px !important;
+        }
+
+        #carouselExample {
+            max-width: 500px !important;
+            margin: 0 auto !important;
+        }
+
+        #carouselExample img {
+            height: 400px !important;
+            object-fit: cover !important;
+            border-radius: 20px !important;
         }
     </style>
 </head>
 
 <body>
     <!-- HEADER -->
-<?php include '../Components/tenant-header.php' ?>
+    <?php include '../Components/tenant-header.php' ?>
     <div class="tenant-page">
         <div class="container m-auto">
             <div class="d-flex justify-content-start align-items-center">
@@ -132,147 +149,148 @@ $stmt->close();
         </div>
 
         <div class="row justify-content-center align-items-center mt-5">
-            <div class="col-lg-6 prorperty-details p-3">
-
-                <!-- Bootstrap Carousel -->
-                <div id="carouselExample" class="carousel slide mb-4">
-                    <div class="carousel-inner">
-                        <?php if (!empty($images)): ?>
-                            <?php foreach ($images as $index => $img): ?>
-                                <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+            <div class="col-lg-6 p-3">
+                <div class="prorperty-details">
+                    <!-- Bootstrap Carousel -->
+                    <div id="carouselExample" class="carousel slide mb-4">
+                        <div class="carousel-inner">
+                            <?php if (!empty($images)): ?>
+                                <?php foreach ($images as $index => $img): ?>
+                                    <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                                        <div class="row justify-content-center">
+                                            <div class="col-lg-12">
+                                                <img src="../LANDLORD/uploads/<?= htmlspecialchars($img); ?>"
+                                                    class="d-block w-100"
+                                                    style="max-height:400px; object-fit:cover;"
+                                                    alt="Property Image">
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="carousel-item active">
                                     <div class="row justify-content-center">
                                         <div class="col-lg-12">
-                                            <img src="../LANDLORD/uploads/<?= htmlspecialchars($img); ?>"
+                                            <img src="../LANDLORD/uploads/placeholder.jpg"
                                                 class="d-block w-100"
                                                 style="max-height:400px; object-fit:cover;"
-                                                alt="Property Image">
+                                                alt="No Image">
                                         </div>
                                     </div>
                                 </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="carousel-item active">
-                                <div class="row justify-content-center">
-                                    <div class="col-lg-12">
-                                        <img src="../LANDLORD/uploads/placeholder.jpg"
-                                            class="d-block w-100"
-                                            style="max-height:400px; object-fit:cover;"
-                                            alt="No Image">
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endif; ?>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Carousel Controls -->
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
                     </div>
 
-                    <!-- Carousel Controls -->
-                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Previous</span>
-                    </button>
-                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        <span class="visually-hidden">Next</span>
-                    </button>
-                </div>
-
-                <!-- Property Info -->
-                <div class="d-flex justify-content-between align-items-center">
+                    <!-- Property Info -->
                     <p class="mb-0"><?= htmlspecialchars($property['barangay'] ?? ''); ?>, San Pedro, Laguna</p>
-                    <!-- Apply Button (triggers modal) -->
-                    <button type="button" class="main-button mx-5" data-bs-toggle="modal" data-bs-target="#applyModal">
-                        Apply
-                    </button>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="mb-0 mt-0"><?= htmlspecialchars($property['listingName']); ?></h4>
+                        <!-- Apply Button (triggers modal) -->
+                        <button type="button" class="main-button mx-5" data-bs-toggle="modal" data-bs-target="#applyModal">
+                            Apply
+                        </button>
 
-                    <!-- Modal -->
-                    <div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
+                        <!-- Modal -->
+                        <div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
 
-                                <!-- Modal Header -->
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="applyModalLabel">Apply for Rental</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
+                                    <!-- Modal Header -->
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="applyModalLabel">Apply for Rental</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
 
-                                <!-- Modal Body (Form) -->
-                                <div class="modal-body">
-                                    <form id="applyForm" action="apply.php" method="POST">
-                                        <input type="hidden" name="listing_id" value="<?= htmlspecialchars($property['listing_id']); ?>">
+                                    <!-- Modal Body (Form) -->
+                                    <div class="modal-body">
+                                        <form id="applyForm" action="apply.php" method="POST">
+                                            <input type="hidden" name="listing_id" value="<?= htmlspecialchars($property['listing_id']); ?>">
 
-                                        <div class="mb-3">
-                                            <label for="start_date" class="form-label">Rental Start Date</label>
-                                            <input type="date" class="form-control" name="start_date" id="start_date" required>
-                                        </div>
+                                            <div class="mb-3">
+                                                <label for="start_date" class="form-label">Rental Start Date</label>
+                                                <input type="date" class="form-control" name="start_date" id="start_date" required>
+                                            </div>
 
-                                        <div class="mb-3">
-                                            <label for="end_date" class="form-label">Rental End Date</label>
-                                            <input type="date" class="form-control" name="end_date" id="end_date" required>
-                                        </div>
-                                    </form>
-                                </div>
+                                            <div class="mb-3">
+                                                <label for="end_date" class="form-label">Rental End Date</label>
+                                                <input type="date" class="form-control" name="end_date" id="end_date" required>
+                                            </div>
+                                        </form>
+                                    </div>
 
-                                <!-- Modal Footer -->
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="submit" form="applyForm" class="btn btn-primary">Submit Application</button>
+                                    <!-- Modal Footer -->
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" form="applyForm" class="btn btn-primary">Submit Application</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+
                     </div>
-
-
-                </div>
-                <h4><?= htmlspecialchars($property['listingName']); ?></h4>
-                <h1 class="price">
-                    ₱ <?= number_format($property['price']); ?>.00
-                    <small class="text-muted fs-5">/month</small>
-                </h1>
-
-                <!-- Landlord Info -->
-                <div class="d-flex align-items-center p-2 border rounded mb-4 mt-4">
-                    <!-- Avatar -->
-                    <div class="avatar me-3">
-                        <?php if (!empty($property['profilePic'])): ?>
-                            <img src="../LANDLORD/uploads/<?= htmlspecialchars($property['profilePic']); ?>" alt="Profile">
-                        <?php else: ?>
-                            <div class="landlord-info">
-                                <?= strtoupper(substr($property['landlord_fname'], 0, 1)); ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
+                    <h2 class="price">
+                        ₱ <?= number_format($property['price']); ?>.00
+                        <small class="text-muted fs-5">/month</small>
+                    </h2>
 
                     <!-- Landlord Info -->
-                    <div class="info flex-grow-1 mt-2">
-                        <h1 class="mb-0">
-                            <?= htmlspecialchars(ucwords(strtolower($property['landlord_fname'] . ' ' . $property['landlord_lname']))); ?>
-                        </h1>
-                        <p class="text-muted">Landlord</p>
+                    <div class="d-flex align-items-center p-2 border rounded mb-4 mt-4">
+                        <!-- Avatar -->
+                        <div class="avatar me-3">
+                            <?php if (!empty($property['profilePic'])): ?>
+                                <img src="../LANDLORD/uploads/<?= htmlspecialchars($property['profilePic']); ?>" alt="Profile">
+                            <?php else: ?>
+                                <div class="landlord-info">
+                                    <?= strtoupper(substr($property['landlord_fname'], 0, 1)); ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Landlord Info -->
+                        <div class="info flex-grow-1 mt-2">
+                            <h1 class="mb-0">
+                                <?= htmlspecialchars(ucwords(strtolower($property['landlord_fname'] . ' ' . $property['landlord_lname']))); ?>
+                            </h1>
+                            <p class="text-muted">Landlord</p>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex">
+                            <button class="small-button"
+                                onclick="window.location.href='landlord-profile.php?id=<?= $property['landlord_id']; ?>'">
+                                <i class="fa-solid fa-user"></i>
+                            </button>
+                            <button class="small-button mx-3"
+                                onclick="contactLandlord(<?= $property['landlord_id']; ?>, <?= $property['listing_id']; ?>, '<?= htmlspecialchars(addslashes($property['listingName'])); ?>')">
+                                <i class="fas fa-comment-dots"></i>
+                            </button>
+                        </div>
                     </div>
 
-                    <!-- Actions -->
-                    <div class="d-flex">
-                        <button class="small-button"
-                            onclick="window.location.href='landlord-profile.php?id=<?= $property['landlord_id']; ?>'">
-                            <i class="fa-solid fa-user"></i>
-                        </button>
-                        <button class="small-button mx-3" 
-                            onclick="contactLandlord(<?= $property['landlord_id']; ?>, <?= $property['listing_id']; ?>, '<?= htmlspecialchars(addslashes($property['listingName'])); ?>')">
-                            <i class="fas fa-comment-dots"></i>
-                        </button>
-                    </div>
+                    <!-- Property Description -->
+                    <h3>Property Description</h3>
+                    <p><?= nl2br(htmlspecialchars($property['listingDesc'] ?? "No description available.")); ?></p>
+                    <ul>
+                        <li><strong>Address:</strong> <?= htmlspecialchars($property['address']); ?>, <?= htmlspecialchars($property['barangay']); ?>, San Pedro, Laguna</li>
+                        <li><strong>Category:</strong> <?= htmlspecialchars($property['category']); ?></li>
+                        <li><strong>Rooms:</strong> <?= htmlspecialchars($property['rooms']); ?> Bedroom(s)</li>
+                    </ul>
+
+                    <!-- Map -->
+                    <div id="map"></div>
                 </div>
-
-                <!-- Property Description -->
-                <h3>Property Description</h3>
-                <p><?= nl2br(htmlspecialchars($property['listingDesc'] ?? "No description available.")); ?></p>
-                <ul>
-                    <li><strong>Address:</strong> <?= htmlspecialchars($property['address']); ?>, <?= htmlspecialchars($property['barangay']); ?>, San Pedro, Laguna</li>
-                    <li><strong>Category:</strong> <?= htmlspecialchars($property['category']); ?></li>
-                    <li><strong>Rooms:</strong> <?= htmlspecialchars($property['rooms']); ?> Bedroom(s)</li>
-                </ul>
-
-                <!-- Map -->
-                <div id="map"></div>
             </div>
         </div>
     </div>
@@ -288,7 +306,7 @@ $stmt->close();
     <script src="https://unpkg.com/scrollreveal"></script>
     <!-- LEAFLET JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script src="../js/contact-landlord.js"></script>                       
+    <script src="../js/contact-landlord.js"></script>
     <script>
         var lat = <?= $property['latitude'] ?: 14.3647 ?>;
         var lng = <?= $property['longitude'] ?: 121.0556 ?>;
@@ -301,5 +319,5 @@ $stmt->close();
 
         L.marker([lat, lng]).addTo(map).bindPopup("<?= htmlspecialchars($property['listingName']); ?>");
     </script>
-    
+
 </body>

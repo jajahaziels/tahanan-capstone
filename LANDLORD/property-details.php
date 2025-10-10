@@ -76,69 +76,19 @@ if (!empty($rental['images'])) {
         .landlord-page {
             margin: 140px 0px 80px 0px !important;
         }
-
-        .available {
-            background-color: #0697065e;
-            color: white;
-            padding: 8px;
-            border-radius: 20px;
-            color: var(--text-color);
-            font-size: 12px;
+        .carousel-inner{
+            height: 400px !important;
         }
 
-        .occupied {
-            background-color: #ff00006b;
-            color: white;
-            padding: 8px;
-            border-radius: 20px;
-            color: var(--text-color);
-            font-size: 12px;
+        #carouselExample {
+            max-width: 500px !important;
+            margin: 0 auto !important;
         }
 
-        .status-occupied {
-            background-color: #ff0000c5;
-            color: white;
-            padding: 8px;
-            border-radius: 20px;
-            color: var(--text-color);
-        }
-
-        .status-available {
-            background-color: #008000d0;
-            color: white;
-            padding: 8px;
-            border-radius: 20px;
-            color: var(--text-color);
-        }
-
-        .status {
-            position: absolute;
-            margin-top: -170px;
-            padding: 0 15px;
-            display: flex;
-            gap: 8px;
-        }
-
-        .status-label {
-            background-color: #008000d0;
-            color: var(--bg-color);
-            font-size: 12px;
-            padding: 4px 10px;
-            border-radius: 14px;
-        }
-
-        .edit {
-            background-color: #0000ff59;
-            color: var(--text-color);
-            width: 45px;
-            height: 45px;
-            font-size: 16px;
-            border-radius: 20px;
-        }
-
-        .property-img {
-            width: 300px;
-            border-radius: 10px;
+        #carouselExample img {
+            height: 400px !important;
+            object-fit: cover !important;
+            border-radius: 20px !important;
         }
     </style>
 </head>
@@ -147,77 +97,96 @@ if (!empty($rental['images'])) {
     <!-- HEADER -->
     <?php include '../Components/landlord-header.php'; ?>
 
-    <!-- PROPERTY PAGE -->
+    <!-- PROPERTY DETAILS -->
     <div class="landlord-page">
-        <div class="container m-auto d-flex justify-content-between align-items-center">
-            <div class="property-title d-flex ">
+        <div class="container m-auto">
+            <div class="d-flex justify-content-between align-items-center">
                 <h1>Property Details</h1>
-                <div class="d-flex align-items-center justify-content-center">
-                    <p class="available mx-3">Available</p>
-                    <p class="occupied">Occupied</p>
-                </div>
-            </div>
-            <div class="d-flex">
                 <button class="main-button" onclick="location.href='landlord-properties.php'">Back</button>
             </div>
-        </div>
-    </div>
-    </div>
-    <!-- PROPERTY LIST -->
-    <div class="property-list">
-        <div class="container m-auto">
             <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <div class="row justify-content-center">
-                        <!-- Property Info -->
-                        <div class="col-lg-4 col-sm-12">
-                            <h1 class="text-center">Property</h1>
-                            <div class="d-flex justify-content-center align-items-center">
-                                <?php if (!empty($images) && is_array($images)): ?>
-                                    <?php foreach ($images as $img): ?>
-                                        <img src="../LANDLORD/uploads/<?php echo htmlspecialchars($img); ?>"
-                                            alt="Property Image" class="property-img mb-2">
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <img src="../img/house1.jpeg" alt="Property Image" class="property-img">
-                                <?php endif; ?>
+                <!-- Property Info -->
+                <div class="col-lg-6 col-sm-12 mt-0">
+                    <!-- Bootstrap Carousel -->
+                    <div id="carouselExample" class="carousel slide mb-4">
+                        <div class="carousel-inner">
+                            <?php if (!empty($images)): ?>
+                                <?php foreach ($images as $index => $img): ?>
+                                    <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
+                                        <div class="row justify-content-center">
+                                            <div class="col-lg-12">
+                                                <img src="../LANDLORD/uploads/<?= htmlspecialchars($img); ?>"
+                                                    class="d-block w-100"
+                                                    style="max-height:400px; object-fit:cover;"
+                                                    alt="Property Image">
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <div class="carousel-item active">
+                                    <div class="row justify-content-center">
+                                        <div class="col-lg-12">
+                                            <img src="../LANDLORD/uploads/placeholder.jpg"
+                                                class="d-block w-100"
+                                                style="max-height:400px; object-fit:cover;"
+                                                alt="No Image">
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Carousel Controls -->
+                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Previous</span>
+                        </button>
+                        <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span class="visually-hidden">Next</span>
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <h1 class="mb-0"><?php echo htmlspecialchars($property['listingName']); ?></h1>
+                        <h1 class="mb-0">₱<?php echo htmlspecialchars($property['price']); ?>.00</h1>
+                    </div>
+                    <p><?= htmlspecialchars($property['barangay'] ?? ''); ?>, San Pedro, Laguna</p>
+                    <p><?php echo htmlspecialchars($property['listingDesc']); ?></p>
+
+                    <p class="mb-0">Address: <?= htmlspecialchars($property['address']); ?>, <?= htmlspecialchars($property['barangay']); ?>, San Pedro, Laguna</p>
+                    <p class="mb-0">Category: <?= htmlspecialchars($property['category']); ?> </p>
+                    <p>Rooms: <?= htmlspecialchars($property['rooms']); ?> Bedroom(s) </p>
+                </div>
+
+                <!-- Requests -->
+                <div class="col-lg-6 col-sm-12">
+                    <h1 class="text-center">Requests</h1>
+                    <?php if ($applications->num_rows > 0): ?>
+                        <?php while ($req = $applications->fetch_assoc()): ?>
+                            <div class="p-2 border rounded mb-2">
+                                <p><strong><?php echo $req['firstName'] . ' ' . $req['lastName']; ?></strong></p>
+                                <p><?php echo $req['email']; ?> | <?php echo $req['phoneNum']; ?></p>
+                                <p>Status: <span class="badge bg-secondary"><?php echo ucfirst($req['status']); ?></span></p>
+
+                                <!-- Accept/Reject -->
+                                <form method="post" action="update-request.php" class="d-flex gap-2">
+                                    <input type="hidden" name="request_id" value="<?php echo $req['request_id']; ?>">
+                                    <input type="hidden" name="listing_id" value="<?php echo $listingID; ?>">
+                                    <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">✅ Approve</button>
+                                    <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">❌ Reject</button>
+                                </form>
 
 
                             </div>
-                            <p><strong><?php echo htmlspecialchars($property['listingName']); ?></strong></p>
-                            <p><?php echo htmlspecialchars($property['address']); ?></p>
-                        </div>
-
-                        <!-- Requests -->
-                        <div class="col-lg-4 col-sm-12">
-                            <h1 class="text-center">Requests</h1>
-                            <?php if ($applications->num_rows > 0): ?>
-                                <?php while ($req = $applications->fetch_assoc()): ?>
-                                    <div class="p-2 border rounded mb-2">
-                                        <p><strong><?php echo $req['firstName'] . ' ' . $req['lastName']; ?></strong></p>
-                                        <p><?php echo $req['email']; ?> | <?php echo $req['phoneNum']; ?></p>
-                                        <p>Status: <span class="badge bg-secondary"><?php echo ucfirst($req['status']); ?></span></p>
-
-                                        <!-- Accept/Reject -->
-                                        <form method="post" action="update-request.php" class="d-flex gap-2">
-                                            <input type="hidden" name="request_id" value="<?php echo $req['request_id']; ?>">
-                                            <input type="hidden" name="listing_id" value="<?php echo $listingID; ?>">
-                                            <button type="submit" name="action" value="approve" class="btn btn-success btn-sm">✅ Approve</button>
-                                            <button type="submit" name="action" value="reject" class="btn btn-danger btn-sm">❌ Reject</button>
-                                        </form>
-
-
-                                    </div>
-                                <?php endwhile; ?>
-                            <?php else: ?>
-                                <p>No tenant requests yet.</p>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <p>No tenant requests yet.</p>
+                    <?php endif; ?>
                 </div>
             </div>
+
+
         </div>
     </div>
 

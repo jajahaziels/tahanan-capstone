@@ -24,24 +24,22 @@ if (!isset($_SESSION['landlord_id'])) {
         r.listing_id,
         r.start_date, 
         r.end_date,
-        t.firstName AS tenant_name, 
+        t.firstName AS tenant_firstName, 
+        t.lastName AS tenant_lastName,
         t.phoneNum AS tenant_phone, 
         t.email AS tenant_email,
         ls.listingName, 
         ls.address, 
-        ls.images,
-        l.firstName AS landlord_name, 
-        l.phoneNum AS landlord_phone, 
-        l.email AS landlord_email
+        ls.images
     FROM renttbl r
     JOIN listingtbl ls ON r.listing_id = ls.ID
     JOIN tenanttbl t ON r.tenant_id = t.ID
-    JOIN landlordtbl l ON ls.landlord_id = l.ID
     WHERE r.ID = ? 
-      AND ls.landlord_id = ? 
+      AND r.tenant_id = ? 
       AND r.status = 'approved'
     LIMIT 1
 ";
+
 
 
         if ($stmt = $conn->prepare($sql)) {
@@ -102,45 +100,33 @@ if ($rental) {
             margin-top: 140px;
         }
 
-        #map {
-            height: 400px;
-            max-width: 800px;
-            padding: 0 !important;
-            margin: auto;
-        }
-
         #calendar {
             max-width: 500px;
             height: 350px;
             margin: 40px auto;
         }
 
-        .account-img img {
-            border: 2px solid var(--main-color);
-            width: 100px;
-            height: 100px;
-            border-radius: 10px;
+        .carousel-inner {
+            height: 300px !important;
         }
 
-        .user-profile {
-            border: 2px solid var(--main-color);
-            padding: 20px;
-            border-radius: 10px;
+        #carouselExample {
+            max-width: 500px !important;
+            margin-top: 80px !important;
         }
 
-        #carouselExample .carousel-inner{
-            height: 400px;
+        #carouselExample img {
+            height: 400px !important;
+            object-fit: cover !important;
+            border-radius: 20px !important;
         }
-        #carouselExample{
-            margin-top: 60px;
-        }
-        .rental-details{
+
+        .rental-details {
             background-color: var(--bg-color);
             padding: 20px;
             border-radius: 20px;
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.165);
         }
-        
     </style>
 </head>
 
@@ -233,7 +219,7 @@ if ($rental) {
 
                             <div class="col-lg-5 col-sm-12">
                                 <h2>Tenant Information</h2>
-                                <p><strong>Name:</strong> <?php echo htmlspecialchars($rental['tenant_name']); ?></p>
+                                <p><strong>Name: </strong><?php echo htmlspecialchars(ucwords(strtolower($rental['tenant_firstName'] . ' ' . $rental['tenant_lastName'])));?>
                                 <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['tenant_phone']); ?></p>
                                 <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['tenant_email']); ?></p>
                             </div>
