@@ -73,9 +73,10 @@ if ($rental) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>LISTING</title>
     <style>
-                .tenant-page {
+        .tenant-page {
             margin-top: 140px;
         }
+
         #map {
             height: 400px;
             max-width: 800px;
@@ -130,72 +131,47 @@ if ($rental) {
 
 <body>
     <!-- HEADER -->
-    <header>
-        <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png" alt="">Tahanan</a>
-        <ul class="nav-links">
-            <li><a href="tenant.php">Home</a></li>
-            <li><a href="tenant-rental.php" class="active">My Rental</a></li>
-            <li><a href="tenant-favorite.php">Favorite</a></li>
-            <li><a href="tenant-map.php">Map</a></li>
-            <li><a href="tenant-messages.php">Messages</a></li>
-            <li><a href="support.php">Support</a></li>
-        </ul>
-        <!-- NAV ICON / NAME -->
-        <div class="nav-icons">
-            <!-- DROP DOWN -->
-            <div class="dropdown">
-                <i class="fa-solid fa-user"></i>
-                Tenant
-                <div class="dropdown-content">
-                    <a href="account.php">Account</a>
-                    <a href="settings.php">Settings</a>
-                    <a href="../LOGIN/logout.php">Log out</a>
-                </div>
-            </div>
-            <!-- NAVMENU -->
-            <div class="fa-solid fa-bars" id="navmenu"></div>
-        </div>
-    </header>
+    <?php include '../Components/tenant-header.php' ?>
 
-<div class="tenant-page">
-    <div class="container m-auto">
-        <h1 class="mb-1">Rental Info</h1>
+    <div class="tenant-page">
+        <div class="container m-auto">
+            <h1 class="mb-1">Rental Info</h1>
 
-        <?php if ($rental): ?>
-            <!-- ROW 1 -->
-            <div class="row justify-content-center gy-5">
-                <!-- Property Image -->
-                <div class="col-lg-5 col-sm-12 property-imgs">
-                    <div class="d-flex justify-content-center align-items-center">
-                        <img src="<?php echo htmlspecialchars($propertyImg); ?>"
-                             alt="Property Image" class="property-img mt-5">
+            <?php if ($rental): ?>
+                <!-- ROW 1 -->
+                <div class="row justify-content-center gy-5">
+                    <!-- Property Image -->
+                    <div class="col-lg-5 col-sm-12 property-imgs">
+                        <div class="d-flex justify-content-center align-items-center">
+                            <img src="<?php echo htmlspecialchars($propertyImg); ?>"
+                                alt="Property Image" class="property-img mt-5">
+                        </div>
+                    </div>
+
+                    <!-- Calendar -->
+                    <div class="col-lg-5 col-sm-12 property-imgs">
+                        <div id="calendar" class="mt-5"></div>
                     </div>
                 </div>
 
-                <!-- Calendar -->
-                <div class="col-lg-5 col-sm-12 property-imgs">
-                    <div id="calendar" class="mt-5"></div>
-                </div>
-            </div>
-
-            <!-- ROW 2 -->
-            <div class="row justify-content-center gy-5">
-                <!-- Property Info -->
-                <div class="col-lg-5 col-sm-12">
-                    <h2><?php echo htmlspecialchars($rental['listingName']); ?></h2>
-                    <p><strong>Address:</strong> <?php echo htmlspecialchars($rental['address']); ?></p>
-                    <p><strong>Rental Start Date:</strong>
-                        <?php echo date("F j, Y", strtotime($rental['start_date'])); ?>
-                    </p>
-                    <p><strong>Rental Due Date:</strong>
-                        <?php echo date("F j, Y", strtotime($rental['end_date'])); ?>
-                    </p>
-                </div>
-                <div>
-                    <button id="success">Success</button>
-                    <?php
-                    if (isset($_GET['success']) && $_GET['success'] == 1) {
-                        echo "
+                <!-- ROW 2 -->
+                <div class="row justify-content-center gy-5">
+                    <!-- Property Info -->
+                    <div class="col-lg-5 col-sm-12">
+                        <h2><?php echo htmlspecialchars($rental['listingName']); ?></h2>
+                        <p><strong>Address:</strong> <?php echo htmlspecialchars($rental['address']); ?></p>
+                        <p><strong>Rental Start Date:</strong>
+                            <?php echo date("F j, Y", strtotime($rental['start_date'])); ?>
+                        </p>
+                        <p><strong>Rental Due Date:</strong>
+                            <?php echo date("F j, Y", strtotime($rental['end_date'])); ?>
+                        </p>
+                    </div>
+                    <div>
+                        <button id="success">Success</button>
+                        <?php
+                        if (isset($_GET['success']) && $_GET['success'] == 1) {
+                            echo "
                     <script>
                     Swal.fire({
                     title: 'Success!',
@@ -205,45 +181,51 @@ if ($rental) {
                     });
                     </script>
                     ";
-                    }
-                    ?>
-                    
-                <script>
-                    document.getElementById('success').addEventListener('click', function() {
-                        // ✅ Redirect to the same page with ?success=1
-                        window.location.href = '?success=1';
-                    });
-                </script>
+                        }
+                        ?>
+
+                        <script>
+                            document.getElementById('success').addEventListener('click', function() {
+                                // ✅ Redirect to the same page with ?success=1
+                                window.location.href = '?success=1';
+                            });
+                        </script>
+                    </div>
+
+                    <!-- Landlord Info -->
+                    <div class="col-lg-5 col-sm-12">
+                        <h2>Landlord Information</h2>
+                        <p><strong>Name:</strong> <?php echo htmlspecialchars($rental['landlord_name']); ?></p>
+                        <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['landlord_phone']); ?></p>
+                        <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['landlord_email']); ?></p>
+                    </div>
                 </div>
 
-                <!-- Landlord Info -->
-                <div class="col-lg-5 col-sm-12">
-                    <h2>Landlord Information</h2>
-                    <p><strong>Name:</strong> <?php echo htmlspecialchars($rental['landlord_name']); ?></p>
-                    <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['landlord_phone']); ?></p>
-                    <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['landlord_email']); ?></p>
-                </div>
-            </div>
-
-        <?php else: ?>
-            <p><?php echo $error; ?></p>
-        <?php endif; ?>
+            <?php else: ?>
+                <p><?php echo $error; ?></p>
+            <?php endif; ?>
+        </div>
     </div>
-</div>
 
 </body>
-
+<!-- MAIN JS -->
+<script src="../js/script.js" defer></script>
+<!-- BS JS -->
+<script src="../js/bootstrap.bundle.min.js"></script>
+<!-- SCROLL REVEAL -->
+<script src="https://unpkg.com/scrollreveal"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    var calendarEl = document.getElementById('calendar');
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
 
-    var calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        events: 'calendar.php', // fetch Rent Start & Due Date
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            events: 'calendar.php', // fetch Rent Start & Due Date
 
+        });
+
+        calendar.render();
     });
-
-    calendar.render();
-});
 </script>
+
 </html>

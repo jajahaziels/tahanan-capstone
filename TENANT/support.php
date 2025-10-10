@@ -73,33 +73,8 @@ include '../session_auth.php';
     </style>
 </head>
 
-    <!-- HEADER -->
-    <header>
-        <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png" alt="">Tahanan</a>
-        <ul class="nav-links">
-            <li><a href="tenant.php" class="active">Home</a></li>
-            <li><a href="tenant-rental.php">My Rental</a></li>
-            <li><a href="tenant-favorite.php">Favorite</a></li>
-            <li><a href="tenant-map.php">Map</a></li>
-            <li><a href="tenant-messages.php">Messages</a></li>
-            <li><a href="support.php">Support</a></li>
-        </ul>
-        <!-- NAV ICON / NAME -->
-        <div class="nav-icons">
-            <!-- DROP DOWN -->
-            <div class="dropdown">
-                <i class="fa-solid fa-user"></i>
-                <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>
-                <div class="dropdown-content">
-                    <a href="tenant-profile.php">Account</a>
-                    <a href="settings.php">Settings</a>
-                    <a href="../LOGIN/logout.php">Log out</a>
-                </div>
-            </div>
-            <!-- NAVMENU -->
-            <div class="fa-solid fa-bars" id="navmenu"></div>
-        </div>
-    </header>
+<!-- HEADER -->
+<?php include '../Components/tenant-header.php' ?>
 
 <div class="landlord-page">
     <div class="container m-auto">
@@ -177,11 +152,9 @@ include '../session_auth.php';
 
 
 <!-- MAIN JS -->
-<script src="script.js" defer></script>
+<script src="../js/script.js" defer></script>
 <!-- BS JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
-    integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
-    crossorigin="anonymous"></script>
+<script src="../js/bootstrap.bundle.min.js"></script>
 <!-- SCROLL REVEAL -->
 <script src="https://unpkg.com/scrollreveal"></script>
 <!-- LEAFLET JS -->

@@ -123,32 +123,7 @@ $stmt->close();
 
 <body>
     <!-- HEADER -->
-    <header>
-        <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png" alt="">Tahanan</a>
-        <ul class="nav-links">
-            <li><a href="tenant.php">Home</a></li>
-            <li><a href="tenant-rental.php">My Rental</a></li>
-            <li><a href="tenant-favorite.php">Favorite</a></li>
-            <li><a href="tenant-map.php">Map</a></li>
-            <li><a href="tenant-messages.php">Messages</a></li>
-            <li><a href="support.php">Support</a></li>
-        </ul>
-        <!-- NAV ICON / NAME -->
-        <div class="nav-icons">
-            <!-- DROP DOWN -->
-            <div class="dropdown">
-                <i class="fa-solid fa-user"></i>
-                Tenant
-                <div class="dropdown-content">
-                    <a href="account.php">Account</a>
-                    <a href="settings.php">Settings</a>
-                    <a href="../LOGIN/logout.php">Log out</a>
-                </div>
-            </div>
-            <!-- NAVMENU -->
-            <div class="fa-solid fa-bars" id="navmenu"></div>
-        </div>
-    </header>
+<?php include '../Components/tenant-header.php' ?>
     <div class="tenant-page">
         <div class="container m-auto">
             <div class="d-flex justify-content-start align-items-center">

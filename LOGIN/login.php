@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['landlord_id'] = $row['ID'];
             $_SESSION['username']    = $row['username'];
 
-            header("Location: ../LANDLORD/landlord.php");
+            header("Location: ../LANDLORD/landlord-properties.php");
             exit;
         }
     }
