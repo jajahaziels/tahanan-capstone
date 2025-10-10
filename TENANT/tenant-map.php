@@ -22,7 +22,6 @@ while ($row = $result->fetch_assoc()) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -133,6 +132,11 @@ while ($row = $result->fetch_assoc()) {
                     .bindPopup(popupContent);
             }
         });
+        // Auto center map if listings exist
+        if (listings.length > 0) {
+            const bounds = L.latLngBounds(listings.map(item => [item.latitude, item.longitude]));
+            map.fitBounds(bounds);
+        }
     </script>
 </body>
 

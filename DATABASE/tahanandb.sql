@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Oct 08, 2025 at 03:51 AM
+-- Host: 127.0.0.1:3306
+-- Generation Time: Oct 10, 2025 at 05:53 AM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.0.30
+-- PHP Version: 8.2.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -33,9 +33,16 @@ CREATE TABLE `admintbl` (
   `lastName` varchar(50) NOT NULL,
   `middleName` varchar(50) DEFAULT NULL,
   `email` varchar(50) NOT NULL,
-  `password` varchar(50) NOT NULL,
+  `password` varchar(255) DEFAULT NULL,
   `phoneNum` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `admintbl`
+--
+
+INSERT INTO `admintbl` (`ID`, `firstName`, `lastName`, `middleName`, `email`, `password`, `phoneNum`) VALUES
+(1, 'Tahanan', 'Admin', NULL, 'tahanan@gmail.com', '$2y$10$hWiI.qZdoJmwUqN8a0Fhiu0pZ9rM//HZYYO5uJNSsq8iqJL.LzTnS', 2147483647);
 
 -- --------------------------------------------------------
 
@@ -55,7 +62,8 @@ CREATE TABLE `conversations` (
 --
 
 INSERT INTO `conversations` (`id`, `type`, `title`, `created_at`) VALUES
-(1, 'private', 'Chat between allen mina and oliber olivera', '2025-10-02 09:13:58');
+(1, 'private', 'Chat between allen mina and oliber olivera', '2025-10-02 09:13:58'),
+(2, 'private', 'Chat between sam alcazar and allen mina', '2025-10-08 14:04:20');
 
 -- --------------------------------------------------------
 
@@ -78,7 +86,9 @@ CREATE TABLE `conversation_members` (
 
 INSERT INTO `conversation_members` (`id`, `conversation_id`, `user_type`, `user_id`, `joined_at`, `last_read_message_id`) VALUES
 (1, 1, 'landlord', 1, '2025-10-02 09:13:58', NULL),
-(2, 1, 'tenant', 4, '2025-10-02 09:13:58', NULL);
+(2, 1, 'tenant', 4, '2025-10-02 09:13:58', NULL),
+(3, 2, 'tenant', 2, '2025-10-08 14:04:20', NULL),
+(4, 2, 'landlord', 1, '2025-10-08 14:04:20', NULL);
 
 -- --------------------------------------------------------
 
@@ -112,13 +122,6 @@ CREATE TABLE `landlordtbl` (
   `ID_image` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `landlordtbl`
---
-
-INSERT INTO `landlordtbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `phoneNum`, `verificationId`, `birthday`, `street`, `barangay`, `city`, `province`, `zipCode`, `country`, `gender`, `profilePic`, `dateJoin`, `status`, `created_at`, `verification_status`, `ID_image`) VALUES
-(1, 'allen', 'allen', 'mina', NULL, 'allen@gmail.com', '$2y$10$oJoo23RJo0AeSW0MTOELHujAJcwYrF.hgrYFQEOK8zYFvt1I8riY.', '9234234628', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, '2025-10-03 10:07:22', 'verified', '../LANDLORD/uploads/ids1759486130_291913091_461215042674350_1577437394873495254_n.jpg');
-
 -- --------------------------------------------------------
 
 --
@@ -142,13 +145,6 @@ CREATE TABLE `listingtbl` (
   `availability` enum('available','occupied') DEFAULT 'available'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `listingtbl`
---
-
-INSERT INTO `listingtbl` (`ID`, `listingName`, `price`, `listingDesc`, `images`, `address`, `barangay`, `rooms`, `listingDate`, `category`, `landlord_id`, `latitude`, `longitude`, `availability`) VALUES
-(1, 'APARTMENT2', 2312, '..................', '[\"1759851521_68e53401d730a_38612302_sr5z_i69y_230116-removebg-preview.png\"]', 'OVER THERE', 'Bagong Silang', 1, '2025-10-07', 'Apartment complex', 1, 14.3538328, 121.0520983, 'available');
-
 -- --------------------------------------------------------
 
 --
@@ -160,6 +156,9 @@ CREATE TABLE `messages` (
   `conversation_id` bigint(20) UNSIGNED NOT NULL,
   `sender_id` int(10) UNSIGNED NOT NULL,
   `content` text NOT NULL,
+  `file_path` varchar(255) DEFAULT NULL,
+  `file_type` varchar(50) DEFAULT NULL,
+  `file_size` int(11) DEFAULT NULL,
   `content_type` enum('text','image','file') NOT NULL DEFAULT 'text',
   `status` enum('active','deleted') NOT NULL DEFAULT 'active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -171,13 +170,9 @@ CREATE TABLE `messages` (
 -- Dumping data for table `messages`
 --
 
-INSERT INTO `messages` (`id`, `conversation_id`, `sender_id`, `content`, `content_type`, `status`, `created_at`, `updated_at`, `is_read`) VALUES
-(1, 1, 4, 'Hello! I have a question about the property.', 'text', 'active', '2025-10-02 09:13:58', NULL, 0),
-(2, 1, 4, 'asjdaksdasdha', 'text', 'active', '2025-10-02 09:14:27', NULL, 0),
-(3, 1, 1, 'ihihi', 'text', 'active', '2025-10-02 09:14:34', NULL, 0),
-(4, 1, 4, 'okii', 'text', 'active', '2025-10-02 09:16:14', NULL, 0),
-(5, 1, 1, 'hey', 'text', 'active', '2025-10-03 14:03:15', NULL, 0),
-(6, 1, 4, 'wazzup', 'text', 'active', '2025-10-03 14:03:23', NULL, 0);
+INSERT INTO `messages` (`id`, `conversation_id`, `sender_id`, `content`, `file_path`, `file_type`, `file_size`, `content_type`, `status`, `created_at`, `updated_at`, `is_read`) VALUES
+(25, 2, 2, 'Hi! I\'m interested in your property: APARTMENT2.', NULL, NULL, NULL, 'text', 'active', '2025-10-08 14:04:20', NULL, 0),
+(26, 2, 2, 'ETO SUNTOK!.png', '../uploads/chat_files/68e66f67f3cae_1759932263.png', 'image', 1012572, 'image', 'active', '2025-10-08 14:04:23', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -195,13 +190,6 @@ CREATE TABLE `renttbl` (
   `start_date` date DEFAULT NULL,
   `end_date` date DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `renttbl`
---
-
-INSERT INTO `renttbl` (`ID`, `date`, `status`, `landlord_id`, `tenant_id`, `listing_id`, `start_date`, `end_date`) VALUES
-(1, '0000-00-00', 'cancelled', 1, 2, 1, '2025-10-10', '2025-11-07');
 
 -- --------------------------------------------------------
 
@@ -256,6 +244,12 @@ INSERT INTO `tenanttbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`
 --
 -- Indexes for dumped tables
 --
+
+--
+-- Indexes for table `admintbl`
+--
+ALTER TABLE `admintbl`
+  ADD PRIMARY KEY (`ID`);
 
 --
 -- Indexes for table `conversations`
@@ -321,16 +315,22 @@ ALTER TABLE `tenanttbl`
 --
 
 --
+-- AUTO_INCREMENT for table `admintbl`
+--
+ALTER TABLE `admintbl`
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `conversations`
 --
 ALTER TABLE `conversations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `conversation_members`
 --
 ALTER TABLE `conversation_members`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `landlordtbl`
@@ -348,13 +348,13 @@ ALTER TABLE `listingtbl`
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `renttbl`
 --
 ALTER TABLE `renttbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `requesttbl`

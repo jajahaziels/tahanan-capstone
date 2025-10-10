@@ -21,6 +21,9 @@ include '../session_auth.php';
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
     <!-- LEAFLET -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- SWEET ALERT -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <title>SUPPORT</title>
     <style>
         .landlord-page {
@@ -105,58 +108,61 @@ include '../session_auth.php';
             <div class="col-lg-8">
                 <div class="row justify-content-center support-container mt-4">
                     <div class="col-lg-6 p-4">
-                        <form method="POST" enctype="multipart/form-data">
+                        <form method="POST" enctype="multipart/form-data" action="https://api.web3forms.com/submit" id="contact-form">
+                            <input type="hidden" name="access_key" value="13d1a21a-6274-4f2e-bdbb-525a612af4d5">
                             <h3>Contact Us</h3>
                             <div class="row mb-3">
                                 <div class="col">
-                                    <input type="text" name="listing_name" class="form-control" placeholder="Name" required>
+                                    <input type="text" name="name" class="form-control" placeholder="Name" required>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col">
-                                    <input type="text" name="address" class="form-control" placeholder="Email" required>
+                                    <input type="text" name="email" class="form-control" placeholder="Email" required>
                                 </div>
                             </div>
                             <div class="row mb-3">
                                 <div class="col">
-                                    <input type="text" name="address" class="form-control" placeholder="Subject" required>
+                                    <input type="text" name="subject" class="form-control" placeholder="Subject" required>
                                 </div>
                             </div>
 
                             <div class="row mb-3">
                                 <div class="col">
-                                    <textarea name="description" class="form-control" rows="5" placeholder="Message"></textarea>
+                                    <textarea name="Message" class="form-control" rows="5" placeholder="Message"></textarea>
                                 </div>
                             </div>
 
                             <div class="grid">
+                                <input type="checkbox" name="botcheck" class="hidden" style="display: none;">
                                 <button type="submit" class="main-button mx-2">Send</button>
                             </div>
                         </form>
                     </div>
+
                     <div class="col-lg-6 p-4">
-                        <h1>Lorem ipsum dolor sit amet.</h1>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dicta quas nihil doloribus ut sint non iure dolorem ipsum culpa numquam!</p>
+                        <h1>Need Help? We're Here For You.</h1>
+                        <p>Whether you have a question about a listing, need help with account access, or require technical support for our platform, our team is ready to assist you.</p>
                         <div class="grid-icons">
                             <div class="support-contact text-center">
                                 <i class="fa-solid fa-phone"></i>
                                 <p class="fs-6 mb-0">Phone number</p>
-                                <p class="fs-6">0912315782</p>
+                                <p class="fs-6 mb-0">0912315782</p>
                             </div>
                             <div class="support-contact text-center">
                                 <i class="fa-solid fa-envelope"></i>
                                 <p class="fs-6 mb-0">Phone number</p>
-                                <p class="fs-6">0912315782</p>
+                                <p class="fs-6 mb-0">0912315782</p>
                             </div>
                             <div class="support-contact text-center">
                                 <i class="fa-solid fa-location-dot"></i>
                                 <p class="fs-6 mb-0">Phone number</p>
-                                <p class="fs-6">0912315782</p>
+                                <p class="fs-6 mb-0">0912315782</p>
                             </div>
                             <div class="support-contact text-center">
                                 <i class="fa-solid fa-clock"></i>
                                 <p class="fs-6 mb-0">Phone number</p>
-                                <p class="fs-6">0912315782</p>
+                                <p class="fs-6 mb-0">0912315782</p>
                             </div>
                         </div>
                     </div>
@@ -192,6 +198,53 @@ include '../session_auth.php';
     // Fixed marker at Colegio de San Pedro
     var marker = L.marker([14.3476602, 121.0594527]).addTo(map)
         .bindPopup("<b>Colegio de San Pedro</b>").openPopup();
+
+
+    document.getElementById("contact-form").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+
+        Swal.fire({
+            title: 'Sending...',
+            text: 'Please wait while we send your message.',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        try {
+            const response = await fetch("https://api.web3forms.com/submit", {
+                method: "POST",
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Message Sent!',
+                    text: 'Your email was sent successfully.',
+                    confirmButtonColor: '#4caf50'
+                });
+                this.reset(); // Clear the form
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Something went wrong: ' + result.message
+                });
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Network Error',
+                text: 'Unable to send your message. Please try again later.'
+            });
+        }
+    });
 </script>
 
 </html>

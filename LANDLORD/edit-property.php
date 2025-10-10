@@ -177,31 +177,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
 <body>
     <!-- HEADER -->
-    <header>
-        <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png" alt="">Tahanan</a>
+    <?php include '../Components/landlord-header.php'; ?>
 
-        <ul class="nav-links">
-            <li><a href="landlord.php">Home</a></li>
-            <li><a href="landlord-properties.php">Properties</a></li>
-            <li><a href="landlord-message.php">Messages</a></li>
-            <li><a href="support.php">Support</a></li>
-        </ul>
-        <!-- NAV ICON / NAME -->
-        <div class="nav-icons">
-            <!-- DROP DOWN -->
-            <div class="dropdown">
-                <i class="fa-solid fa-user"></i>
-                <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>
-                <div class="dropdown-content">
-                    <a href="account.php">Account</a>
-                    <a href="settings.php">Settings</a>
-                    <a href="../LOGIN/logout.php">Log out</a>
-                </div>
-            </div>
-            <!-- NAVMENU -->
-            <div class="fa-solid fa-bars" id="navmenu"></div>
-        </div>
-    </header>
     <!-- PROPERTY PAGE -->
     <div class="landlord-page">
         <div class="container m-auto">

@@ -73,6 +73,9 @@ if ($rental) {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>LISTING</title>
     <style>
+                .tenant-page {
+            margin-top: 140px;
+        }
         #map {
             height: 400px;
             max-width: 800px;
@@ -154,7 +157,7 @@ if ($rental) {
         </div>
     </header>
 
-<section class="home-listing" id="home-listing">
+<div class="tenant-page">
     <div class="container m-auto">
         <h1 class="mb-1">Rental Info</h1>
 
@@ -226,7 +229,7 @@ if ($rental) {
             <p><?php echo $error; ?></p>
         <?php endif; ?>
     </div>
-</section>
+</div>
 
 </body>
 

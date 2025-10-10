@@ -75,10 +75,10 @@ if ($status === 'pending' && empty($id_image)) {
         }
 
         .verification-form {
-            border: 4px solid var(--main-color);
-            border-radius: 10px;
+            background-color: var(--bg-color);
             padding: 20px;
-            margin-top: 20px;
+            border-radius: 20px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.165);
         }
 
         input {
@@ -90,38 +90,14 @@ if ($status === 'pending' && empty($id_image)) {
 
 <body>
     <!-- HEADER -->
-    <header>
-        <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png" alt="">Tahanan</a>
+    <?php include '../Components/landlord-header.php'; ?>
 
-        <ul class="nav-links">
-            <li><a href="landlord.php">Home</a></li>
-            <li><a href="landlord-properties.php" class="active">Properties</a></li>
-            <li><a href="landlord-message.php">Messages</a></li>
-            <li><a href="support.php">Support</a></li>
-        </ul>
-        <!-- NAV ICON / NAME -->
-        <div class="nav-icons">
-            <!-- DROP DOWN -->
-            <div class="dropdown">
-                <i class="fa-solid fa-user"></i>
-                <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>
-                <div class="dropdown-content">
-                    <a href="account.php">Account</a>
-                    <a href="settings.php">Settings</a>
-                    <a href="../LOGIN/logout.php">Log out</a>
-                </div>
-            </div>
-            <!-- NAVMENU -->
-            <div class="fa-solid fa-bars" id="navmenu"></div>
-        </div>
-    </header>
     <!-- PROPERTY PAGE -->
     <div class="landlord-page">
         <div class="container m-auto">
             <h1>Landlord Verification</h1>
-            <p>To maintain the safety and trust of our platform, all landlords are required to go through a verification process before they can post a property. This ensures that only legitimate property owners or managers are able to list rentals, protecting tenants from fraudulent listings.
-                Please upload a valid government-issued ID for review. Once submitted, our admin team will verify your identity and update your account status. You’ll be notified once your verification is approved or if further action is needed.</p>
-            <div class="row justify-content-center ">
+            <p>To maintain the safety and trust of our platform, all landlords are required to go through a verification process before they can post a property. This ensures that only legitimate property owners or managers are able to list rentals, protecting tenants from fraudulent listings.</p>
+            <div class="row justify-content-center mt-4">
                 <div class="col-lg-6">
                     <div class="verification-form">
                         <h1>Upload Valid ID</h1>

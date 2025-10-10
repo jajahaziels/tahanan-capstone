@@ -51,24 +51,6 @@ $result = $stmt->get_result();
             margin-top: 140px;
         }
 
-        .available {
-            background-color: #0697065e;
-            color: white;
-            padding: 8px;
-            border-radius: 20px;
-            color: var(--text-color);
-            font-size: 12px;
-        }
-
-        .occupied {
-            background-color: #ff00006b;
-            color: white;
-            padding: 8px;
-            border-radius: 20px;
-            color: var(--text-color);
-            font-size: 12px;
-        }
-
         .status-occupied {
             background-color: #ff0000c5;
             color: white;
@@ -100,46 +82,18 @@ $result = $stmt->get_result();
             padding: 4px 10px;
             border-radius: 14px;
         }
-
     </style>
 </head>
 
 <body>
     <!-- HEADER -->
-    <header>
-        <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png" alt="">Tahanan</a>
+    <?php include '../Components/landlord-header.php'; ?>
 
-        <ul class="nav-links">
-            <li><a href="landlord.php">Home</a></li>
-            <li><a href="landlord-properties.php" class="active">Properties</a></li>
-            <li><a href="landlord-message.php">Messages</a></li>
-            <li><a href="support.php">Support</a></li>
-        </ul>
-        <!-- NAV ICON / NAME -->
-        <div class="nav-icons">
-            <!-- DROP DOWN -->
-            <div class="dropdown">
-                <i class="fa-solid fa-user"></i>
-                <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>
-                <div class="dropdown-content">
-                    <a href="account.php">Account</a>
-                    <a href="settings.php">Settings</a>
-                    <a href="../LOGIN/logout.php">Log out</a>
-                </div>
-            </div>
-            <!-- NAVMENU -->
-            <div class="fa-solid fa-bars" id="navmenu"></div>
-        </div>
-    </header>
     <!-- PROPERTY PAGE -->
     <div class="landlord-page">
         <div class="container m-auto d-flex justify-content-between align-items-center">
             <div class="property-title d-flex ">
                 <h1>My Properties</h1>
-                <div class="d-flex align-items-center justify-content-center">
-                    <p class="available mx-3">Available</p>
-                    <p class="occupied">Occupied</p>
-                </div>
             </div>
             <div class="d-flex">
                 <button class="main-button" onclick="location.href='add-property.php'">Add Property</button>
