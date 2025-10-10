@@ -17,25 +17,30 @@ if (!isset($_SESSION['landlord_id'])) {
     if ($request_id <= 0) {
         $error = "No rental selected.";
     } else {
-        // Fetch the selected rental info
-        $sql = "
+
+$sql = "
     SELECT 
-        r.ID AS rental_id, 
+        r.ID AS rental_id,
         r.listing_id,
-        r.start_date, 
+        r.start_date,
         r.end_date,
-        t.firstName AS tenant_firstName, 
+        t.firstName AS tenant_firstName,
         t.lastName AS tenant_lastName,
-        t.phoneNum AS tenant_phone, 
+        t.phoneNum AS tenant_phone,
         t.email AS tenant_email,
-        ls.listingName, 
-        ls.address, 
-        ls.images
+        ls.listingName,
+        ls.address,
+        ls.images,
+        l.firstName AS landlord_name,
+        l.lastName AS landlord_lastName,
+        l.phoneNum AS landlord_phone,
+        l.email AS landlord_email
     FROM renttbl r
     JOIN listingtbl ls ON r.listing_id = ls.ID
     JOIN tenanttbl t ON r.tenant_id = t.ID
-    WHERE r.ID = ? 
-      AND r.tenant_id = ? 
+    JOIN landlordtbl l ON ls.landlord_id = l.ID
+    WHERE r.ID = ?
+      AND ls.landlord_id = ?
       AND r.status = 'approved'
     LIMIT 1
 ";

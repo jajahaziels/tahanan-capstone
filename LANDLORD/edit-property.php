@@ -143,7 +143,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             margin: 140px 0px 80px 0px !important;
         }
 
-        form {
+        .form-container {
             background-color: var(--bg-color);
             padding: 30px;
             border-radius: 20px;
@@ -182,10 +182,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <!-- PROPERTY PAGE -->
     <div class="landlord-page">
         <div class="container m-auto">
-            <h2>Edit Property</h2>
+            <div class="d-flex justify-content-between">
+                <h2>Edit Property</h2>
+                <form method="POST" action="delete-property.php" onsubmit="return confirm('Are you sure you want to delete this property?');">
+                    <input type="hidden" name="id" value="<?= $property['ID']; ?>">
+                    <button type="submit" class="main-button">Delete Property</button>
+                </form>
+
+            </div>
             <div class="row gy-4 justify-content-center">
                 <div class="col-6">
-                    <form method="POST" enctype="multipart/form-data">
+                    <form method="POST" enctype="multipart/form-data" class="form-container">
                         <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Listing Name</label>
@@ -310,9 +317,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             </div>
                         </div>
 
+                        <!-- Button -->
                         <div class="mb-3">
                             <button type="submit" class="main-button mx-2">Update property</button>
-                            <button class="main-button" onclick="location.href='landlord-properties.php'">Cancel</button>
+                            <button type="button" class="main-button" onclick="location.href='landlord-properties.php'">Cancel</button>
                         </div>
                     </form>
                 </div>
@@ -329,6 +337,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <script src="https://unpkg.com/scrollreveal"></script>
     <!-- LEAFLET JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- SweetAlert Script -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         var lat = parseFloat(document.getElementById('latitude').value) || 14.3647;
         var lng = parseFloat(document.getElementById('longitude').value) || 121.0556;
@@ -357,6 +367,24 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             document.getElementById('latitude').value = lat;
             document.getElementById('longitude').value = lng;
+        });
+    </script>
+    <script>
+        document.getElementById('deleteBtn').addEventListener('click', function() {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This property will be permanently deleted.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Redirect to PHP delete handler
+                    window.location.href = 'delete-property.php?id=<?= $property_id ?>';
+                }
+            });
         });
     </script>
 </body>
