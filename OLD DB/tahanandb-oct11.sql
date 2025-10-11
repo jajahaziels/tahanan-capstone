@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Oct 10, 2025 at 02:10 PM
+-- Host: 127.0.0.1:3306
+-- Generation Time: Oct 10, 2025 at 05:53 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -115,6 +115,7 @@ CREATE TABLE `landlordtbl` (
   `country` varchar(50) DEFAULT NULL,
   `gender` varchar(50) DEFAULT NULL,
   `profilePic` varchar(255) DEFAULT NULL,
+  `dateJoin` date DEFAULT NULL,
   `status` varchar(50) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `verification_status` enum('not_submitted','pending','verified','rejected') DEFAULT 'not_submitted',
@@ -207,19 +208,6 @@ CREATE TABLE `requesttbl` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `reset_password`
---
-
-CREATE TABLE `reset_password` (
-  `id` int(11) NOT NULL,
-  `email` varchar(255) NOT NULL,
-  `token` varchar(255) NOT NULL,
-  `expires_at` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `tenanttbl`
 --
 
@@ -252,28 +240,6 @@ INSERT INTO `tenanttbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`
 (5, 'joji', 'joji', 'joji', NULL, 'joji@gmail.com', '$2y$10$DbYnAY3J0HI9DaSi7fOwQOmHmUzmx0bZN0PcHk5s.lyATDcu7Ke96', NULL, NULL, NULL, NULL, NULL, NULL, 26342734),
 (6, 'luffy', 'luffy', 'monkey', NULL, 'luffy@gmail.com', '$2y$10$eLPc0oJ.4hrt/7Ga9cqogejEQCbWJF8tXbZ2sTwD/8//cmTfasaWe', NULL, NULL, NULL, NULL, NULL, NULL, 2147483647),
 (7, 'zoro', 'zoro', 'roronoa', NULL, 'zoro@gmail.com', '$2y$10$vQm.HZRZGQSVYufwGBdUi.cwFErJKnZw0O4cLf8ecj0.P0/zYt2aW', NULL, NULL, NULL, NULL, NULL, NULL, 34234234);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `trusted_devices`
---
-
-CREATE TABLE `trusted_devices` (
-  `ID` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `device_hash` varchar(255) NOT NULL,
-  `last_ip` varchar(45) NOT NULL,
-  `last_used` datetime NOT NULL,
-  `role` enum('tenant','landlord') NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `trusted_devices`
---
-
-INSERT INTO `trusted_devices` (`ID`, `user_id`, `device_hash`, `last_ip`, `last_used`, `role`) VALUES
-(1, 3, '4d1508e8fae85952d0bdeb9542487c06c8634c1d2e9e42f70e9f7e445e8771fe', '::1', '2025-10-10 17:58:53', 'landlord');
 
 --
 -- Indexes for dumped tables
@@ -345,12 +311,6 @@ ALTER TABLE `tenanttbl`
   ADD UNIQUE KEY `username` (`username`);
 
 --
--- Indexes for table `trusted_devices`
---
-ALTER TABLE `trusted_devices`
-  ADD PRIMARY KEY (`ID`);
-
---
 -- AUTO_INCREMENT for dumped tables
 --
 
@@ -376,7 +336,7 @@ ALTER TABLE `conversation_members`
 -- AUTO_INCREMENT for table `landlordtbl`
 --
 ALTER TABLE `landlordtbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `listingtbl`
@@ -407,12 +367,6 @@ ALTER TABLE `requesttbl`
 --
 ALTER TABLE `tenanttbl`
   MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
-
---
--- AUTO_INCREMENT for table `trusted_devices`
---
-ALTER TABLE `trusted_devices`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Constraints for dumped tables
