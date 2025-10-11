@@ -15,7 +15,7 @@ if (!empty($_SESSION['error'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ID_image'])) {
-    $targetDir = __DIR__ . "/uploads/ids";
+    $targetDir = __DIR__ . "/uploads/ids/"; // Fixed: added trailing slash
     if (!is_dir($targetDir)) {
         mkdir($targetDir, 0777, true);
     }
@@ -24,8 +24,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['ID_image'])) {
     $targetFile = $targetDir . $fileName;
 
     if (move_uploaded_file($_FILES["ID_image"]["tmp_name"], $targetFile)) {
-        // Save relative path for web access
-        $dbPath = "../LANDLORD/uploads/ids" . $fileName;
+        // Save relative path for web access - Fixed path
+        $dbPath = "uploads/ids/" . $fileName; // Relative to LANDLORD folder
 
         $sql = "UPDATE landlordtbl 
                     SET ID_image = ?, verification_status = 'pending' 
@@ -81,9 +81,53 @@ if ($status === 'pending' && empty($id_image)) {
             box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.165);
         }
 
-        input {
+        input[type="file"] {
             border: 2px solid var(--main-color);
             border-radius: 10px;
+            padding: 10px;
+            width: 100%;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-verified {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-rejected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-not_submitted {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .uploaded-id {
+            margin-top: 15px;
+            border: 2px solid var(--main-color);
+            border-radius: 10px;
+            padding: 10px;
+            background: white;
+        }
+
+        .uploaded-id img {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 8px;
         }
     </style>
 </head>
@@ -100,50 +144,92 @@ if ($status === 'pending' && empty($id_image)) {
             <div class="row justify-content-center mt-4">
                 <div class="col-lg-6">
                     <div class="verification-form">
-                        <h1>Upload Valid ID</h1>
+                        <h2>Upload Valid ID</h2>
                         <p>Upload a clear picture of your valid ID to get verified and start posting your property listings.</p>
-                        <p>Valid Government-Issued ID:</p>
-                        <ul>
-                            <li>Philippine Passport</li>
-                            <li>Driver’s License (Professional / Non-Professional)</li>
-                            <li>SSS ID / UMID</li>
-                            <li>Postal ID</li>
-                            <li>Voter’s ID / COMELEC Voter’s Certificate with photo</li>
-                            <li>NBI Clearance</li>
-                            <li>Police Clearance</li>
-                            <li>PhilSys National ID</li>
-                        </ul>
+                        
+                        <div class="status-badge status-<?= htmlspecialchars($status) ?>">
+                            <?php if ($status === 'pending'): ?>
+                                ⏳ Verification Status: Pending Review
+                            <?php elseif ($status === 'verified'): ?>
+                                ✅ Verification Status: Verified
+                            <?php elseif ($status === 'rejected'): ?>
+                                ❌ Verification Status: Rejected
+                            <?php else: ?>
+                                📤 Verification Status: Not Submitted
+                            <?php endif; ?>
+                        </div>
 
-
-                        <p>Your Verification Status: <?= htmlspecialchars($status) ?></p>
-                        <?php if (!empty($message)) echo "<p style='color:#0000ffb6;'>$message</p>"; ?>
+                        <?php if (!empty($message)): ?>
+                            <div class="alert alert-info mt-3" role="alert">
+                                <?= $message ?>
+                            </div>
+                        <?php endif; ?>
 
                         <?php if ($status === 'pending'): ?>
-                            <p>⏳ Your verification is being reviewed by the admin.</p>
+                            <p class="mt-3">⏳ Your verification is being reviewed by the admin.</p>
                             <?php if ($id_image): ?>
-                                <img src="<?= htmlspecialchars($id_image) ?>" width="200">
+                                <div class="uploaded-id">
+                                    <p><strong>Uploaded ID:</strong></p>
+                                    <img src="<?= htmlspecialchars($id_image) ?>" alt="Uploaded ID">
+                                </div>
                             <?php endif; ?>
 
                         <?php elseif ($status === 'verified'): ?>
-                            <p>✅ You are verified! You can now post properties.</p>
+                            <div class="alert alert-success mt-3" role="alert">
+                                <strong>✅ You are verified!</strong> You can now post properties.
+                            </div>
                             <?php if ($id_image): ?>
-                                <img src="<?= htmlspecialchars($id_image) ?>" width="200">
+                                <div class="uploaded-id">
+                                    <p><strong>Verified ID:</strong></p>
+                                    <img src="<?= htmlspecialchars($id_image) ?>" alt="Verified ID">
+                                </div>
                             <?php endif; ?>
 
                         <?php elseif ($status === 'rejected'): ?>
-                            <p>❌ Your verification was rejected. Please re-upload a valid ID.</p>
-                            <form method="POST" enctype="multipart/form-data">
-                                <label>Upload Valid ID:</label>
-                                <input type="file" name="ID_image" accept="image/*" required>
-                                <button class="main-button mt-2" type="submit">Submit Again</button>
+                            <div class="alert alert-danger mt-3" role="alert">
+                                <strong>❌ Your verification was rejected.</strong><br>
+                                Please re-upload a clearer image of your valid ID.
+                            </div>
+                            
+                            <h4 class="mt-4">Valid Government-Issued ID:</h4>
+                            <ul style="font-size: 14px;">
+                                <li>Philippine Passport</li>
+                                <li>Driver's License (Professional / Non-Professional)</li>
+                                <li>SSS ID / UMID</li>
+                                <li>Postal ID</li>
+                                <li>Voter's ID / COMELEC Voter's Certificate with photo</li>
+                                <li>NBI Clearance</li>
+                                <li>Police Clearance</li>
+                                <li>PhilSys National ID</li>
+                            </ul>
+
+                            <form method="POST" enctype="multipart/form-data" class="mt-3">
+                                <label><strong>Upload Valid ID:</strong></label>
+                                <input type="file" name="ID_image" accept="image/*" required class="form-control mt-2">
+                                <button class="main-button mt-3 w-100" type="submit">Submit Again</button>
                             </form>
 
                         <?php else: ?> <!-- not_submitted -->
-                            <p>📤 Please upload a valid ID for verification.</p>
-                            <form method="POST" enctype="multipart/form-data">
-                                <label>Upload Valid ID:</label>
-                                <input type="file" name="ID_image" accept="image/*" required>
-                                <button class="main-button mt-2" type="submit">Submit</button>
+                            <div class="alert alert-info mt-3" role="alert">
+                                📤 Please upload a valid ID for verification.
+                            </div>
+
+                            <h4 class="mt-4">Valid Government-Issued ID:</h4>
+                            <ul style="font-size: 14px;">
+                                <li>Philippine Passport</li>
+                                <li>Driver's License (Professional / Non-Professional)</li>
+                                <li>SSS ID / UMID</li>
+                                <li>Postal ID</li>
+                                <li>Voter's ID / COMELEC Voter's Certificate with photo</li>
+                                <li>NBI Clearance</li>
+                                <li>Police Clearance</li>
+                                <li>PhilSys National ID</li>
+                            </ul>
+
+                            <form method="POST" enctype="multipart/form-data" class="mt-3">
+                                <label><strong>Upload Valid ID:</strong></label>
+                                <input type="file" name="ID_image" accept="image/*" required class="form-control mt-2">
+                                <button class="main-button mt-3 w-100" type="submit">Submit for Verification</button>
                             </form>
                         <?php endif; ?>
                     </div>

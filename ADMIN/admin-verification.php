@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../connection.php';
+require_once '../.php';
 
 if (isset($_GET['id']) && isset($_GET['status'])) {
     $id = intval($_GET['id']);

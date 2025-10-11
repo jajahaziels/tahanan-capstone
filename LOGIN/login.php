@@ -26,7 +26,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION['firstName'] = $row['firstName'];
             $_SESSION['lastName']  = $row['lastName'];
 
-            header("Location: ../ADMIN/admin.php");
+            header("Location: ../ADMIN/homepage.php");
             exit;
         }
     }
