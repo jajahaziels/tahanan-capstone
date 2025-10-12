@@ -33,8 +33,45 @@ if ($result->num_rows === 0) {
 
 $listing = $result->fetch_assoc();
 
-// Parse images
-$images = !empty($listing['images']) ? explode(',', $listing['images']) : ['/img/house1.jpeg'];
+// Parse images - handle both JSON and comma-separated formats
+$images_raw = !empty($listing['images']) ? $listing['images'] : '';
+$images = [];
+
+if (!empty($images_raw)) {
+    // Try to decode as JSON first (from landlord upload)
+    $decoded = json_decode($images_raw, true);
+    
+    if (is_array($decoded)) {
+        // It's JSON format
+        $images_raw = $decoded;
+    } else {
+        // It's comma-separated format (legacy)
+        $images_raw = explode(',', $images_raw);
+    }
+    
+    // Build correct paths for all images
+    foreach ($images_raw as $img) {
+        $img = trim($img);
+        if (!empty($img)) {
+            // Build correct path
+            if (strpos($img, '../LANDLORD/') === 0) {
+                // Already has full path
+                $images[] = $img;
+            } elseif (strpos($img, 'uploads/') === 0) {
+                // Has uploads/ prefix
+                $images[] = '../LANDLORD/' . $img;
+            } else {
+                // Just filename
+                $images[] = '../LANDLORD/uploads/' . $img;
+            }
+        }
+    }
+}
+
+// Fallback to default image if no images
+if (empty($images)) {
+    $images = ['../img/house1.jpeg'];
+}
 ?>
 
 <!DOCTYPE html>
