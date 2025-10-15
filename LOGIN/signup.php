@@ -1,61 +1,159 @@
 <?php
-require_once '../connection.php';
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+// --- PHPMailer  ---
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+require '../vendor/autoload.php';
+
+include '../includes/db.php';
+require_once 'google-config.php';
+session_start();
 
 $message = "";
 
+// --- CLEAN URL REDIRECT ---
+if (isset($_GET['clear'])) {
+    header("Location: signup.php");
+    exit;
+}
+
+// --- GOOGLE SIGNUP LINKS ---
+$googleUrlTenant = "google-login.php?mode=signup&role=tenant";
+$googleUrlLandlord = "google-login.php?mode=signup&role=landlord";
+
+// --- NORMAL SIGNUP ---
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    // Collect form data safely
-    $role        = $_POST['role'] ?? '';
-    $username    = trim($_POST['username'] ?? '');
-    $first_name  = trim($_POST['firstName'] ?? '');
-    $last_name   = trim($_POST['lastName'] ?? '');
-    $email       = trim($_POST['email'] ?? '');
-    $phoneNum    = trim($_POST['phoneNum'] ?? '');
-    $password    = $_POST['password'] ?? '';
-    $confirm     = $_POST['confirm_password'] ?? ''; // ✅ fixed name
+    $role = $_POST['role'];
+    $username = trim($_POST['username']);
+    $email = strtolower(trim($_POST['email']));
+    $password = trim($_POST['password']);
 
-    // --- VALIDATION ---
-    if (
-        empty($role) || empty($username) || empty($first_name) || empty($last_name) ||
-        empty($email) || empty($phoneNum) || empty($password) || empty($confirm)
-    ) {
-        $message = "❌ All fields are required!";
+    if (empty($username) || empty($email) || empty($password)) {
+        $message = "❌ All fields are required.";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $message = "❌ Invalid email format!";
-    } elseif ($password !== $confirm) {
-        $message = "❌ Passwords do not match!";
+        $message = "❌ Invalid email format.";
+    } elseif (strlen($password) < 6) {
+        $message = "❌ Password must be at least 6 characters.";
     } else {
-        // Hash password
-        $hashed_pass = password_hash($password, PASSWORD_DEFAULT);
+        // check if email exists in any table
+        $checkSql = "SELECT 1 FROM (
+                        SELECT email FROM landlordtbl
+                        UNION
+                        SELECT email FROM tenanttbl
+                        UNION
+                        SELECT email FROM admintbl
+                    ) all_users WHERE email=?";
+        $stmt = $conn->prepare($checkSql);
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
 
-        if ($role === "Tenant") {
-            $stmt = $conn->prepare("INSERT INTO tenanttbl (username, firstName, lastName, email, phoneNum, password) VALUES (?, ?, ?, ?, ?, ?)");
+        if ($result->num_rows > 0) {
+            $message = "⚠️ Email already registered.";
         } else {
-            $stmt = $conn->prepare("INSERT INTO landlordtbl (username, firstName, lastName, email, phoneNum, password) VALUES (?, ?, ?, ?, ?, ?)");
-        }
+            $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-        if ($stmt) {
-            $stmt->bind_param("ssssss", $username, $first_name, $last_name, $email, $phoneNum, $hashed_pass);
-
-            try {
-                if ($stmt->execute()) {
-                    header("Location: login.php?registered=1");
-                    exit();
-                }
-            } catch (mysqli_sql_exception $e) {
-                if ($e->getCode() == 1062) {
-                    $message = "❌ Email or Username already exists!";
-                } else {
-                    $message = "❌ Error: " . $e->getMessage();
-                }
+            if ($role === "landlord") {
+                $sql = "INSERT INTO landlordtbl (firstName, email, password, status, created_at) VALUES (?, ?, ?, 'pending', NOW())";
+            } else {
+                $sql = "INSERT INTO tenanttbl (firstName, email, password, status, created_at) VALUES (?, ?, ?, 'pending', NOW())";
             }
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("sss", $username, $email, $hashedPassword);
 
-            $stmt->close();
+            if ($stmt->execute()) {
+                // generate OTP
+                $otp = rand(100000, 999999);
+                $_SESSION['otp'] = $otp;
+                $_SESSION['email'] = $email;
+                $_SESSION['user_type'] = $role;
+
+                // send OTP through Email
+                $mail = new PHPMailer(true);
+                try {
+                    $mail->isSMTP();
+                    $mail->Host = 'smtp.gmail.com';
+                    $mail->SMTPAuth = true;
+                    $mail->Username = 'jajasison07@gmail.com';
+                    $mail->Password = 'aebfllyitmpjvzqz';
+                    $mail->SMTPSecure = 'tls';
+                    $mail->Port = 587;
+
+                    $mail->setFrom('jajasison07@gmail.com', 'TAHANAN');
+                    $mail->addAddress($email);
+                    $mail->isHTML(true);
+                    $mail->Subject = 'Your OTP Code';
+                    $mail->Body = "<h3>Welcome to TAHANAN!</h3><p>Your OTP is <b>$otp</b>. It will expire in 5 minutes.</p>";
+
+                    $mail->send();
+
+                    $_SESSION['success'] = "✅ Account created successfully! Please log in.";
+                    header("Location: login.php");
+                    exit();
+                } catch (Exception $e) {
+                    $message = "❌ Could not send OTP. Mailer Error: {$mail->ErrorInfo}";
+                }
+            } else {
+                $message = "❌ Error: Something went wrong. Please try again.";
+                error_log("Signup Error: " . $stmt->error);
+            }
+        }
+    }
+}
+
+// --- google oauth ---
+if (isset($_SESSION['google_signup'])) {
+    $googleData = $_SESSION['google_signup'];
+
+    $username = $googleData['name'];
+    $email = strtolower($googleData['email']);
+    $role = $googleData['role'];
+
+    // check if email already exists
+    $checkSql = "SELECT 1 FROM (
+                    SELECT email FROM landlordtbl
+                    UNION
+                    SELECT email FROM tenanttbl
+                    UNION
+                    SELECT email FROM admintbl
+                ) all_users WHERE email=?";
+    $stmt = $conn->prepare($checkSql);
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $message = "⚠️ Email already registered with another method.";
+        unset($_SESSION['google_signup']);
+    } else {
+        if ($role === "landlord") {
+            $sql = "INSERT INTO landlordtbl (firstName, email, password, status, created_at) VALUES (?, ?, '', 'pending', NOW())";
+        } else {
+            $sql = "INSERT INTO tenanttbl (firstName, email, password, status, created_at) VALUES (?, ?, '', 'pending', NOW())";
+        }
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ss", $username, $email);
+
+        if ($stmt->execute()) {
+            // generate OTP for google signup as well
+            $otp = rand(100000, 999999);
+            $_SESSION['otp'] = $otp;
+            $_SESSION['email'] = $email;
+            $_SESSION['user_type'] = $role;
+
+            //  send OTP here with PHPMailer again if needed
+
+            $_SESSION['success'] = "✅ Google Signup successful! Enter the OTP sent to your email.";
+            unset($_SESSION['google_signup']);
+            header("Location: verify-otp.php");
+            exit;
+        } else {
+            $message = "❌ Error: Google signup failed.";
+            error_log("Google Signup Error: " . $stmt->error);
         }
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -63,99 +161,136 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- FAVICON -->
-    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-    <!-- FA -->
+    <title>Signup Form</title>
+    <link rel="stylesheet" href="signup.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@300..900&family=Quicksand:wght@300..700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
-        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- BS -->
-    <link rel="stylesheet" href="../css/bootstrap.min.css">
-    <!-- MAIN CSS -->
-    <link rel="stylesheet" href="signup.css?v=<?= time(); ?>">
-    <title>Sign up</title>
 </head>
 
 <body>
-    <!-- SIGN UP FORM -->
-    <div class="container m-auto">
-        <div class="d-flex align-items-center justify-content-center min-vh-100">
-            <div class="signup-container">
-                <h1 class="text-center">Sign up</h1>
-                <div class="row justify-content-center">
-                    <div class="col-lg-10">
-                        <form method="POST" action="">
-                            <div class="row mb-3">
-                                <div class="col">
-                                    <label class="form-label">Sign up As</label>
-                                    <select name="role" class="form-control" required>
-                                        <option value="" disabled selected>Select Role</option>
-                                        <option value="Landlord">Landlord</option>
-                                        <option value="Tenant">Tenant</option>
-                                    </select>
-                                </div>
-                                <div class="col">
-                                    <label class="form-label">User Name</label>
-                                    <input type="text" name="username" class="form-control" required>
-                                </div>
-                            </div>
+    <div class="form-container">
 
-                            <div class="row mb-3">
-                                <div class="col">
-                                    <label class="form-label">First Name</label>
-                                    <input type="text" name="firstName" class="form-control" required>
-                                </div>
-                                <div class="col">
-                                    <label class="form-label">Last Name</label>
-                                    <input type="text" name="lastName" class="form-control" required>
-                                </div>
-                            </div>
+        <!-- Landlord Form -->
+        <div class="form-box landlord">
+            <form method="POST" action="signup.php">
+                <h1>Sign Up as Landlord</h1>
 
-                            <div class="row mb-3">
-                                <div class="col">
-                                    <label class="form-label">Email</label>
-                                    <input type="email" name="email" class="form-control" required>
-                                </div>
-                                <div class="col">
-                                    <label class="form-label">Contact Number</label>
-                                    <input type="tel" name="phoneNum" class="form-control" required>
-                                </div>
-                            </div>
+                <!-- Messages (Landlord) -->
+                <?php if (!empty($message) && isset($_POST['role']) && $_POST['role'] === 'landlord'): ?>
+                    <p style="color:red; text-align:center; font-weight:bold;"><?php echo $message; ?></p>
+                <?php endif; ?>
+                <?php if (!empty($_SESSION['error']) && isset($_POST['role']) && $_POST['role'] === 'landlord'): ?>
+                    <p style="color:red; text-align:center; font-weight:bold;">
+                        <?php echo $_SESSION['error'];
+                        unset($_SESSION['error']); ?>
+                    </p>
+                <?php endif; ?>
+                <?php if (!empty($_SESSION['success']) && isset($_POST['role']) && $_POST['role'] === 'landlord'): ?>
+                    <p style="color:green; text-align:center; font-weight:bold;">
+                        <?php echo $_SESSION['success'];
+                        unset($_SESSION['success']); ?>
+                    </p>
+                <?php endif; ?>
 
-                            <div class="row mb-3">
-                                <div class="col">
-                                    <label class="form-label">Password</label>
-                                    <input type="password" name="password" class="form-control" required>
-                                    <div class="form-check mt-2">
-                                        <input class="form-check-input" type="checkbox" required>
-                                        <label class="form-check-label">
-                                            I agree with <a href="#">Terms and Condition</a>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="col">
-                                    <label class="form-label">Confirm Password</label>
-                                    <input type="password" name="confirm_password" class="form-control" required>
-                                </div>
-                            </div>
-
-                            <div class="mb-0">
-                                <button type="submit" class="main-button mx-2">Sign Up</button>
-                                <button type="button" class="main-button" onclick="location.href='login.php'">Cancel</button>
-                            </div>
-                        </form>
-
-                        <!-- Show PHP Message -->
-                        <div class="mt-3 text-center">
-                            <?php if (!empty($message)) echo "<p>$message</p>"; ?>
-                        </div>
-
-                    </div>
+                <input type="hidden" name="role" value="landlord">
+                <div class="input-box">
+                    <input type="text" name="username" placeholder="Username" required>
+                    <i class="fa-solid fa-user"></i>
                 </div>
+                <div class="input-box">
+                    <input type="email" name="email" placeholder="Email" required>
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+                <div class="input-box">
+                    <input type="password" name="password" placeholder="Password" required>
+                    <i class="fa-solid fa-key"></i>
+                </div>
+                <div class="terms">
+                    <input type="checkbox" required> I agree with <a href="#">Terms and Condition</a>
+                </div>
+                <button type="submit" class="btn signup">Sign Up</button>
+                <div class="socials">
+                    <p>or</p><br>
+                    <a href="<?php echo htmlspecialchars($googleUrlLandlord); ?>">
+                        <i class="fa-brands fa-google"></i> Signup with Google
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tenant Form -->
+        <div class="form-box tenant">
+            <form method="POST" action="signup.php">
+                <h1>Sign Up as Tenant</h1>
+
+                <!-- Messages (Tenant) -->
+                <?php if (!empty($message) && isset($_POST['role']) && $_POST['role'] === 'tenant'): ?>
+                    <p style="color:red; text-align:center; font-weight:bold;"><?php echo $message; ?></p>
+                <?php endif; ?>
+                <?php if (!empty($_SESSION['error']) && isset($_POST['role']) && $_POST['role'] === 'tenant'): ?>
+                    <p style="color:red; text-align:center; font-weight:bold;">
+                        <?php echo $_SESSION['error'];
+                        unset($_SESSION['error']); ?>
+                    </p>
+                <?php endif; ?>
+                <?php if (!empty($_SESSION['success']) && isset($_POST['role']) && $_POST['role'] === 'tenant'): ?>
+                    <p style="color:green; text-align:center; font-weight:bold;">
+                        <?php echo $_SESSION['success'];
+                        unset($_SESSION['success']); ?>
+                    </p>
+                <?php endif; ?>
+
+                <input type="hidden" name="role" value="tenant">
+                <div class="input-box">
+                    <input type="text" name="username" placeholder="Username" required>
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <div class="input-box">
+                    <input type="email" name="email" placeholder="Email" required>
+                    <i class="fa-solid fa-envelope"></i>
+                </div>
+                <div class="input-box">
+                    <input type="password" name="password" placeholder="Password" required>
+                    <i class="fa-solid fa-key"></i>
+                </div>
+                <div class="terms">
+                    <input type="checkbox" required> I agree with <a href="#">Terms and Condition</a>
+                </div>
+                <button type="submit" class="btn signup">Sign Up</button>
+                <div class="socials">
+                    <p>or</p><br>
+                    <a href="<?php echo htmlspecialchars($googleUrlTenant); ?>">
+                        <i class="fa-brands fa-google"></i> Signup with Google
+                    </a>
+                </div>
+            </form>
+        </div>
+
+
+        <!-- Toggle Box -->
+        <div class="toggle-box">
+            <div class="toggle-panel left">
+                <h1>Hello, Welcome</h1>
+                <h1>to TAHANAN</h1>
+                <button class="btn tenant-btn">Sign Up as Tenant</button><br>
+                <p>Already have Account?</p>
+                <a href="login.php"><button class="btn">Login</button></a>
+            </div>
+            <div class="toggle-panel right">
+                <h1>Hello, Welcome</h1>
+                <h1>to TAHANAN</h1>
+                <button class="btn landlord-btn">Sign Up as Landlord</button>
+                <p>Already have Account?</p>
+                <a href="login.php"><button class="btn">Login</button></a>
             </div>
         </div>
     </div>
-
+    <script src="script.js"></script>
 </body>
 
 </html>

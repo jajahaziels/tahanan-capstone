@@ -1,6 +1,7 @@
 <?php
 require_once '../connection.php';
 require_once '../session_auth.php';
+include '../TENANT/auto-expire-rental.php';
 
 $rental = null;
 $error = '';
@@ -18,7 +19,7 @@ if (!isset($_SESSION['landlord_id'])) {
         $error = "No rental selected.";
     } else {
 
-$sql = "
+        $sql = "
     SELECT 
         r.ID AS rental_id,
         r.listing_id,
@@ -73,6 +74,34 @@ if ($rental) {
         $propertyImg = "../LANDLORD/uploads/" . $images[0];
     }
 }
+
+$extendRequests = [];
+if ($rental) {
+    $extStmt = $conn->prepare("
+        SELECT ID, new_end_date, status, created_at 
+        FROM extension_requesttbl 
+        WHERE rent_id = ? AND landlord_id = ? 
+        ORDER BY created_at DESC
+    ");
+    $extStmt->bind_param("ii", $rental['rental_id'], $landlord_id);
+    $extStmt->execute();
+    $extendRequests = $extStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $extStmt->close();
+}
+$sqlCancel = "
+    SELECT c.*, t.firstName, t.lastName 
+    FROM cancel_requesttbl c
+    JOIN tenanttbl t ON c.tenant_id = t.ID
+    WHERE c.landlord_id = ? AND c.rent_id = ?
+    ORDER BY c.created_at DESC
+";
+$stmtCancel = $conn->prepare($sqlCancel);
+$stmtCancel->bind_param("ii", $landlord_id, $rental['rental_id']);
+$stmtCancel->execute();
+$cancelRequests = $stmtCancel->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmtCancel->close();
+
+
 ?>
 
 
@@ -224,7 +253,7 @@ if ($rental) {
 
                             <div class="col-lg-5 col-sm-12">
                                 <h2>Tenant Information</h2>
-                                <p><strong>Name: </strong><?php echo htmlspecialchars(ucwords(strtolower($rental['tenant_firstName'] . ' ' . $rental['tenant_lastName'])));?>
+                                <p><strong>Name: </strong><?php echo htmlspecialchars(ucwords(strtolower($rental['tenant_firstName'] . ' ' . $rental['tenant_lastName']))); ?>
                                 <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['tenant_phone']); ?></p>
                                 <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['tenant_email']); ?></p>
                             </div>
@@ -234,6 +263,60 @@ if ($rental) {
             <?php else: ?>
                 <p><?php echo $error; ?></p>
             <?php endif; ?>
+
+            <?php if (!empty($extendRequests)): ?>
+                <div class="mt-4">
+                    <h3>Extension Requests</h3>
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Requested New End Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Extend Requests -->
+                            <?php foreach ($extendRequests as $req): ?>
+                                <tr>
+                                    <td>Extend to: <?= htmlspecialchars(date('F j, Y', strtotime($req['new_end_date']))) ?></td>
+                                    <td><?= htmlspecialchars($req['status']) ?></td>
+                                    <td>
+                                        <?php if ($req['status'] === 'pending'): ?>
+                                            <form action="handle-extend-request.php" method="POST" style="display:inline;">
+                                                <input type="hidden" name="request_id" value="<?= $req['ID'] ?>">
+                                                <input type="hidden" name="rental_id" value="<?= $rental['rental_id'] ?>">
+                                                <button type="submit" name="action" value="approve" class="small-button">Approve</button>
+                                                <button type="submit" name="action" value="reject" class="small-button">Reject</button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+
+                            <!-- Cancel Requests -->
+                            <?php foreach ($cancelRequests as $req): ?>
+                                <tr>
+                                    <td>Cancel Rental Request</td>
+                                    <td><?= htmlspecialchars($req['status']) ?></td>
+                                    <td>
+                                        <?php if ($req['status'] === 'pending'): ?>
+                                            <form action="handle-cancel-request.php" method="POST" style="display:inline;">
+                                                <input type="hidden" name="request_id" value="<?= $req['ID'] ?>">
+                                                <input type="hidden" name="rental_id" value="<?= $rental['rental_id'] ?>">
+                                                <button type="submit" name="action" value="approve" class="small-button">Approve</button>
+                                                <button type="submit" name="action" value="reject" class="small-button">Reject</button>
+                                            </form>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+
+                    </table>
+                </div>
+            <?php endif; ?>
+
         </div>
     </div>
 

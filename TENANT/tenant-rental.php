@@ -1,62 +1,68 @@
 <?php
 require_once '../connection.php';
 require_once '../session_auth.php';
+include 'auto-expire-rental.php'; // Automatically expire old rentals
 
 $rental = null;
 $error = '';
 
+// Ensure tenant is logged in
 if (!isset($_SESSION['tenant_id'])) {
-    $error = "Unauthorized access. Please log in.";
-} else {
-    $tenant_id = (int) $_SESSION['tenant_id'];
-
-    $sql = "SELECT 
-            r.ID AS rental_id,
-            r.date,
-            r.start_date,
-            r.end_date,
-            l.firstName AS landlord_firstName,
-            l.lastName AS landlord_lastName,
-            l.phoneNum AS landlord_phone,
-            l.email AS landlord_email,
-            ls.listingName,
-            ls.address,
-            ls.images
-        FROM renttbl r
-        JOIN listingtbl ls ON r.listing_id = ls.ID
-        JOIN landlordtbl l ON ls.landlord_id = l.ID
-        WHERE r.tenant_id = ? 
-          AND r.status = 'approved'
-        LIMIT 1";
-
-
-
-    if ($stmt = $conn->prepare($sql)) {
-        $stmt->bind_param('i', $tenant_id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result && $result->num_rows > 0) {
-            $rental = $result->fetch_assoc();
-        } else {
-            $error = "No approved rental info found for your account.";
-        }
-
-        $stmt->close();
-    } else {
-        $error = "Database error: " . $conn->error;
-    }
+    die("Unauthorized access. Please log in.");
 }
 
-// Handle images
-$propertyImg = "../img/house1.jpeg";
+$tenant_id = (int) $_SESSION['tenant_id'];
+
+// Fetch the tenant's current approved rental (only one at a time)
+$sql = "
+    SELECT 
+        r.ID AS rental_id,
+        r.date,
+        r.start_date,
+        r.end_date,
+        r.listing_id,
+        l.ID AS landlord_id,
+        l.firstName AS landlord_firstName,
+        l.lastName AS landlord_lastName,
+        l.phoneNum AS landlord_phone,
+        l.email AS landlord_email,
+        ls.listingName,
+        ls.address,
+        ls.images
+    FROM renttbl r
+    JOIN listingtbl ls ON r.listing_id = ls.ID
+    JOIN landlordtbl l ON ls.landlord_id = l.ID
+    WHERE r.tenant_id = ? 
+      AND r.status = 'approved'
+    LIMIT 1
+";
+
+if ($stmt = $conn->prepare($sql)) {
+    $stmt->bind_param('i', $tenant_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result && $result->num_rows > 0) {
+        $rental = $result->fetch_assoc();
+    } else {
+        $error = "No active rental found for your account.";
+    }
+
+    $stmt->close();
+} else {
+    $error = "Database error: " . $conn->error;
+}
+
+// Prepare property image
+$propertyImg = "../img/house1.jpeg"; // fallback
 if ($rental) {
-    $images = json_decode($rental['images'], true);
-    if (!empty($images)) {
-        $propertyImg = "../LANDLORD/uploads/" . $images[0];
+    $images = json_decode($rental['images'], true) ?? [];
+    if (!empty($images[0])) {
+        $propertyImg = "../LANDLORD/uploads/" . htmlspecialchars($images[0]);
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -193,14 +199,35 @@ if ($rental) {
                                 <p><strong>Rental Due Date:</strong>
                                     <?php echo date("F j, Y", strtotime($rental['end_date'])); ?>
                                 </p>
+                                <form action="tenant-extend-request.php" method="POST" style="display:inline;">
+                                    <input type="hidden" name="rental_id" value="<?= $rental['rental_id'] ?>">
+                                    <input type="hidden" name="listing_id" value="<?= $rental['listing_id'] ?>">
+                                    <input type="date" name="new_end_date" required>
+                                    <button type="submit" class="small-button">Extend</button>
+                                </form>
+                                <form action="tenant-cancel-request.php" method="POST" style="display:inline;">
+                                    <input type="hidden" name="rent_id" value="<?= $rental['rental_id'] ?>">
+                                    <input type="hidden" name="tenant_id" value="<?= $_SESSION['tenant_id'] ?>">
+                                    <input type="hidden" name="landlord_id" value="<?= $rental['landlord_id'] ?>">
+                                    <input type="hidden" name="listing_id" value="<?= $rental['listing_id'] ?>">
+                                    <button type="submit" class="small-button"
+                                        onclick="return confirm('Request to cancel this rental?')">Cancel</button>
+                                </form>
+
+
+
+
+
                             </div>
 
                             <div class="col-lg-5 col-sm-12">
                                 <h2>Landlord Information</h2>
-                                <p><strong>Name: </strong><?php echo htmlspecialchars(ucwords(strtolower($rental['landlord_firstName'] . ' ' . $rental['landlord_lastName'])));?>
+                                <p><strong>Name: </strong><?php echo htmlspecialchars(ucwords(strtolower($rental['landlord_firstName'] . ' ' . $rental['landlord_lastName']))); ?>
                                 </p>
                                 <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['landlord_phone']); ?></p>
                                 <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['landlord_email']); ?></p>
+                                <button class="small-button"><i class="fa-solid fa-user"></i></button>
+                                <button class="small-button" onclick="location.href='tenant-messages.php'"><i class="fas fa-comment-dots"></i></button>
                             </div>
                         </div>
                     </div>

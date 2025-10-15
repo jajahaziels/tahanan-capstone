@@ -231,8 +231,8 @@ $stmt->close();
 
                                     <!-- Modal Footer -->
                                     <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                        <button type="submit" form="applyForm" class="btn btn-primary">Submit Application</button>
+                                        <button type="button" class="main-button" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" form="applyForm" class="main-button">Submit</button>
                                     </div>
                                 </div>
                             </div>

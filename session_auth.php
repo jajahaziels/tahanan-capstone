@@ -3,6 +3,17 @@ session_start();
 
 $current_page = basename($_SERVER['SCRIPT_NAME']);
 
+// Ensure role-specific session IDs exist
+if (isset($_SESSION['user_id']) && isset($_SESSION['user_type'])) {
+    if ($_SESSION['user_type'] === 'landlord' && !isset($_SESSION['landlord_id'])) {
+        $_SESSION['landlord_id'] = $_SESSION['user_id'];
+    } elseif ($_SESSION['user_type'] === 'tenant' && !isset($_SESSION['tenant_id'])) {
+        $_SESSION['tenant_id'] = $_SESSION['user_id'];
+    } elseif ($_SESSION['user_type'] === 'admin' && !isset($_SESSION['admin_id'])) {
+        $_SESSION['admin_id'] = $_SESSION['user_id'];
+    }
+}
+
 // If not logged in and not on login page → redirect to login
 if (!isset($_SESSION['user_type'])) {
     if ($current_page !== 'login.php') {
