@@ -48,10 +48,16 @@ $firstLetter = strtoupper(substr($landlord['firstName'], 0, 1));
         }
 
         .account-img img {
-            border: 2px solid var(--main-color);
-            width: 200px;
-            height: 200px;
-            border-radius: 10px;
+            width: 150px !important;
+            height: 150px !important;
+            border-radius: 50%;
+            background: var(--main-color);
+            color: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
         }
 
         .user-profile {

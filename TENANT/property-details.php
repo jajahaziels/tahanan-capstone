@@ -250,7 +250,7 @@ $stmt->close();
                         <!-- Avatar -->
                         <div class="avatar me-3">
                             <?php if (!empty($property['profilePic'])): ?>
-                                <img src="../LANDLORD/uploads/<?= htmlspecialchars($property['profilePic']); ?>" alt="Profile">
+                                <img src="../uploads/<?= htmlspecialchars($property['profilePic']); ?>" alt="Profile">
                             <?php else: ?>
                                 <div class="landlord-info">
                                     <?= strtoupper(substr($property['landlord_fname'], 0, 1)); ?>

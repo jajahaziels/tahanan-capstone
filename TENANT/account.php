@@ -47,21 +47,28 @@ $firstLetter = strtoupper(substr($tenant['firstName'], 0, 1));
         }
 
         .account-img img {
-            border: 2px solid var(--main-color);
-            width: 200px;
-            height: 200px;
-            border-radius: 10px;
+            width: 150px !important;
+            height: 150px !important;
+            border-radius: 50%;
+            background: var(--main-color);
+            color: var(--bg-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
         }
 
         .user-profile {
-            border: 6px solid var(--main-color);
+            background-color: var(--bg-color);
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 20px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.165);
         }
 
         .avatar {
-            width: 200px !important;
-            height: 200px !important;
+            width: 100px !important;
+            height: 100px !important;
             border-radius: 10px;
             background: var(--main-color);
             color: var(--bg-color);
@@ -80,32 +87,36 @@ $firstLetter = strtoupper(substr($tenant['firstName'], 0, 1));
     <!-- ACCOUNT PAGE -->
     <div class="landlord-page">
         <div class="container m-auto">
-            <h1 class="mb-5">ACCOUNT</h1>
-            <div class="row gy-4 justify-content-center user-profile">
-                <div class="col-lg-5 col-sm-12">
-                    <div class="account-img d-flex align-items-center justify-content-center">
-                        <?php if (!empty($tenant['profilePic'])): ?>
-                            <img src="<?= htmlspecialchars($profilePath); ?>" 
-                             alt="Profile Picture" onerror="this.src='../images/default-avatar.png';
+            <h1 class="mb-4">ACCOUNT</h1>
+            <div class="row gy-4 justify-content-center">
+                <div class="col-lg-8">
+                    <div class="row gy-4 justify-content-center user-profile">
+                        <div class="col-lg-5 col-sm-12 justify-content-center d-flex">
+                            <div class="account-img d-flex align-items-center justify-content-center">
+                                <?php if (!empty($tenant['profilePic'])): ?>
+                                    <img src="<?= htmlspecialchars($profilePath); ?>"
+                                        alt="Profile Picture" onerror="this.src='../images/default-avatar.png';
                             ">
-                        <?php else: ?>
-                            <div class="avatar">
-                                <?= $firstLetter ?>
+                                <?php else: ?>
+                                    <div class="avatar">
+                                        <?= $firstLetter ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <div class="col-lg-5 col-sm-12">
-                    <h1><?= htmlspecialchars($tenant['firstName'] . ' ' . $tenant['lastName']); ?></h1>
-                    <p>Phone Number: <?= htmlspecialchars($tenant['phoneNum']); ?></p>
-                    <p>Email: <?= htmlspecialchars($tenant['email']); ?></p>
-                    <p>Joined Date: <?= date("m-d-Y", strtotime($tenant['created_at'])); ?></p>
+                        </div>
+                        <div class="col-lg-5 col-sm-12">
+                            <h1><?= htmlspecialchars($tenant['firstName'] . ' ' . $tenant['lastName']); ?></h1>
+                            <p>Phone Number: <?= htmlspecialchars($tenant['phoneNum']); ?></p>
+                            <p>Email: <?= htmlspecialchars($tenant['email']); ?></p>
+                            <p>Joined Date: <?= date("m-d-Y", strtotime($tenant['created_at'])); ?></p>
 
 
-                    <div class="account-action d-flex justify-content-start align-items-center mt-4">
-                        <button class="small-button" onclick="location.href='edit-account.php'">Edit</button>
-                        <button class="small-button mx-2" onclick="location.href='delete-account.php'">Delete</button>
-                        <button class="small-button" onclick="location.href='share-account.php'">Share</button>
+                            <div class="account-action d-flex justify-content-start align-items-center mt-4">
+                                <button class="small-button" onclick="location.href='edit-account.php'">Edit</button>
+                                <button class="small-button mx-2" onclick="location.href='delete-account.php'">Delete</button>
+                                <button class="small-button" onclick="location.href='share-account.php'">Share</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 <?php
 require_once '../connection.php';
-include '../session_auth.php'; 
+include '../session_auth.php';
 
 $tenant_id = ($_SESSION['user_type'] === 'tenant') ? $_SESSION['user_id'] : null;
 
@@ -98,7 +98,7 @@ $user = mysqli_fetch_assoc($result);
             width: 120px;
             height: 120px;
             background-color: #d9d9d9;
-            border-radius: 10px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -113,7 +113,7 @@ $user = mysqli_fetch_assoc($result);
             width: 100%;
             height: 100%;
             object-fit: cover;
-            border-radius: 10px;
+            border-radius: 50%;
         }
 
         .upload-input {
@@ -220,8 +220,8 @@ $user = mysqli_fetch_assoc($result);
                                 </select>
                             </div>
 
-                          
-                             <div class="col">
+
+                            <div class="col">
                                 <label class="form-label">Contact Number</label>
                                 <input type="text" name="phoneNum" class="form-control"
                                     value="<?= htmlspecialchars($user['phoneNum'] ?? '') ?>">
