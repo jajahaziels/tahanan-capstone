@@ -237,6 +237,7 @@ if ($status === 'pending' && empty($id_image)) {
             </div>
         </div>
     </div>
+    <?php include '../Components/footer.php'; ?>
 
     <!-- MAIN JS -->
     <script src="../js/script.js" defer></script>

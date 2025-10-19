@@ -20,8 +20,10 @@ if (!$tenant) {
 }
 
 // Get tenant's full name
-$tenant_name = trim($tenant['firstName'] . ' ' . ($tenant['middleName'] ? $tenant['middleName'] . ' ' : '') . $tenant['lastName']);
+$tenant_name = trim(ucwords(strtolower($tenant['firstName'] . ' ' . ($tenant['middleName'] ? $tenant['middleName'] . ' ' : '') . $tenant['lastName'])));
 ?>
+
+
 
 <!DOCTYPE html>
 <html lang="en">

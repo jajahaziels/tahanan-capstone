@@ -256,6 +256,8 @@ $stmtCancel->close();
                                 <p><strong>Name: </strong><?php echo htmlspecialchars(ucwords(strtolower($rental['tenant_firstName'] . ' ' . $rental['tenant_lastName']))); ?>
                                 <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['tenant_phone']); ?></p>
                                 <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['tenant_email']); ?></p>
+                                <button class="small-button"><i class="fa-solid fa-user"></i></button>
+                                <button class="small-button" onclick="location.href='landlord-message.php'"><i class="fas fa-comment-dots"></i></button>
                             </div>
                         </div>
                     </div>

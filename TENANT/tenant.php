@@ -34,7 +34,7 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
-    <title>Tenant <?= htmlspecialchars($_SESSION['username']); ?>!</title>
+    <title>Tenant <?= htmlspecialchars(ucwords(strtolower($_SESSION['username'])));?>!</title>
     <style>
         .tenant-page {
             margin-top: 140px !important;
@@ -141,6 +141,7 @@ $result = $conn->query($sql);
             </div>
         </div>
     </div>
+    <?php include '../Components/footer.php'; ?>
 
     <!-- MAIN JS -->
     <script src="../js/script.js" defer></script>

@@ -67,7 +67,7 @@ if ($resLandlord->num_rows > 0) {
 }
 
 // --- Determine redirect target ---
-$redirect = ($role === 'landlord') ? '../LANDLORD/landlord.php' : '../TENANT/tenant.php';
+$redirect = ($role === 'landlord') ? '../LANDLORD/landlord-properties.php' : '../TENANT/tenant.php';
 
 // --- LOGIN ---
 if ($mode === 'login') {

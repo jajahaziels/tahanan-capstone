@@ -195,7 +195,7 @@ $result = $stmt->get_result();
         </div>
 
     </div>
-
+    <?php include '../Components/footer.php'; ?>
     <!-- MAIN JS -->
     <script src="../js/script.js" defer></script>
     <!-- BS JS -->

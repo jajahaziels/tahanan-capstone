@@ -72,6 +72,7 @@ while ($row = $result->fetch_assoc()) {
             </div>
         </div>
     </div>
+    <?php include '../Components/footer.php'; ?>
 
     <!-- MAIN JS -->
     <script src="../js/script.js" defer></script>

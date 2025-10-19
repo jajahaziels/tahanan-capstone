@@ -2,10 +2,10 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-// Get logged-in tenant_id from session
-$tenant_id = $_SESSION['tenant_id'];
+// login tenant from session
+$tenant_id = $_SESSION['user_id'];
 
-// Fetch landlord profile
+// fetch landlord profile
 $sql = "SELECT firstName, lastName, phoneNum, email, created_at, profilePic 
         FROM tenanttbl 
         WHERE ID= ?";
@@ -14,6 +14,12 @@ $stmt->bind_param("i", $tenant_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $tenant = $result->fetch_assoc();
+
+// image path
+$profilePath = $tenant['profilePic'] ?? '';
+if (!empty($profilePath) && !str_starts_with($profilePath, 'http')) {
+    $profilePath = "../uploads/" . $profilePath;
+}
 
 $firstLetter = strtoupper(substr($tenant['firstName'], 0, 1));
 ?>
@@ -54,8 +60,8 @@ $firstLetter = strtoupper(substr($tenant['firstName'], 0, 1));
         }
 
         .avatar {
-            width: 200px;
-            height: 200px;
+            width: 200px !important;
+            height: 200px !important;
             border-radius: 10px;
             background: var(--main-color);
             color: var(--bg-color);
@@ -79,7 +85,9 @@ $firstLetter = strtoupper(substr($tenant['firstName'], 0, 1));
                 <div class="col-lg-5 col-sm-12">
                     <div class="account-img d-flex align-items-center justify-content-center">
                         <?php if (!empty($tenant['profilePic'])): ?>
-                            <img src="<?= $tenant['profilePic']; ?>" alt="Profile Picture">
+                            <img src="<?= htmlspecialchars($profilePath); ?>" 
+                             alt="Profile Picture" onerror="this.src='../images/default-avatar.png';
+                            ">
                         <?php else: ?>
                             <div class="avatar">
                                 <?= $firstLetter ?>

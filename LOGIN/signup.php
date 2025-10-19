@@ -271,7 +271,6 @@ if (isset($_SESSION['google_signup'])) {
             </form>
         </div>
 
-
         <!-- Toggle Box -->
         <div class="toggle-box">
             <div class="toggle-panel left">

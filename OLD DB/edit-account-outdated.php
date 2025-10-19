@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- FAVICON -->
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <!-- FA -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- BS -->
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <!-- MAIN CSS -->
+    <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
+    <title>EDIT ACCOUNT</title>
+    <style>
+        .landlord-page {
+            margin-top: 140px !important;
+        }
+
+        .edit {
+            border: 6px solid var(--main-color);
+            padding: 40px;
+            border-radius: 20px;
+        }
+
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            background-color: #d9d9d9;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
+            border: 2px solid var(--main-color);
+        }
+
+        .profile-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .upload-input {
+            display: none;
+        }
+
+    </style>
+</head>
+
+<body>
+    <!-- HEADER -->
+    <?php include '../Components/landlord-header.php'; ?>
+
+    <!-- ACCOUNT PAGE -->
+    <div class="landlord-page">
+        <div class="container m-auto">
+            <h2 class="mb-4">EDIT ACCOUNT</h2>
+            <div class="row gy-4 justify-content-center edit">
+                <div class="col-lg-8">
+                    <!-- INFO FORRM -->
+                    <form class="mt-4">
+                        <div class="row mb-3">
+                        <div class="col d-flex justify-content-center align-items-center">
+                        <!-- ADD PROFILE PICC -->
+                        <label class="profile-img" for="upload">
+                            <span id="profile-text">add img</span>
+                            <img id="preview" src="" alt="" style="display: none;">
+                            <input type="file" id="upload" class="upload-input" accept="image/*">
+                        </label>
+                    </div>
+                            <div class="col">
+                                <label class="form-label">Firstname</label>
+                                <input type="text" class="form-control">
+
+                                <label class="form-label">Lastname</label>
+                                <input type="text" class="form-control">
+                            </div>
+
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label">Address</label>
+                                <input type="text" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label">Contact Number</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <div class="col">
+                                <label class="form-label">Email</label>
+                                <input type="text" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col">
+                                <label class="form-label">Gender</label>
+                                <input type="text" class="form-control">
+                            </div>
+                            <div class="col">
+                                <label class="form-label">ANO TO?</label>
+                                <input type="text" class="form-control">
+                            </div>
+                        </div>
+                        <button class="main-button mt-4" onclick="location.href='edit-account.php'">Save</button>
+                        <button class="main-button" onclick="location.href='account.php'">Cancel</button>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- INTERNAL JS -->
+    <script>
+        // IMG UPLOAD
+        const uploadInput = document.getElementById('upload');
+        const preview = document.getElementById('preview');
+        const profileText = document.getElementById('profile-text');
+
+        uploadInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    profileText.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+<!-- MAIN JS -->
+<script src="../js/script.js" defer></script>
+<!-- BS JS -->
+<script src="../js/bootstrap.bundle.min.js"></script>
+<!-- SCROLL REVEAL -->
+<script src="https://unpkg.com/scrollreveal"></script>
+</body>

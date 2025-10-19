@@ -40,8 +40,8 @@ window.onscroll = () => {
 
     ScrollReveal().reveal('#map-section, footer', {
         origin: 'bottom',
-        distance: '20px',
-        duration: 1500,
+        distance: '5px',
+        duration: 1000,
         delay: 100,
         reset: true
     });
