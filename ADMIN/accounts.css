@@ -1,7 +1,16 @@
+:root {
+    --bg-color: #ffffff;
+    --bg-alt-color: #f2f2f2;
+    --main-color: #8D0B41;
+    --text-color: #42505A;
+    --text-alt-color: #647887;
+    --shadow-color: rgba(0, 0, 0, 0.25);
+}
+
 .content {
   margin-left: 260px;
   padding: 30px;
-  background: #f8f9fa;
+  background: var(--bg-color);
   min-height: 100vh;
   transition: margin-left 0.3s ease;
 }

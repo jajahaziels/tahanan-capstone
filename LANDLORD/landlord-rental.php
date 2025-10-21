@@ -22,6 +22,7 @@ if (!isset($_SESSION['landlord_id'])) {
         $sql = "
     SELECT 
         r.ID AS rental_id,
+        r.tenant_id,        -- add this
         r.listing_id,
         r.start_date,
         r.end_date,
@@ -173,10 +174,10 @@ $stmtCancel->close();
         <div class="container m-auto">
             <div class="d-flex justify-content-between">
                 <h1 class="mb-1">Rental Info</h1>
-                <form method="post" action="cancel-rental.php" onsubmit="return confirm('Are you sure you want to cancel this rental?');">
+                <form method="post" action="payment.php">
                     <input type="hidden" name="rental_id" value="<?php echo $rental['rental_id']; ?>">
                     <input type="hidden" name="listing_id" value="<?php echo htmlspecialchars($rental['listing_id']); ?>">
-                    <button type="submit" class="main-button">Cancel Rental</button>
+                    <button type="submit" class="main-button">View History</button>
                 </form>
 
             </div>
@@ -256,7 +257,13 @@ $stmtCancel->close();
                                 <p><strong>Name: </strong><?php echo htmlspecialchars(ucwords(strtolower($rental['tenant_firstName'] . ' ' . $rental['tenant_lastName']))); ?>
                                 <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['tenant_phone']); ?></p>
                                 <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['tenant_email']); ?></p>
-                                <button class="small-button"><i class="fa-solid fa-user"></i></button>
+                                <!-- <button class="small-button"><i class="fa-solid fa-user"></i></button> -->
+                                <button class="small-button"
+                                    onclick="window.location.href='tenant-profile.php?tenant_id=<?= htmlspecialchars($rental['tenant_id']); ?>'">
+                                    <i class="fa-solid fa-user"></i>
+                                </button>
+
+
                                 <button class="small-button" onclick="location.href='landlord-message.php'"><i class="fas fa-comment-dots"></i></button>
                             </div>
                         </div>

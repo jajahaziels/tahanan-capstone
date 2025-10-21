@@ -294,7 +294,7 @@ $stmt->close();
             </div>
         </div>
     </div>
-
+        <?php include '../Components/footer.php' ?>
 
 
 

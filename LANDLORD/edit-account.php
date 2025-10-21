@@ -119,9 +119,10 @@ $conn->close();
         }
 
         .edit {
-            border: 6px solid var(--main-color);
-            padding: 40px;
+            background-color: var(--bg-color);
+            padding: 20px;
             border-radius: 20px;
+            box-shadow: 2px 2px 10px var(--shadow-color);
         }
 
         .profile-img {
@@ -157,155 +158,157 @@ $conn->close();
 
     <div class="landlord-page">
         <div class="container m-auto">
-            <h2 class="mb-4">EDIT ACCOUNT</h2>
+            <h2 class="mb-5">EDIT ACCOUNT</h2>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <?php if (isset($error_message)): ?>
+                        <div class="alert alert-danger"><?= $error_message ?></div>
+                    <?php endif; ?>
+                    <div class="row gy-4 justify-content-center edit">
+                        <div class="col-lg-12">
+                            <form class="mt-4" method="POST" enctype="multipart/form-data">
+                                <div class="row mb-3">
+                                    <div class="col d-flex justify-content-center align-items-center">
+                                        <label class="profile-img" for="upload">
+                                            <span id="profile-text"
+                                                style="<?= !empty($user['profilePic']) ? 'display: none;' : '' ?>">add
+                                                img</span>
+                                            <img id="preview"
+                                                src="<?= !empty($user['profilePic']) ? '../uploads/' . htmlspecialchars($user['profilePic']) : '' ?>"
+                                                alt=""
+                                                style="<?= !empty($user['profilePic']) ? 'display: block;' : 'display: none;' ?>">
+                                            <input type="file" id="upload" name="profilePic" class="upload-input"
+                                                accept="image/*">
+                                        </label>
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">Firstname</label>
+                                        <input type="text" name="firstName" class="form-control"
+                                            value="<?= htmlspecialchars($user['firstName'] ?? '') ?>" required>
 
-            <?php if (isset($error_message)): ?>
-                <div class="alert alert-danger"><?= $error_message ?></div>
-            <?php endif; ?>
+                                        <label class="form-label">Lastname</label>
+                                        <input type="text" name="lastName" class="form-control"
+                                            value="<?= htmlspecialchars($user['lastName'] ?? '') ?>" required>
 
-            <div class="row gy-4 justify-content-center edit">
-                <div class="col-lg-8">
-                    <form class="mt-4" method="POST" enctype="multipart/form-data">
-                        <div class="row mb-3">
-                            <div class="col d-flex justify-content-center align-items-center">
-                                <label class="profile-img" for="upload">
-                                    <span id="profile-text"
-                                        style="<?= !empty($user['profilePic']) ? 'display: none;' : '' ?>">add
-                                        img</span>
-                                    <img id="preview"
-                                        src="<?= !empty($user['profilePic']) ? '../uploads/' . htmlspecialchars($user['profilePic']) : '' ?>"
-                                        alt=""
-                                        style="<?= !empty($user['profilePic']) ? 'display: block;' : 'display: none;' ?>">
-                                    <input type="file" id="upload" name="profilePic" class="upload-input"
-                                        accept="image/*">
-                                </label>
-                            </div>
-                            <div class="col">
-                                <label class="form-label">Firstname</label>
-                                <input type="text" name="firstName" class="form-control"
-                                    value="<?= htmlspecialchars($user['firstName'] ?? '') ?>" required>
+                                        <label class="form-label">Middle Name</label>
+                                        <input type="text" name="middleName" class="form-control"
+                                            value="<?= htmlspecialchars($user['middleName'] ?? '') ?>">
+                                    </div>
+                                </div>
 
-                                <label class="form-label">Lastname</label>
-                                <input type="text" name="lastName" class="form-control"
-                                    value="<?= htmlspecialchars($user['lastName'] ?? '') ?>" required>
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" name="email" class="form-control"
+                                            value="<?= htmlspecialchars($user['email'] ?? '') ?>" required>
+                                    </div>
 
-                                <label class="form-label">Middle Name</label>
-                                <input type="text" name="middleName" class="form-control"
-                                    value="<?= htmlspecialchars($user['middleName'] ?? '') ?>">
-                            </div>
+                                    <div class="col">
+                                        <label class="form-label">User Name</label>
+                                        <input type="text" name="userName" class="form-control"
+                                            value="<?= htmlspecialchars($user['userName'] ?? '') ?>" required>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label class="form-label">Street</label>
+                                        <input type="text" name="street" class="form-control"
+                                            value="<?= htmlspecialchars($user['street'] ?? '') ?>">
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">Barangay</label>
+                                        <input type="text" name="barangay" class="form-control"
+                                            value="<?= htmlspecialchars($user['barangay'] ?? '') ?>">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label class="form-label">City</label>
+                                        <input type="text" name="city" class="form-control"
+                                            value="<?= htmlspecialchars($user['city'] ?? '') ?>">
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">Province</label>
+                                        <input type="text" name="province" class="form-control"
+                                            value="<?= htmlspecialchars($user['province'] ?? '') ?>">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label class="form-label">Zip Code</label>
+                                        <input type="text" name="zipCode" class="form-control"
+                                            value="<?= htmlspecialchars($user['zipCode'] ?? '') ?>">
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">Contact Number</label>
+                                        <input type="text" name="phoneNum" class="form-control"
+                                            value="<?= htmlspecialchars($user['phoneNum'] ?? '') ?>">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label class="form-label">Date of Birth</label>
+                                        <input type="date" name="birthday" class="form-control"
+                                            value="<?= htmlspecialchars($user['birthday'] ?? '') ?>">
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">Gender</label>
+                                        <select name="gender" class="form-control" required>
+                                            <option value="" disabled selected>Select your Gender</option>
+                                            <option value="Female" <?= ($user['gender'] ?? '') == 'Female' ? 'selected' : '' ?>>♀
+                                                Female</option>
+                                            <option value="Male" <?= ($user['gender'] ?? '') == 'Male' ? 'selected' : '' ?>>♂ Male
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <h4>Identity Verification</h4>
+                                <div class="mb-3">
+                                    <label class="form-label">Upload Valid Government ID</label>
+                                    <input type="file" class="form-control" name="govID" accept="image/*,.pdf">
+                                    <?php if (!empty($user['verificationId'])): ?>
+                                        <small class="text-muted">Current: <?= htmlspecialchars($user['verificationId']) ?></small>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Upload Selfie Holding the ID</label>
+                                    <input type="file" class="form-control" name="selfieID" accept="image/*,.pdf">
+                                    <?php if (!empty($user['ID_image'])): ?>
+                                        <small class="text-muted">Current: <?= htmlspecialchars($user['ID_image']) ?></small>
+                                    <?php endif; ?>
+                                </div>
+
+                                <h5 class="mt-4">Property Ownership or Authorization</h5>
+                                <div class="mb-3">
+                                    <label class="form-label">Upload Proof of Ownership</label>
+                                    <input type="file" class="form-control" name="govID" accept="image/*,.pdf">
+                                    <?php if (!empty($user['verificationId'])): ?>
+                                        <small class="text-muted">Current: <?= htmlspecialchars($user['verificationId']) ?></small>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Authorization Letter + Owner’s ID copy</label>
+                                    <input type="file" class="form-control" name="selfieID" accept="image/*,.pdf" multiple>
+                                    <?php if (!empty($user['ID_image'])): ?>
+                                        <small class="text-muted">Current: <?= htmlspecialchars($user['ID_image']) ?></small>
+                                    <?php endif; ?>
+                                </div>
+
+                                <div class="d-flex justify-content-start gap-2 mt-4">
+                                    <button type="submit" class="main-button">Save</button>
+                                    <button type="button" class="main-button"
+                                        onclick="location.href='account.php'">Cancel</button>
+                                </div>
+                            </form>
                         </div>
-
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label class="form-label">Email</label>
-                                <input type="email" name="email" class="form-control"
-                                    value="<?= htmlspecialchars($user['email'] ?? '') ?>" required>
-                            </div>
-
-                            <div class="col">
-                                <label class="form-label">User Name</label>
-                                <input type="text" name="userName" class="form-control"
-                                    value="<?= htmlspecialchars($user['userName'] ?? '') ?>" required>
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label class="form-label">Street</label>
-                                <input type="text" name="street" class="form-control"
-                                    value="<?= htmlspecialchars($user['street'] ?? '') ?>">
-                            </div>
-                            <div class="col">
-                                <label class="form-label">Barangay</label>
-                                <input type="text" name="barangay" class="form-control"
-                                    value="<?= htmlspecialchars($user['barangay'] ?? '') ?>">
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label class="form-label">City</label>
-                                <input type="text" name="city" class="form-control"
-                                    value="<?= htmlspecialchars($user['city'] ?? '') ?>">
-                            </div>
-                            <div class="col">
-                                <label class="form-label">Province</label>
-                                <input type="text" name="province" class="form-control"
-                                    value="<?= htmlspecialchars($user['province'] ?? '') ?>">
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label class="form-label">Zip Code</label>
-                                <input type="text" name="zipCode" class="form-control"
-                                    value="<?= htmlspecialchars($user['zipCode'] ?? '') ?>">
-                            </div>
-                            <div class="col">
-                                <label class="form-label">Contact Number</label>
-                                <input type="text" name="phoneNum" class="form-control"
-                                    value="<?= htmlspecialchars($user['phoneNum'] ?? '') ?>">
-                            </div>
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label class="form-label">Date of Birth</label>
-                                <input type="date" name="birthday" class="form-control"
-                                    value="<?= htmlspecialchars($user['birthday'] ?? '') ?>">
-                            </div>
-                            <div class="col">
-                                <label class="form-label">Gender</label>
-                                <select name="gender" class="form-control" required>
-                                    <option value="" disabled selected>Select your Gender</option>
-                                    <option value="Female" <?= ($user['gender'] ?? '') == 'Female' ? 'selected' : '' ?>>♀
-                                        Female</option>
-                                    <option value="Male" <?= ($user['gender'] ?? '') == 'Male' ? 'selected' : '' ?>>♂ Male
-                                    </option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <h4>Identity Verification</h4>
-                        <div class="mb-3">
-                            <label class="form-label">Upload Valid Government ID</label>
-                            <input type="file" class="form-control" name="govID" accept="image/*,.pdf">
-                            <?php if (!empty($user['verificationId'])): ?>
-                                <small class="text-muted">Current: <?= htmlspecialchars($user['verificationId']) ?></small>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Upload Selfie Holding the ID</label>
-                            <input type="file" class="form-control" name="selfieID" accept="image/*,.pdf">
-                            <?php if (!empty($user['ID_image'])): ?>
-                                <small class="text-muted">Current: <?= htmlspecialchars($user['ID_image']) ?></small>
-                            <?php endif; ?>
-                        </div>
-
-                        <h5 class="mt-4">Property Ownership or Authorization</h5>
-                        <div class="mb-3">
-                            <label class="form-label">Upload Proof of Ownership</label>
-                            <input type="file" class="form-control" name="govID" accept="image/*,.pdf">
-                            <?php if (!empty($user['verificationId'])): ?>
-                                <small class="text-muted">Current: <?= htmlspecialchars($user['verificationId']) ?></small>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Authorization Letter + Owner’s ID copy</label>
-                            <input type="file" class="form-control" name="selfieID" accept="image/*,.pdf" multiple>
-                            <?php if (!empty($user['ID_image'])): ?>
-                                <small class="text-muted">Current: <?= htmlspecialchars($user['ID_image']) ?></small>
-                            <?php endif; ?>
-                        </div>
-
-                        <div class="d-flex justify-content-start gap-2 mt-4">
-                            <button type="submit" class="main-button">Save</button>
-                            <button type="button" class="main-button"
-                                onclick="location.href='account.php'">Cancel</button>
-                        </div>
-                    </form>
+                    </div>
                 </div>
             </div>
         </div>

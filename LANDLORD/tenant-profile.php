@@ -2,20 +2,36 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-// login tenant from session
-$tenant_id = $_SESSION['user_id'];
+// Ensure landlord is logged in
+if (!isset($_SESSION['landlord_id'])) {
+    die("Unauthorized access. Please log in as landlord.");
+}
 
-// fetch landlord profile
-$sql = "SELECT firstName, lastName, phoneNum, email, created_at, profilePic 
+$landlord_id = (int)$_SESSION['landlord_id'];
+
+// Get tenant_id from URL
+$tenant_id = isset($_GET['tenant_id']) ? (int)$_GET['tenant_id'] : 0;
+if ($tenant_id <= 0) {
+    die("Invalid tenant ID.");
+}
+
+// Fetch tenant profile
+$sql = "SELECT ID, firstName, lastName, phoneNum, email, created_at, profilePic 
         FROM tenanttbl 
-        WHERE ID= ?";
+        WHERE ID = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $tenant_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $tenant = $result->fetch_assoc();
+$stmt->close();
 
-// image path
+
+if (!$tenant) {
+    die("Tenant not found.");
+}
+
+// Profile image
 $profilePath = $tenant['profilePic'] ?? '';
 if (!empty($profilePath) && !str_starts_with($profilePath, 'http')) {
     $profilePath = "../uploads/" . $profilePath;
@@ -83,40 +99,38 @@ $firstLetter = strtoupper(substr($tenant['firstName'], 0, 1));
 
 <body>
     <!-- HEADER -->
-    <?php include '../Components/tenant-header.php' ?>
+    <?php include '../Components/landlord-header.php' ?>
     <!-- ACCOUNT PAGE -->
     <div class="landlord-page">
         <div class="container m-auto">
-            <h1 class="mb-4">ACCOUNT</h1>
-            <div class="row gy-4 justify-content-center">
-                <div class="col-lg-8">
-                    <div class="row gy-4 justify-content-center user-profile">
-                        <div class="col-lg-5 col-sm-12 justify-content-center d-flex">
-                            <div class="account-img d-flex align-items-center justify-content-center">
-                                <?php if (!empty($tenant['profilePic'])): ?>
-                                    <img src="<?= htmlspecialchars($profilePath); ?>"
-                                        alt="Profile Picture" onerror="this.src='../images/default-avatar.png';
-                            ">
-                                <?php else: ?>
-                                    <div class="avatar">
-                                        <?= $firstLetter ?>
-                                    </div>
-                                <?php endif; ?>
+            <h1 class="mb-5">Tenant Profile</h1>
+            <div class="row gy-4 justify-content-center user-profile">
+                <div class="col-lg-5 col-sm-12">
+                    <div class="account-img d-flex align-items-center justify-content-center">
+                        <?php if (!empty($tenant['profilePic'])): ?>
+                            <img src="<?= htmlspecialchars($profilePath); ?>" alt="Profile Picture" class="rounded-circle" style="width:150px; height:150px; object-fit:cover;">
+                        <?php else: ?>
+                            <div class="avatar" style="width:150px; height:150px; display:flex; align-items:center; justify-content:center; font-size:48px; background:#ccc; border-radius:50%;">
+                                <?= $firstLetter ?>
                             </div>
-                        </div>
-                        <div class="col-lg-5 col-sm-12">
-                            <h1><?= htmlspecialchars(ucwords($tenant['firstName'] . ' ' . $tenant['lastName']));?></h1>
-                            <p>Phone Number: <?= htmlspecialchars($tenant['phoneNum']); ?></p>
-                            <p>Email: <?= htmlspecialchars($tenant['email']); ?></p>
-                            <p>Joined Date: <?= date("F j, Y", strtotime($tenant['created_at'])); ?></p>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="col-lg-5 col-sm-12">
+                    <h2><?= htmlspecialchars(ucwords($tenant['firstName'] . ' ' . $tenant['lastName'])); ?></h2>
+                    <p><strong>Phone:</strong> <?= htmlspecialchars($tenant['phoneNum']); ?></p>
+                    <p><strong>Email:</strong> <?= htmlspecialchars($tenant['email']); ?></p>
+                    <p><strong>Joined:</strong> <?= date("F j, Y", strtotime($tenant['created_at'])); ?></p>
 
+                    <div class="account-action d-flex justify-content-start align-items-center mt-4">
+                        <!-- Chat button -->
+                        <button class="small-button"
+                            onclick="location.href='landlord-messages.php?tenant_id=<?= htmlspecialchars($tenant['ID']); ?>'">
+                            Chat
+                        </button>
 
-                            <div class="account-action d-flex justify-content-start align-items-center mt-4">
-                                <button class="small-button" onclick="location.href='edit-account.php'">Edit</button>
-                                <button class="small-button mx-2" onclick="location.href='delete-account.php'">Delete</button>
-                                <button class="small-button" onclick="location.href='share-account.php'">Share</button>
-                            </div>
-                        </div>
+                        <!-- Optional actions -->
+                        <button class="small-button mx-2" onclick="location.href='report-tenant.php?tenant_id=<?= $tenant_id ?>'">Report</button>
                     </div>
                 </div>
             </div>

@@ -3,9 +3,8 @@ require_once '../session_auth.php';
 require_once '../connection.php';
 
 // Get admin info
-$admin_id = $_SESSION['admin_id'];
-$admin_email = $_SESSION['email'];
-$admin_name = $_SESSION['firstName'] . ' ' . $_SESSION['lastName'];
+$admin_name = $_SESSION['username'];
+
 
 // Handle search and filter
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -44,7 +43,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Accounts - Admin Dashboard</title>
-  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="accounts.css">
   <link rel="stylesheet" href="sidebar.css">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <style>
@@ -271,7 +270,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
             </a>
           </li>
           <li class="nav-link">
-            <a href="admin.php">
+            <a href="accounts.php">
               <i class='bx bx-user icon'></i>  
               <span class="text nav-text">Accounts</span>
             </a>

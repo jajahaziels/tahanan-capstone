@@ -3,9 +3,8 @@ require_once '../session_auth.php';
 require_once '../connection.php';
 
 // Get admin info
-$admin_id = $_SESSION['admin_id'];
-$admin_email = $_SESSION['email'];
-$admin_name = $_SESSION['firstName'] . ' ' . $_SESSION['lastName'];
+$admin_name = $_SESSION['username'];
+
 
 // Fetch pending landlord verification requests
 // Changed to use verification_status instead of is_verified
@@ -128,7 +127,7 @@ $verify_result = $conn->query($verify_query);
             </a>
           </li>
           <li class="nav-link">
-            <a href="admin.php">
+            <a href="accounts.php">
               <i class='bx bx-user icon'></i>
               <span class="text nav-text">Accounts</span>
             </a>

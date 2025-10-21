@@ -3,9 +3,7 @@ require_once '../session_auth.php';
 require_once '../connection.php';
 
 // Get admin info
-$admin_id = $_SESSION['admin_id'];
-$admin_email = $_SESSION['email'];
-$admin_name = $_SESSION['firstName'] . ' ' . $_SESSION['lastName'];
+$admin_name = $_SESSION['username'];
 
 // Get statistics from database
 $total_landlords = $conn->query("SELECT COUNT(*) as count FROM landlordtbl")->fetch_assoc()['count'];
@@ -39,7 +37,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Tahanan</title>
   <link rel="stylesheet" href="homepage.css">
-  <link rel="stylesheet" href="sidebar.css">
+  <link rel="stylesheet" href="sidebar.css?v=<?= time(); ?>">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   <style>
     .dashboard-grid {
@@ -432,7 +430,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
             </a>
           </li>
           <li class="nav-link">
-            <a href="admin.php">
+            <a href="accounts.php">
               <i class='bx bx-user icon'></i>  
               <span class="text nav-text">Accounts</span>
             </a>
@@ -468,7 +466,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
           <li class="admin-info" style="padding: 10px; margin-top: 10px; border-top: 1px solid #ddd;">
             <small class="text nav-text" style="opacity: 0.7;">
               Logged in as:<br>
-              <strong><?= htmlspecialchars($admin_email) ?></strong>
+              <strong><?= htmlspecialchars($admin_name) ?></strong>
             </small>
           </li>
       </div>

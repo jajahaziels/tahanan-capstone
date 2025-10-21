@@ -3,9 +3,8 @@ require_once '../session_auth.php';
 require_once '../connection.php';
 
 // Get admin info
-$admin_id = $_SESSION['admin_id'];
-$admin_email = $_SESSION['email'];
-$admin_name = $_SESSION['firstName'] . ' ' . $_SESSION['lastName'];
+$admin_name = $_SESSION['username'];
+
 
 // Handle filters
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
@@ -277,7 +276,7 @@ $filtered_count = $listings_result->num_rows;
             </a>
           </li>
           <li class="nav-link">
-            <a href="admin.php">
+            <a href="accounts.php">
               <i class='bx bx-user icon'></i>  
               <span class="text nav-text">Accounts</span>
             </a>

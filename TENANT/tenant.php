@@ -406,7 +406,7 @@ $result = $conn->query($sql);
             <p>Here are some featured properties</p>
 
             <!-- SEARCH CONTAINER -->
-            <div class="search-bar-container" style="margin-top: 20px;">
+            <div class="search-bar-container d-flex justify-content-end mt-0" style="margin-top: 20px;">
                 <div class="search-bar-wrapper">
                     <form method="GET" action="" class="search-input-group">
                         <input 

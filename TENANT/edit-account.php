@@ -89,9 +89,10 @@ $user = mysqli_fetch_assoc($result);
         }
 
         .edit {
-            border: 6px solid var(--main-color);
-            padding: 40px;
+            background-color: var(--bg-color);
+            padding: 20px;
             border-radius: 20px;
+            box-shadow: 2px 2px 10px var(--shadow-color);
         }
 
         .profile-img {
@@ -123,116 +124,96 @@ $user = mysqli_fetch_assoc($result);
 </head>
 
 <body>
-    <header>
-        <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="../img/logo.png"
-                alt="">Tahanan</a>
-
-        <ul class="nav-links">
-            <li><a href="tenant.php">Home</a></li>
-            <li><a href="tenant-rental.php">Properties</a></li>
-            <li><a href="tenant-messages.php">Messages</a></li>
-            <li><a href="support.php">Support</a></li>
-        </ul>
-
-        <div class="nav-icons">
-            <div class="dropdown">
-                <i class="fa-solid fa-user"></i>
-                <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>
-                <div class="dropdown-content">
-                    <a href="account.php">Account</a>
-                    <a href="settings.php">Settings</a>
-                    <a href="../LOGIN/logout.php">Log out</a>
-                </div>
-            </div>
-            <div class="fa-solid fa-bars" id="navmenu"></div>
-        </div>
-    </header>
+    <?php include '../Components/tenant-header.php'; ?>
 
     <div class="landlord-page">
         <div class="container m-auto">
             <h2 class="mb-4">EDIT ACCOUNT</h2>
 
-            <?php if (isset($error_message)): ?>
-                <div class="alert alert-danger"><?= $error_message ?></div>
-            <?php endif; ?>
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <?php if (isset($error_message)): ?>
+                        <div class="alert alert-danger"><?= $error_message ?></div>
+                    <?php endif; ?>
+                    <div class="row gy-4 justify-content-center edit">
+                        <div class="col-lg-8">
+                            <form class="mt-4" method="POST" enctype="multipart/form-data">
+                                <div class="row mb-3">
+                                    <div class="col d-flex justify-content-center align-items-center">
+                                        <label class="profile-img" for="upload">
+                                            <span id="profile-text"
+                                                style="<?= !empty($user['profilePic']) ? 'display: none;' : '' ?>">add
+                                                img</span>
+                                            <img id="preview"
+                                                src="<?= !empty($user['profilePic']) ? '../uploads/' . htmlspecialchars($user['profilePic']) : '' ?>"
+                                                alt=""
+                                                style="<?= !empty($user['profilePic']) ? 'display: block;' : 'display: none;' ?>">
+                                            <input type="file" id="upload" name="profilePic" class="upload-input"
+                                                accept="image/*">
+                                        </label>
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">First Name</label>
+                                        <input type="text" name="firstName" class="form-control"
+                                            value="<?= htmlspecialchars($user['firstName'] ?? '') ?>" required>
 
-            <div class="row gy-4 justify-content-center edit">
-                <div class="col-lg-8">
-                    <form class="mt-4" method="POST" enctype="multipart/form-data">
-                        <div class="row mb-3">
-                            <div class="col d-flex justify-content-center align-items-center">
-                                <label class="profile-img" for="upload">
-                                    <span id="profile-text"
-                                        style="<?= !empty($user['profilePic']) ? 'display: none;' : '' ?>">add
-                                        img</span>
-                                    <img id="preview"
-                                        src="<?= !empty($user['profilePic']) ? '../uploads/' . htmlspecialchars($user['profilePic']) : '' ?>"
-                                        alt=""
-                                        style="<?= !empty($user['profilePic']) ? 'display: block;' : 'display: none;' ?>">
-                                    <input type="file" id="upload" name="profilePic" class="upload-input"
-                                        accept="image/*">
-                                </label>
-                            </div>
-                            <div class="col">
-                                <label class="form-label">First Name</label>
-                                <input type="text" name="firstName" class="form-control"
-                                    value="<?= htmlspecialchars($user['firstName'] ?? '') ?>" required>
+                                        <label class="form-label">Last Name</label>
+                                        <input type="text" name="lastName" class="form-control"
+                                            value="<?= htmlspecialchars($user['lastName'] ?? '') ?>" required>
 
-                                <label class="form-label">Last Name</label>
-                                <input type="text" name="lastName" class="form-control"
-                                    value="<?= htmlspecialchars($user['lastName'] ?? '') ?>" required>
+                                        <label class="form-label">Middle Name</label>
+                                        <input type="text" name="middleName" class="form-control"
+                                            value="<?= htmlspecialchars($user['middleName'] ?? '') ?>">
+                                    </div>
+                                </div>
 
-                                <label class="form-label">Middle Name</label>
-                                <input type="text" name="middleName" class="form-control"
-                                    value="<?= htmlspecialchars($user['middleName'] ?? '') ?>">
-                            </div>
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" name="email" class="form-control"
+                                            value="<?= htmlspecialchars($user['email'] ?? '') ?>" required>
+                                    </div>
+
+                                    <div class="col">
+                                        <label class="form-label">User Name</label>
+                                        <input type="text" name="username" class="form-control"
+                                            value="<?= htmlspecialchars($user['username'] ?? '') ?>">
+                                    </div>
+
+                                </div>
+
+                                <div class="row mb-3">
+                                    <div class="col">
+                                        <label class="form-label">Date of Birth</label>
+                                        <input type="date" name="birthday" class="form-control"
+                                            value="<?= htmlspecialchars($user['birthday'] ?? '') ?>">
+                                    </div>
+                                    <div class="col">
+                                        <label class="form-label">Gender</label>
+                                        <select name="gender" class="form-control" required>
+                                            <option value="" disabled selected>Select your Gender</option>
+                                            <option value="Female" <?= ($user['gender'] ?? '') == 'Female' ? 'selected' : '' ?>>♀
+                                                Female</option>
+                                            <option value="Male" <?= ($user['gender'] ?? '') == 'Male' ? 'selected' : '' ?>>♂ Male
+                                            </option>
+                                        </select>
+                                    </div>
+
+
+                                    <div class="col">
+                                        <label class="form-label">Contact Number</label>
+                                        <input type="text" name="phoneNum" class="form-control"
+                                            value="<?= htmlspecialchars($user['phoneNum'] ?? '') ?>">
+                                    </div>
+
+                                    <div class="d-flex justify-content-start gap-2 mt-4">
+                                        <button type="submit" class="main-button">Save</button>
+                                        <button type="button" class="main-button"
+                                            onclick="location.href='account.php'">Cancel</button>
+                                    </div>
+                                </div>
                         </div>
-
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label class="form-label">Email</label>
-                                <input type="email" name="email" class="form-control"
-                                    value="<?= htmlspecialchars($user['email'] ?? '') ?>" required>
-                            </div>
-
-                            <div class="col">
-                                <label class="form-label">User Name</label>
-                                <input type="text" name="username" class="form-control"
-                                    value="<?= htmlspecialchars($user['username'] ?? '') ?>">
-                            </div>
-
-                        </div>
-
-                        <div class="row mb-3">
-                            <div class="col">
-                                <label class="form-label">Date of Birth</label>
-                                <input type="date" name="birthday" class="form-control"
-                                    value="<?= htmlspecialchars($user['birthday'] ?? '') ?>">
-                            </div>
-                            <div class="col">
-                                <label class="form-label">Gender</label>
-                                <select name="gender" class="form-control" required>
-                                    <option value="" disabled selected>Select your Gender</option>
-                                    <option value="Female" <?= ($user['gender'] ?? '') == 'Female' ? 'selected' : '' ?>>♀
-                                        Female</option>
-                                    <option value="Male" <?= ($user['gender'] ?? '') == 'Male' ? 'selected' : '' ?>>♂ Male
-                                    </option>
-                                </select>
-                            </div>
-
-
-                            <div class="col">
-                                <label class="form-label">Contact Number</label>
-                                <input type="text" name="phoneNum" class="form-control"
-                                    value="<?= htmlspecialchars($user['phoneNum'] ?? '') ?>">
-                            </div>
-
-                            <div class="d-flex justify-content-start gap-2 mt-4">
-                                <button type="submit" class="main-button">Save</button>
-                                <button type="button" class="main-button"
-                                    onclick="location.href='account.php'">Cancel</button>
-                            </div>
-                        </div>
+                    </div>
                 </div>
             </div>
         </div>

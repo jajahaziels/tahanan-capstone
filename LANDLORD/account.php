@@ -92,7 +92,7 @@ $firstLetter = strtoupper(substr($landlord['firstName'], 0, 1));
             <h1 class="mb-4">ACCOUNT</h1>
             <div class="row gy-4 justify-content-center">
                 <div class="col-lg-8">
-                    <div class="row justify-content-center user-profile">
+                    <div class="row gy-4 justify-content-center user-profile">
                         <div class="col-lg-5 col-sm-12 justify-content-center d-flex">
                             <div class="account-img d-flex align-items-center justify-content-center">
                                 <?php if (!empty($landlord['profilePic'])): ?>
@@ -110,7 +110,7 @@ $firstLetter = strtoupper(substr($landlord['firstName'], 0, 1));
                             <h1><?= htmlspecialchars(ucwords(strtolower($landlord['firstName'] . ' ' . $landlord['lastName']))); ?></h1>
                             <p>Phone Number: <?= htmlspecialchars($landlord['phoneNum']); ?></p>
                             <p>Email: <?= htmlspecialchars($landlord['email']); ?></p>
-                            <p>Joined Date: <?= date("m-d-Y", strtotime($landlord['created_at'])); ?></p>
+                            <p>Joined Date: <?= date("F j, Y", strtotime($landlord['created_at'])); ?></p>
 
 
                             <div class="account-action d-flex justify-content-start align-items-center mt-4">
@@ -125,39 +125,6 @@ $firstLetter = strtoupper(substr($landlord['firstName'], 0, 1));
             </div>
         </div>
     </div>
-
-    <!-- <div class="landlord-page">
-        <div class="container m-auto">
-            <h1 class="mb-5">ACCOUNT</h1>
-            <div class="row gy-4 justify-content-center user-profile">
-                <div class="col-lg-5 col-sm-12">
-                    <div class="account-img d-flex align-items-center justify-content-center">
-                        <?php if (!empty($landlord['profilePic'])): ?>
-                            <img src="<?= $landlord['profilePic']; ?>" alt="Profile Picture">
-                        <?php else: ?>
-                            <div class="avatar">
-                                <?= $firstLetter ?>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <div class="col-lg-5 col-sm-12">
-                    <h1><?= htmlspecialchars($landlord['firstName'] . ' ' . $landlord['lastName']); ?></h1>
-                    <p>Phone Number: <?= htmlspecialchars($landlord['phoneNum']); ?></p>
-                    <p>Email: <?= htmlspecialchars($landlord['email']); ?></p>
-                    <p>Joined Date: <?= date("m-d-Y", strtotime($landlord['created_at'])); ?></p>
-
-
-                    <div class="account-action d-flex justify-content-start align-items-center mt-4">
-                        <button class="small-button" onclick="location.href='edit-account.php'">Edit</button>
-                        <button class="small-button mx-2" onclick="location.href='delete-account.php'">Delete</button>
-                        <button class="small-button" onclick="location.href='share-account.php'">Share</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div> -->
-
 
     <!-- MAIN JS -->
     <script src="../js/script.js" defer></script>

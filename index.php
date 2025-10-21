@@ -162,7 +162,7 @@ $result = $conn->query($sql);
                                     <div class="landlord-info">
                                         <div class="landlord-left d-flex align-items-center">
                                             <?php if (!empty($row['profilePic'])): ?>
-                                                <img src="LANDLORD/uploads/<?= htmlspecialchars($row['profilePic']); ?>"
+                                                <img src="uploads/<?= htmlspecialchars($row['profilePic']); ?>"
                                                     alt="Landlord"
                                                     style="width:40px; height:40px; border-radius:50%; object-fit:cover;">
                                             <?php else: ?>

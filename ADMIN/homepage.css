@@ -1,3 +1,12 @@
+:root {
+    --bg-color: #ffffff;
+    --bg-alt-color: #f2f2f2;
+    --main-color: #8D0B41;
+    --text-color: #42505A;
+    --text-alt-color: #647887;
+    --shadow-color: rgba(0, 0, 0, 0.25);
+}
+
 .content {
   margin-left: 250px;
   padding: 20px;
@@ -18,7 +27,7 @@
 }
 
 .page-header p {
-  color: #666;
+  color: var(--text-alt-color);
   font-size: 14px;
 }
 
