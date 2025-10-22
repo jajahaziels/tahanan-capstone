@@ -120,6 +120,365 @@ if ($rental) {
             object-fit: cover !important;
             border-radius: 20px !important;
         }
+
+        .payment-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            animation: fadeIn 0.3s ease;
+            overflow-y: auto;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .payment-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .payment-modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            max-width: 450px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { 
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .payment-close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s;
+            line-height: 1;
+        }
+
+        .payment-close:hover {
+            color: #333;
+        }
+
+        .payment-modal h2 {
+            margin: 0 0 5px 0;
+            color: #333;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .payment-modal h2 i {
+            font-size: 20px;
+        }
+
+        .payment-subtitle {
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .payment-summary {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .payment-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .payment-row.total {
+            border-top: 2px solid #ddd;
+            padding-top: 10px;
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .payment-method {
+            margin-bottom: 20px;
+        }
+
+        .payment-method h3 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .payment-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .payment-option {
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .payment-option:hover {
+            border-color: #8D0B41;
+            background: #f8f9fa;
+        }
+
+        .payment-option.selected {
+            border-color: #8D0B41;
+            background: linear-gradient(135deg, rgba(141, 11, 65, 0.1), rgba(141, 11, 65, 0.05));
+        }
+
+        .payment-option i {
+            font-size: 20px;
+            margin-bottom: 6px;
+            color: #8D0B41;
+        }
+
+        .payment-option span {
+            display: block;
+            font-size: 11px;
+            color: #666;
+        }
+
+        .payment-form-group {
+            margin-bottom: 15px;
+        }
+
+        .payment-form-group label {
+            display: block;
+            margin-bottom: 6px;
+            color: #333;
+            font-weight: 500;
+            font-size: 13px;
+        }
+
+        .payment-form-group input,
+        .payment-form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .payment-form-group input:focus,
+        .payment-form-group select:focus {
+            outline: none;
+            border-color: #8D0B41;
+        }
+
+        .payment-proof {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .payment-proof:hover {
+            border-color: #8D0B41;
+            background: #f8f9fa;
+        }
+
+        .payment-proof i {
+            font-size: 36px;
+            color: #ccc;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .payment-proof p {
+            margin: 0;
+            color: #666;
+            font-size: 13px;
+        }
+
+        .payment-proof.has-file {
+            border-color: #8D0B41;
+            background: linear-gradient(135deg, rgba(141, 11, 65, 0.1), rgba(141, 11, 65, 0.05));
+        }
+
+        .payment-proof.has-file i {
+            color: #8D0B41;
+        }
+
+        .payment-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .payment-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .payment-btn-primary {
+            background: #8D0B41;
+            color: white;
+        }
+
+        .payment-btn-primary:hover {
+            background: #6d0832;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(141, 11, 65, 0.3);
+        }
+
+        .payment-btn-secondary {
+            background: #e9ecef;
+            color: #666;
+        }
+
+        .payment-btn-secondary:hover {
+            background: #dee2e6;
+        }
+
+        @media (max-width: 576px) {
+            .payment-modal-content {
+                padding: 20px;
+                max-width: 95%;
+                max-height: 85vh;
+            }
+
+            .payment-modal h2 {
+                font-size: 20px;
+            }
+
+            .payment-subtitle {
+                font-size: 12px;
+            }
+
+            .payment-summary {
+                padding: 12px;
+            }
+
+            .payment-row {
+                font-size: 12px;
+            }
+
+            .payment-row.total {
+                font-size: 16px;
+            }
+
+            .payment-options {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 6px;
+            }
+
+            .payment-option {
+                padding: 10px 6px;
+            }
+
+            .payment-option i {
+                font-size: 18px;
+                margin-bottom: 4px;
+            }
+
+            .payment-option span {
+                font-size: 10px;
+            }
+
+            .payment-form-group input,
+            .payment-form-group select {
+                padding: 8px 10px;
+                font-size: 13px;
+            }
+
+            .payment-proof {
+                padding: 12px;
+            }
+
+            .payment-proof i {
+                font-size: 30px;
+            }
+
+            .payment-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .payment-btn {
+                padding: 10px;
+                font-size: 13px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .payment-modal-content {
+                padding: 15px;
+            }
+
+            .payment-close {
+                font-size: 20px;
+                right: 10px;
+                top: 10px;
+            }
+        }
+
+        .payment-modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .payment-modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .payment-modal-content::-webkit-scrollbar-thumb {
+            background: #8D0B41;
+            border-radius: 10px;
+        }
+
+        .payment-modal-content::-webkit-scrollbar-thumb:hover {
+            background: #6d0832;
+        }
     </style>
 </head>
 
@@ -134,7 +493,7 @@ if ($rental) {
             <form method="post" action="cancel-rental.php">
                 <input type="hidden" name="rental_id" value="<?php echo $rental['rental_id']; ?>">
                 <input type="hidden" name="listing_id" value="<?php echo htmlspecialchars($rental['listing_id']); ?>">
-                <button type="submit" class="main-button">Payment</button>
+                <button type="button" class="main-button" onclick="openPaymentModal()">Payment</button>
                 <button type="submit" class="main-button">View History</button>
             </form>
             </div>
@@ -252,6 +611,135 @@ if ($rental) {
             <?php endif; ?>
         </div>
     </div>
+    
+    <div id="paymentModal" class="payment-modal">
+    <div class="payment-modal-content">
+        <span class="payment-close" onclick="closePaymentModal()">&times;</span>
+        
+        <h2><i class="fa-solid fa-credit-card"></i> Payment</h2>
+        <p class="payment-subtitle">Complete your rent payment securely</p>
+
+        
+        <div class="payment-summary">
+            <div class="payment-row">
+                <span>Property:</span>
+                <strong><?php echo htmlspecialchars($rental['listingName'] ?? 'N/A'); ?></strong>
+            </div>
+            <div class="payment-row">
+                <span>Period:</span>
+                <span><?php echo date("M j", strtotime($rental['start_date'] ?? 'now')); ?> - <?php echo date("M j, Y", strtotime($rental['end_date'] ?? 'now')); ?></span>
+            </div>
+            <div class="payment-row total">
+                <span>Total Amount:</span>
+                <span>₱ 5,000.00</span> 
+            </div>
+        </div>
+
+        <form id="paymentForm" method="POST" action="process-payment.php" enctype="multipart/form-data">
+            <input type="hidden" name="rental_id" value="<?php echo $rental['rental_id'] ?? ''; ?>">
+            
+            <!-- Payment Method -->
+            <div class="payment-method">
+                <h3>Payment Method</h3>
+                <div class="payment-options">
+                    <div class="payment-option selected" onclick="selectPaymentMethod('gcash', this)">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                        <span>GCash</span>
+                    </div>
+                    <div class="payment-option" onclick="selectPaymentMethod('maya', this)">
+                        <i class="fa-solid fa-wallet"></i>
+                        <span>Maya</span>
+                    </div>
+                    <div class="payment-option" onclick="selectPaymentMethod('bank', this)">
+                        <i class="fa-solid fa-building-columns"></i>
+                        <span>Bank</span>
+                    </div>
+                </div>
+                <input type="hidden" name="payment_method" id="paymentMethodInput" value="gcash">
+            </div>
+
+            <!-- Payment Details -->
+            <div class="payment-form-group">
+                <label>Reference Number</label>
+                <input type="text" name="reference_number" placeholder="Enter transaction reference number" required>
+            </div>
+
+            <div class="payment-form-group">
+                <label>Amount Paid</label>
+                <input type="number" name="amount" placeholder="5000.00" step="0.01" required>
+            </div>
+
+            <!-- Upload Proof -->
+            <div class="payment-form-group">
+                <label>Upload Proof of Payment</label>
+                <input type="file" id="paymentProofInput" name="payment_proof" accept="image/*" style="display: none;" onchange="handleFileSelect(this)" required>
+                <div class="payment-proof" onclick="document.getElementById('paymentProofInput').click()">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p id="proofText">Click to upload screenshot</p>
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="payment-buttons">
+                <button type="button" class="payment-btn payment-btn-secondary" onclick="closePaymentModal()">
+                    Cancel
+                </button>
+                <button type="submit" class="payment-btn payment-btn-primary">
+                    <i class="fa-solid fa-paper-plane"></i> Submit Payment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openPaymentModal() {
+    document.getElementById('paymentModal').classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePaymentModal() {
+    document.getElementById('paymentModal').classList.remove('show');
+    document.body.style.overflow = 'auto';
+}
+
+function selectPaymentMethod(method, element) {
+    
+    document.querySelectorAll('.payment-option').forEach(opt => {
+        opt.classList.remove('selected');
+    });
+    
+    
+    element.classList.add('selected');
+    
+
+    document.getElementById('paymentMethodInput').value = method;
+}
+
+function handleFileSelect(input) {
+    const proofDiv = document.querySelector('.payment-proof');
+    const proofText = document.getElementById('proofText');
+    
+    if (input.files && input.files[0]) {
+        proofDiv.classList.add('has-file');
+        proofText.textContent = input.files[0].name;
+    }
+}
+
+
+window.onclick = function(event) {
+    const modal = document.getElementById('paymentModal');
+    if (event.target === modal) {
+        closePaymentModal();
+    }
+}
+
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        closePaymentModal();
+    }
+});
+</script>
 
 </body>
 <!-- MAIN JS -->
