@@ -97,6 +97,7 @@ section {
     color: var(--bg-color);
     border-radius: 10px;
     cursor: pointer;
+    border-style: none;
 }
 
 .main-button:hover {

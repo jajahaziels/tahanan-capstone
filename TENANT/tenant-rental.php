@@ -490,7 +490,7 @@ if ($rental) {
         <div class="container m-auto">
             <div class="d-flex justify-content-between">
             <h1 class="mb-1">Rental Info</h1>
-            <form method="post" action="cancel-rental.php">
+            <form method="post" action="payment-history.php">
                 <input type="hidden" name="rental_id" value="<?php echo $rental['rental_id']; ?>">
                 <input type="hidden" name="listing_id" value="<?php echo htmlspecialchars($rental['listing_id']); ?>">
                 <button type="button" class="main-button" onclick="openPaymentModal()">Payment</button>
