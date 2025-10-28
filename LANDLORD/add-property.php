@@ -147,6 +147,8 @@ if (!empty($_SESSION['success'])) {
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
     <!-- LEAFLET -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- SWEET ALERT -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>ADD PROPERTIES</title>
     <style>
         .landlord-page {
@@ -201,7 +203,8 @@ if (!empty($_SESSION['success'])) {
                         <div class="alert alert-success"><?= $success; ?></div>
                     <?php endif; ?>
 
-                    <form class="mt-4" method="POST" enctype="multipart/form-data">
+                    <form id="property-form" method="POST" enctype="multipart/form-data" action="add-property.php">
+
                         <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Listing Name</label>
@@ -354,6 +357,32 @@ if (!empty($_SESSION['success'])) {
 
             document.getElementById('latitude').value = lat;
             document.getElementById('longitude').value = lng;
+        });
+
+        document.getElementById("property-form").addEventListener("submit", async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+
+            try {
+                const response = await fetch("", {
+                    method: "POST",
+                    body: formData
+                });
+                const result = await response.json();
+
+
+            }
+            catch (success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Added Successfully!',
+                    text: 'Your property was added successfuly.',
+                    confirmButtonColor: '#4caf50'
+                });
+                this.reset(); // Clear the form
+            }
+
         });
     </script>
 </body>
