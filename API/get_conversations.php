@@ -1,5 +1,7 @@
 <?php
 // get_conversations.php
+error_reporting(0);
+ini_set('display_errors', 0);
 header('Content-Type: application/json');
 
 // Database connection
@@ -36,15 +38,18 @@ $stmt = $conn->prepare("
         (SELECT content FROM messages WHERE conversation_id = c.id AND status = 'active' ORDER BY created_at DESC LIMIT 1) as last_message,
         (SELECT created_at FROM messages WHERE conversation_id = c.id AND status = 'active' ORDER BY created_at DESC LIMIT 1) as last_message_time
     FROM conversations c
-    JOIN conversation_members cm ON cm.conversation_id = c.id AND cm.user_id = ?
-    JOIN conversation_members cm_other ON cm_other.conversation_id = c.id AND cm_other.user_id != ?
+    JOIN conversation_members cm ON cm.conversation_id = c.id 
+        AND cm.user_id = ? 
+        AND cm.user_type = ?
+    JOIN conversation_members cm_other ON cm_other.conversation_id = c.id 
+        AND cm_other.user_id != ?
     LEFT JOIN landlordtbl l ON cm_other.user_type = 'landlord' AND cm_other.user_id = l.ID
     LEFT JOIN tenanttbl t ON cm_other.user_type = 'tenant' AND cm_other.user_id = t.ID
-    WHERE cm.user_type = ?
     ORDER BY COALESCE(last_message_time, c.created_at) DESC
 ");
 
-$stmt->bind_param("iis", $user_id, $user_id, $user_type);
+// FIXED: "isi" matches 3 parameters
+$stmt->bind_param("isi", $user_id, $user_type, $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 

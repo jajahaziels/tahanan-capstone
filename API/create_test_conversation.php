@@ -4,7 +4,7 @@ require_once '../connection.php';
 
 // Change these to your actual IDs
 $landlord_id = 1; // Change this to your actual landlord ID
-$tenant_id = 4;   // Change this to your actual tenant ID
+$tenant_id = 1;   // Change this to your actual tenant ID
 
 // Check if landlord exists - FIXED: using lowercase column names
 $stmt = $conn->prepare("SELECT ID, firstName, lastName FROM landlordtbl WHERE ID = ?");

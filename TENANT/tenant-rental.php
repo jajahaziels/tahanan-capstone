@@ -588,21 +588,19 @@ if ($rental) {
                             </div>
 
                             <div class="col-lg-5 col-sm-12">
-                                <h2>Landlord Information</h2>
-                                <p><strong>Name: </strong><?php echo htmlspecialchars(ucwords(strtolower($rental['landlord_firstName'] . ' ' . $rental['landlord_lastName']))); ?>
-                                </p>
-                                <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['landlord_phone']); ?></p>
-                                <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['landlord_email']); ?></p>
-                                <button class="small-button"
-                                    onclick="window.location.href='landlord-profile.php?id=<?= htmlspecialchars($rental['landlord_id']); ?>'">
-                                    <i class="fa-solid fa-user"></i>
-                                </button>
-                                <button class="small-button"
-                                    onclick="window.location.href='tenant-messages.php?landlord_id=<?= htmlspecialchars($rental['landlord_id']); ?>'">
-                                    <i class="fas fa-comment-dots"></i>
-                                </button>
-
-                            </div>
+    <h2>Landlord Information</h2>
+    <p><strong>Name: </strong><?php echo htmlspecialchars(ucwords(strtolower($rental['landlord_firstName'] . ' ' . $rental['landlord_lastName']))); ?>
+    </p>
+    <p><strong>Phone:</strong> <?php echo htmlspecialchars($rental['landlord_phone']); ?></p>
+    <p><strong>Email:</strong> <?php echo htmlspecialchars($rental['landlord_email']); ?></p>
+    <button class="small-button"
+        onclick="window.location.href='landlord-profile.php?id=<?= htmlspecialchars($rental['landlord_id']); ?>'">
+        <i class="fa-solid fa-user"></i>
+    </button>
+    <button class="small-button" onclick="contactLandlord(<?= $rental['landlord_id']; ?>, <?= $rental['listing_id']; ?>, '<?= htmlspecialchars(addslashes($rental['listingName'])); ?>', event)">
+        <i class="fas fa-comment-dots"></i>
+    </button>
+</div>
                         </div>
                     </div>
                 </div>
@@ -748,6 +746,7 @@ document.addEventListener('keydown', function(event) {
 <script src="../js/bootstrap.bundle.min.js"></script>
 <!-- SCROLL REVEAL -->
 <script src="https://unpkg.com/scrollreveal"></script>
+<script src="../js/contact-landlord.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var calendarEl = document.getElementById('calendar');

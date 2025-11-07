@@ -1,37 +1,54 @@
-// contact-landlord.js
-function contactLandlord(landlordId, propertyId, propertyName) {
-    // Show loading state
-    const btn = event.target.closest('button');
-    const originalHTML = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+function contactLandlord(landlordId, propertyId, propertyName, event) {
+    if (event) {
+        event.preventDefault();
+    }
 
-    // Create form data
+    console.log('🚀 Starting conversation');
+
+    const btn = event ? event.target.closest('button') : null;
+    const originalHTML = btn ? btn.innerHTML : '';
+    
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    }
+
     const formData = new FormData();
     formData.append('landlord_id', landlordId);
     formData.append('property_id', propertyId);
     formData.append('property_name', propertyName);
 
-    // Call API to create/find conversation
     fetch('../api/start_conversation.php', {
         method: 'POST',
         body: formData
     })
     .then(response => response.json())
     .then(data => {
+        console.log('✅ API Response:', data);
+        
         if (data.success) {
-            // Redirect to messages page with conversation ID
-            window.location.href = `tenant-messages.php?conversation_id=${data.conversation_id}`;
+            console.log('🔄 Redirecting to conversation:', data.conversation_id);
+            
+            // FIXED REDIRECT - Use absolute path
+            const redirectUrl = `/TAHANAN/TENANT/tenant-messages.php?conversation_id=${data.conversation_id}`;
+            console.log('📍 Redirect URL:', redirectUrl);
+            
+            window.location.href = redirectUrl;
         } else {
+            console.error('❌ API Error:', data.error);
             alert(data.error || 'Failed to start conversation');
-            btn.disabled = false;
-            btn.innerHTML = originalHTML;
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('Network error. Please try again.');
-        btn.disabled = false;
-        btn.innerHTML = originalHTML;
+        console.error('💥 Fetch Error:', error);
+        alert('Network error: ' + error.message);
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalHTML;
+        }
     });
 }

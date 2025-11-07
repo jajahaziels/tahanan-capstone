@@ -5,34 +5,78 @@ header('Content-Type: application/json');
 
 require_once '../connection.php';
 
-// Check if user is logged in as tenant
-if (!isset($_SESSION['user_type']) || $_SESSION['user_type'] !== 'tenant') {
+// Check if user is logged in (either tenant or landlord)
+if (!isset($_SESSION['user_type'])) {
     echo json_encode([
         "success" => false,
-        "error" => "You must be logged in as a tenant",
+        "error" => "You must be logged in",
         "redirect" => "../LOGIN/login.php"
     ]);
     exit;
 }
 
-if (!isset($_SESSION['tenant_id'])) {
+$user_type = $_SESSION['user_type'];
+
+// Get current user's ID based on their type
+if ($user_type === 'tenant') {
+    if (!isset($_SESSION['tenant_id'])) {
+        echo json_encode([
+            "success" => false,
+            "error" => "Tenant ID not found in session",
+            "redirect" => "../LOGIN/login.php"
+        ]);
+        exit;
+    }
+    $current_user_id = $_SESSION['tenant_id'];
+} elseif ($user_type === 'landlord') {
+    if (!isset($_SESSION['landlord_id'])) {
+        echo json_encode([
+            "success" => false,
+            "error" => "Landlord ID not found in session",
+            "redirect" => "../LOGIN/login.php"
+        ]);
+        exit;
+    }
+    $current_user_id = $_SESSION['landlord_id'];
+} else {
     echo json_encode([
         "success" => false,
-        "error" => "Tenant ID not found in session",
-        "redirect" => "../LOGIN/login.php"
+        "error" => "Invalid user type"
     ]);
     exit;
 }
 
-$tenant_id = $_SESSION['tenant_id'];
-$landlord_id = $_POST['landlord_id'] ?? null;
-$property_id = $_POST['property_id'] ?? null;
-$property_name = $_POST['property_name'] ?? null;
+// Get parameters - support both GET and POST
+$landlord_id = $_POST['landlord_id'] ?? $_GET['landlord_id'] ?? null;
+$tenant_id = $_POST['tenant_id'] ?? $_GET['tenant_id'] ?? null;
+$property_id = $_POST['property_id'] ?? $_GET['property_id'] ?? null;
+$property_name = $_POST['property_name'] ?? $_GET['property_name'] ?? null;
 
-if (!$landlord_id || !$property_id) {
+// Determine the other party based on who's logged in
+if ($user_type === 'tenant') {
+    $tenant_id = $current_user_id; // Current user is the tenant
+    if (!$landlord_id) {
+        echo json_encode([
+            "success" => false,
+            "error" => "Missing landlord_id"
+        ]);
+        exit;
+    }
+} else { // landlord
+    $landlord_id = $current_user_id; // Current user is the landlord
+    if (!$tenant_id) {
+        echo json_encode([
+            "success" => false,
+            "error" => "Missing tenant_id"
+        ]);
+        exit;
+    }
+}
+
+if (!$property_id) {
     echo json_encode([
         "success" => false,
-        "error" => "Missing landlord_id or property_id"
+        "error" => "Missing property_id"
     ]);
     exit;
 }
@@ -79,7 +123,7 @@ $stmt->execute();
 $existing = $stmt->get_result()->fetch_assoc();
 
 if ($existing) {
-    // Conversation already exists
+    // Conversation already exists - redirect to it
     echo json_encode([
         "success" => true,
         "conversation_id" => $existing['id'],
@@ -94,7 +138,7 @@ $conn->begin_transaction();
 
 try {
     // Create conversation title
-    $title = "Chat between {$tenant['firstName']} {$tenant['lastName']} and {$landlord['firstName']} {$landlord['lastName']}";
+    $title = "Chat about " . ($property_name ? $property_name : "Property #" . $property_id);
     
     $stmt = $conn->prepare("INSERT INTO conversations (type, title, created_at) VALUES ('private', ?, NOW())");
     $stmt->bind_param("s", $title);
@@ -111,10 +155,15 @@ try {
     $stmt->bind_param("ii", $conversation_id, $landlord_id);
     $stmt->execute();
 
-    // Add initial message from tenant about the property
-    $initial_message = "Hi! I'm interested in your property" . ($property_name ? ": " . $property_name : "") . ".";
+    // Add initial message - from whoever started the conversation
+    if ($user_type === 'tenant') {
+        $initial_message = "Hi! I'm interested in your property" . ($property_name ? ": " . $property_name : "") . ".";
+    } else {
+        $initial_message = "Hello! I'm reaching out about" . ($property_name ? ": " . $property_name : " this property") . ".";
+    }
+    
     $stmt = $conn->prepare("INSERT INTO messages (conversation_id, sender_id, content, content_type, status, created_at) VALUES (?, ?, ?, 'text', 'active', NOW())");
-    $stmt->bind_param("iis", $conversation_id, $tenant_id, $initial_message);
+    $stmt->bind_param("iis", $conversation_id, $current_user_id, $initial_message);
     $stmt->execute();
 
     $conn->commit();

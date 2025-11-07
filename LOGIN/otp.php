@@ -32,20 +32,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
     );
     $stmt->execute();
 
-    // Set login session
+    // **CRITICAL FIX: Set ALL login session variables correctly**
     $_SESSION['user_id'] = $_SESSION['otp_user_id'];
-    $_SESSION['username'] = $_SESSION['user_name'];
+    $_SESSION['username'] = $_SESSION['otp_name'];  // ✅ FIXED: was 'user_name', should be 'otp_name'
     $_SESSION['user_type'] = $_SESSION['otp_role'];
 
-    // Clear OTP session variables
-    unset($_SESSION['device_otp'], $_SESSION['otp_user_id'], $_SESSION['otp_device_hash'], $_SESSION['otp_role'], $_SESSION['otp_expiry'], $_SESSION['user_name']);
-
-    // Redirect by role
-    if ($_SESSION['user_type'] === 'landlord') {
-      header("Location: /TAHANAN/LANDLORD/landlord-properties.php");
-    } else {
-      header("Location: /TAHANAN/TENANT/tenant.php");
+    // **CRITICAL FIX: Set tenant_id or landlord_id for messaging system**
+    if ($_SESSION['otp_role'] === 'tenant') {
+      $_SESSION['tenant_id'] = $_SESSION['otp_user_id'];
+    } elseif ($_SESSION['otp_role'] === 'landlord') {
+      $_SESSION['landlord_id'] = $_SESSION['otp_user_id'];
     }
+
+    // Clear OTP session variables
+    unset(
+      $_SESSION['device_otp'], 
+      $_SESSION['otp_user_id'], 
+      $_SESSION['otp_device_hash'], 
+      $_SESSION['otp_role'], 
+      $_SESSION['otp_expiry'], 
+      $_SESSION['otp_name'],
+      $_SESSION['otp_email'],
+      $_SESSION['otp_redirect']
+    );
+
+    // Redirect by role using stored redirect URL
+    $redirect = $_SESSION['otp_redirect'] ?? ($_SESSION['user_type'] === 'landlord' 
+      ? '/TAHANAN/LANDLORD/landlord-properties.php' 
+      : '/TAHANAN/TENANT/tenant.php');
+    
+    header("Location: $redirect");
     exit();
   }
 }

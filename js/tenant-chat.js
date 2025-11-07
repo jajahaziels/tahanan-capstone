@@ -43,42 +43,75 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Load conversations
   async function loadConversations() {
-    try {
-      const res = await fetch(`../api/get_conversations.php?user_id=${currentUserId}&user_type=${currentUserType}`);
-      const data = await res.json();
+  console.log('🔄 Loading conversations...');
+  console.log('👤 Current User ID:', currentUserId);
+  console.log('👤 Current User Type:', currentUserType);
+  console.log('🎯 Target Conversation ID from URL:', targetConversationId);
+  
+  try {
+    const url = `../api/get_conversations.php?user_id=${currentUserId}&user_type=${currentUserType}`;
+    console.log('📡 Fetching from:', url);
+    
+    const res = await fetch(url);
+    const data = await res.json();
 
-      if (data.success) {
-        displayConversations(data.conversations);
-        
-        const loadingEl = document.getElementById('conversations-loading');
-        if (loadingEl) loadingEl.style.display = 'none';
-        
-        if (data.conversations.length === 0) {
-          const noConvEl = document.getElementById('no-conversations');
-          if (noConvEl) noConvEl.style.display = 'block';
-        } else {
-          const noConvEl = document.getElementById('no-conversations');
-          if (noConvEl) noConvEl.style.display = 'none';
-          
-          if (targetConversationId) {
-            const targetConv = data.conversations.find(c => c.conversation_id == targetConversationId);
-            if (targetConv) {
-              selectConversation(targetConv);
-              window.history.replaceState({}, document.title, window.location.pathname);
-            } else {
-              selectConversation(data.conversations[0]);
-            }
-          } else if (!currentConversationId) {
-            selectConversation(data.conversations[0]);
-          }
+    console.log('📋 Raw API Response:', data);
+    console.log('✅ Success:', data.success);
+    console.log('📊 Number of conversations:', data.conversations?.length || 0);
+    
+    if (data.conversations && data.conversations.length > 0) {
+      console.log('📝 Conversations:', data.conversations);
+    }
+
+    if (data.success) {
+      displayConversations(data.conversations);
+      
+      const loadingEl = document.getElementById('conversations-loading');
+      if (loadingEl) {
+        loadingEl.style.display = 'none';
+        console.log('✅ Loading element hidden');
+      }
+      
+      if (data.conversations.length === 0) {
+        console.log('⚠️ No conversations found');
+        const noConvEl = document.getElementById('no-conversations');
+        if (noConvEl) {
+          noConvEl.style.display = 'block';
+          console.log('✅ No conversations message shown');
         }
       } else {
-        console.error("Error loading conversations:", data.error);
+        console.log('✅ Conversations found:', data.conversations.length);
+        const noConvEl = document.getElementById('no-conversations');
+        if (noConvEl) noConvEl.style.display = 'none';
+        
+        if (targetConversationId) {
+          console.log('🔍 Looking for target conversation:', targetConversationId);
+          const targetConv = data.conversations.find(c => {
+            console.log('Comparing:', c.conversation_id, 'with', targetConversationId);
+            return c.conversation_id == targetConversationId;
+          });
+          
+          if (targetConv) {
+            console.log('✅ Found target conversation!', targetConv);
+            selectConversation(targetConv);
+            window.history.replaceState({}, document.title, window.location.pathname);
+          } else {
+            console.log('❌ Target conversation not found in list');
+            console.log('Selecting first conversation instead');
+            selectConversation(data.conversations[0]);
+          }
+        } else if (!currentConversationId) {
+          console.log('No target, selecting first conversation');
+          selectConversation(data.conversations[0]);
+        }
       }
-    } catch (err) {
-      console.error("Fetch error:", err);
+    } else {
+      console.error("❌ Error loading conversations:", data.error);
     }
+  } catch (err) {
+    console.error("💥 Fetch error:", err);
   }
+}
 
   // Display conversations in sidebar
   function displayConversations(conversations) {
@@ -293,7 +326,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             } else {
               const link = document.createElement("a");
               link.href = msg.file_path;
-              link.download = msg.message;
+              link.down = msg.message;
               link.innerHTML = `
                 <div class="message-file-icon">
                   <i class="fa-solid fa-file"></i>

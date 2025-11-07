@@ -53,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                     $_SESSION['user_id'] = $userId;
                     $_SESSION['username'] = $row['firstName'] . ' ' . $row['lastName'];
                     $_SESSION['user_type'] = $dbRole;
+                    $_SESSION['admin_id'] = $userId; // ADDED: Set admin_id for consistency
 
                     header("Location: $redirect");
                     exit();
@@ -70,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                     $_SESSION['username'] = $row['firstName'] . ' ' . $row['lastName'];
                     $_SESSION['user_type'] = $dbRole;
 
-                    // Optional: set tenant_id / landlord_id for message pages
+                    // CRITICAL: Set tenant_id / landlord_id for message system
                     if ($dbRole === 'tenant') {
                         $_SESSION['tenant_id'] = $userId;
                     } elseif ($dbRole === 'landlord') {
@@ -81,14 +82,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                     exit();
                 }
 
-                // Device not trusted need to send OTP
+                // Device not trusted - need to send OTP
                 $otp = rand(100000, 999999);
                 $_SESSION['device_otp'] = $otp;
                 $_SESSION['otp_user_id'] = $userId;
                 $_SESSION['otp_device_hash'] = $deviceHash;
                 $_SESSION['otp_role'] = $dbRole;
                 $_SESSION['otp_expiry'] = time() + 600; // 10 minutes
-                $_SESSION['otp_name'] = $row['firstName'] . ' ' . $row['lastName'];
+                $_SESSION['otp_name'] = $row['firstName'] . ' ' . $row['lastName']; // IMPORTANT: This matches otp.php
                 $_SESSION['otp_email'] = $email;
                 $_SESSION['otp_redirect'] = $redirect; 
                 
@@ -106,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                     $mail->addAddress($email);
                     $mail->isHTML(true);
                     $mail->Subject = 'TAHANAN Login OTP';
-                    $mail->Body = "<h3>TAHANAN</h3><p>OTP: <b>$otp</b>. Expires in 10 minutes.</p>";
+                    $mail->Body = "<h3>TAHANAN</h3><p>Your OTP code is: <b>$otp</b>. This code expires in 10 minutes.</p>";
                     $mail->send();
 
                     // Redirect to OTP page
