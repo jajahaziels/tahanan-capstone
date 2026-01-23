@@ -33,7 +33,7 @@ if (isset($token['error'])) {
 }
 
 $client->setAccessToken($token['access_token']);
-$google_service = new Google_Service_Oauth($client);
+$google_service = new Google_Service_Oauth2($client);
 $data = $google_service->userinfo->get();
 
 // --- Extract user info ---

@@ -58,7 +58,7 @@ $admin_name = $_SESSION['username'];
           </li>
           <li class="nav-link">
             <a href="report.php">
-              <i class='bx bx-alert-circle icon'></i>  
+              <i class="bx bx-flag icon"></i>  
               <span class="text nav-text">Reports</span>
             </a>
           </li>
@@ -87,7 +87,7 @@ $admin_name = $_SESSION['username'];
           <li class="admin-info" style="padding: 10px; margin-top: 10px; border-top: 1px solid #ddd;">
             <small class="text nav-text" style="opacity: 0.7;">
               Logged in as:<br>
-              <strong><?= htmlspecialchars($admin_email) ?></strong>
+              <strong><?= htmlspecialchars($admin_name) ?></strong>
             </small>
           </li>
       </div>

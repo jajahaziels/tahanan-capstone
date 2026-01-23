@@ -20,11 +20,11 @@ body {
   --toggle-color: #000000;
   --text-color: #707070; */
 
-  --body-color: #f2f2f2;
-  --sidebar-color: #ffffff;
-  --primary-color: #0b4c8d49;
-  --toggle-color: #000000;
-  --text-color: #42505A;
+  --body-color: #f2f2f2 !important;
+  --sidebar-color: #ffffff !important;
+  --primary-color: #0b4c8d49 !important;
+  --toggle-color: #000000 !important;
+  --text-color: #42505A !important;
 
 
   --tra-02: all 0.2s ease;

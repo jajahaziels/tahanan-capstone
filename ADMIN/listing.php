@@ -312,7 +312,7 @@ $filtered_count = $listings_result->num_rows;
           <li class="admin-info" style="padding: 10px; margin-top: 10px; border-top: 1px solid #ddd;">
             <small class="text nav-text" style="opacity: 0.7;">
               Logged in as:<br>
-              <strong><?= htmlspecialchars($admin_email) ?></strong>
+              <strong><?= htmlspecialchars($admin_name) ?></strong>
             </small>
           </li>
       </div>

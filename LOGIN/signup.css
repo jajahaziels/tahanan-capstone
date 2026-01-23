@@ -6,7 +6,7 @@
   --main-color: #8D0B41;
   --text-color: #42505A;
   --text-alt-color: #647887;
-
+  
 }
 
 * {
@@ -243,7 +243,6 @@ form {
 /*  LOGIN FORM */
 .form-container.login-container {
   background: linear-gradient(90deg, var(--bg-color), var(--bg-alt-color));
-      /* background: linear-gradient(rgba(0, 0, 0, 0.854), rgba(29, 0, 0, 0.5)), url(../img/10.jpg); */
 }
 
 
@@ -258,24 +257,24 @@ form {
 
 .remember-forgot a:hover {
   color: #b30d4f;
-
+  
 }
 
-.signup {
+ .signup {
   color: var(--main-color);
-  font-weight: 500;
-}
+    font-weight: 500;
+  }
+  
+  .signup input {
+    cursor: pointer;
+  }
+  
+  .signup a:hover {
+    color: #b30d4f;
+  
+  }
 
-.signup input {
-  cursor: pointer;
-}
-
-.signup a:hover {
-  color: #b30d4f;
-
-}
-
-
+ 
 /* OTP Modal Overlay */
 #otpModal {
   display: none;
@@ -341,6 +340,22 @@ form {
   margin-top: 10px;
   display: none;
   /* only show if OTP fails */
+}
+
+<style>
+    :root {
+  --bg-color: #fafafa;
+  --bg-alt-color: #dfdfdf;
+  --main-color: #8D0B41;
+  --text-color: #42505A;
+  --text-alt-color: #647887;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Montserrat", sans-serif;
 }
 
 /* OTP */

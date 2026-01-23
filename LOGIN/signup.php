@@ -211,7 +211,8 @@ if (isset($_SESSION['google_signup'])) {
                     <i class="fa-solid fa-key"></i>
                 </div>
                 <div class="terms">
-                    <input type="checkbox" required> I agree with <a href="#">Terms and Condition</a>
+                   <input type="checkbox" required>
+                   I agree with <a href="terms-landlord.html" target="_blank">Terms and Conditions</a>
                 </div>
                 <button type="submit" class="btn signup">Sign Up</button>
                 <div class="socials">
@@ -259,7 +260,8 @@ if (isset($_SESSION['google_signup'])) {
                     <i class="fa-solid fa-key"></i>
                 </div>
                 <div class="terms">
-                    <input type="checkbox" required> I agree with <a href="#">Terms and Condition</a>
+                   <input type="checkbox" required>
+                   I agree with <a href="terms-tenant.html" target="_blank">Terms and Conditions</a>
                 </div>
                 <button type="submit" class="btn signup">Sign Up</button>
                 <div class="socials">
@@ -270,6 +272,7 @@ if (isset($_SESSION['google_signup'])) {
                 </div>
             </form>
         </div>
+
 
         <!-- Toggle Box -->
         <div class="toggle-box">

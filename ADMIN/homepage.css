@@ -1,10 +1,9 @@
 :root {
-    --bg-color: #ffffff;
-    --bg-alt-color: #f2f2f2;
-    --main-color: #8D0B41;
+  --body-color: #f2f2f2;
+    --sidebar-color: #ffffff;
+    --primary-color: #0b4c8d49;
+    --toggle-color: #000000;
     --text-color: #42505A;
-    --text-alt-color: #647887;
-    --shadow-color: rgba(0, 0, 0, 0.25);
 }
 
 .content {
