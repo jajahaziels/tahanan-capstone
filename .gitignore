@@ -1,5 +1,12 @@
+<<<<<<< HEAD
 # Ignore Composer vendor folder
 /vendor/
 
 # Ignore uploads folder
+=======
+# Ignore Composer vendor folder
+/vendor/
+
+# Ignore uploads folder
+>>>>>>> 380bf9fbca740b882de9869cf0c3aaa5ee1e50c3
 LANDLORD/uploads/
