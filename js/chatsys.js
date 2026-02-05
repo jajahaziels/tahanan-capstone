@@ -145,7 +145,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const formData = new FormData();
     formData.append("conversation_id", currentConversationId);
-    formData.append("sender_id", currentUserId);
+    // REMOVED: Don't send sender_id - let server get it from session
     
     if (message) formData.append("message", message);
     if (selectedFile) formData.append("file", selectedFile);
@@ -202,8 +202,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         data.messages.forEach((msg, index) => {
+          // FIX: Compare BOTH sender_id AND sender_type
+          const isMine = (parseInt(msg.sender_id) === parseInt(currentUserId)) && (msg.sender_type === currentUserType);
+          
           const messageDiv = document.createElement("div");
-          messageDiv.classList.add("message", msg.sender_id == currentUserId ? "sent" : "received");
+          messageDiv.classList.add("message");
+          messageDiv.classList.add(isMine ? "sent" : "received");
           messageDiv.style.animationDelay = `${index * 0.05}s`;
           
           const avatar = document.createElement("img");
@@ -272,7 +276,8 @@ document.addEventListener("DOMContentLoaded", async () => {
           timeSpan.textContent = timeText;
           metaDiv.appendChild(timeSpan);
           
-          if (msg.sender_id == currentUserId) {
+          // Use the same isMine variable
+          if (isMine) {
             const statusSpan = document.createElement("span");
             statusSpan.classList.add("message-status");
             statusSpan.innerHTML = '<i class="fa-solid fa-check-double status-read"></i>';

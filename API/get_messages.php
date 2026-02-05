@@ -1,13 +1,11 @@
 <?php
-// get_messages.php
-
 header('Content-Type: application/json');
 
 // Database connection
 $host = "localhost";
-$user = "root";       // change if needed
-$pass = "";           // change if needed
-$db   = "tahanandb";  // your database
+$user = "root";
+$pass = "";
+$db   = "tahanandb";
 
 $conn = new mysqli($host, $user, $pass, $db);
 
@@ -25,7 +23,7 @@ if (!$conversation_id) {
 }
 
 // Fetch messages
-$stmt = $conn->prepare("SELECT id, sender_id, content as message, created_at, file_path, file_type, file_size, content_type
+$stmt = $conn->prepare("SELECT id, sender_id, sender_type, content as message, created_at, file_path, file_type, file_size, content_type
                         FROM messages 
                         WHERE conversation_id = ? AND status = 'active'
                         ORDER BY created_at ASC");
@@ -45,4 +43,4 @@ echo json_encode([
 
 $stmt->close();
 $conn->close();
-  
+?>

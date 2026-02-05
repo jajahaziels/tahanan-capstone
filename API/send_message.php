@@ -1,6 +1,5 @@
 <?php
-// send_message.php
-
+session_start();
 header('Content-Type: application/json');
 
 // Database connection
@@ -16,13 +15,46 @@ if ($conn->connect_error) {
     exit;
 }
 
+// Get sender_id from SESSION
+if (!isset($_SESSION['user_type'])) {
+    echo json_encode(["success" => false, "error" => "Not logged in"]);
+    exit;
+}
+
+$user_type = $_SESSION['user_type'];
+
+// Get the actual logged-in user's ID from session
+if ($user_type === 'tenant') {
+    $sender_id = $_SESSION['tenant_id'] ?? null;
+} elseif ($user_type === 'landlord') {
+    $sender_id = $_SESSION['landlord_id'] ?? null;
+} else {
+    echo json_encode(["success" => false, "error" => "Invalid user type"]);
+    exit;
+}
+
+if (!$sender_id) {
+    echo json_encode(["success" => false, "error" => "User ID not found in session"]);
+    exit;
+}
+
 // Get data from request
 $conversation_id = $_POST['conversation_id'] ?? null;
-$sender_id       = $_POST['sender_id'] ?? null;
 $message         = $_POST['message'] ?? null;
 
-if (!$conversation_id || !$sender_id) {
-    echo json_encode(["success" => false, "error" => "Missing conversation_id or sender_id"]);
+if (!$conversation_id) {
+    echo json_encode(["success" => false, "error" => "Missing conversation_id"]);
+    exit;
+}
+
+// Verify user is a member of this conversation
+$stmt = $conn->prepare("SELECT 1 FROM conversation_members WHERE conversation_id = ? AND user_id = ? AND user_type = ?");
+$stmt->bind_param("iis", $conversation_id, $sender_id, $user_type);
+$stmt->execute();
+$is_member = $stmt->get_result()->fetch_assoc();
+
+if (!$is_member) {
+    echo json_encode(["success" => false, "error" => "You are not a member of this conversation"]);
     exit;
 }
 
@@ -35,7 +67,6 @@ $content_type = 'text';
 if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
     $upload_dir = '../uploads/chat_files/';
     
-    // Create directory if it doesn't exist
     if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0777, true);
     }
@@ -75,7 +106,6 @@ if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
         exit;
     }
     
-    // If no message text provided, use filename
     if (empty($message)) {
         $message = $file_name;
     }
@@ -87,9 +117,9 @@ if (empty($message) && empty($file_path)) {
     exit;
 }
 
-// Insert into messages table with file info
-$stmt = $conn->prepare("INSERT INTO messages (conversation_id, sender_id, content, content_type, status, file_path, file_type, file_size, created_at) VALUES (?, ?, ?, ?, 'active', ?, ?, ?, NOW())");
-$stmt->bind_param("iissssi", $conversation_id, $sender_id, $message, $content_type, $file_path, $file_type, $file_size);
+// Insert into messages table with sender_type
+$stmt = $conn->prepare("INSERT INTO messages (conversation_id, sender_id, sender_type, content, content_type, status, file_path, file_type, file_size, created_at) VALUES (?, ?, ?, ?, ?, 'active', ?, ?, ?, NOW())");
+$stmt->bind_param("iisssssi", $conversation_id, $sender_id, $user_type, $message, $content_type, $file_path, $file_type, $file_size);
 
 if ($stmt->execute()) {
     echo json_encode([

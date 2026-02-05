@@ -25,7 +25,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
     $email = strtolower(trim($_POST['email']));
     $password = trim($_POST['password']);
 
-    // Add admin table here
     $roleMap = [
         'landlordtbl' => ['redirect' => '/TAHANAN/LANDLORD/landlord-properties.php', 'db_role' => 'landlord'],
         'tenanttbl' => ['redirect' => '/TAHANAN/TENANT/tenant.php', 'db_role' => 'tenant'],
@@ -53,6 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                     $_SESSION['user_id'] = $userId;
                     $_SESSION['username'] = $row['firstName'] . ' ' . $row['lastName'];
                     $_SESSION['user_type'] = $dbRole;
+                    $_SESSION['admin_id'] = $userId;
 
                     header("Location: $redirect");
                     exit();
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                     $_SESSION['username'] = $row['firstName'] . ' ' . $row['lastName'];
                     $_SESSION['user_type'] = $dbRole;
 
-                    // Optional: set tenant_id / landlord_id for message pages
+                    // Set tenant_id / landlord_id for message system
                     if ($dbRole === 'tenant') {
                         $_SESSION['tenant_id'] = $userId;
                     } elseif ($dbRole === 'landlord') {
@@ -81,16 +81,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                     exit();
                 }
 
-                // Device not trusted need to send OTP
+                // Device not trusted - need to send OTP
                 $otp = rand(100000, 999999);
                 $_SESSION['device_otp'] = $otp;
                 $_SESSION['otp_user_id'] = $userId;
                 $_SESSION['otp_device_hash'] = $deviceHash;
                 $_SESSION['otp_role'] = $dbRole;
-                $_SESSION['otp_expiry'] = time() + 600; // 10 minutes
+                $_SESSION['otp_expiry'] = time() + 600;
                 $_SESSION['otp_name'] = $row['firstName'] . ' ' . $row['lastName'];
                 $_SESSION['otp_email'] = $email;
-                $_SESSION['otp_redirect'] = $redirect; 
+                $_SESSION['otp_redirect'] = $redirect;
                 
                 // Send OTP via email
                 $mail = new PHPMailer(true);
@@ -106,10 +106,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                     $mail->addAddress($email);
                     $mail->isHTML(true);
                     $mail->Subject = 'TAHANAN Login OTP';
-                    $mail->Body = "<h3>TAHANAN</h3><p>OTP: <b>$otp</b>. Expires in 10 minutes.</p>";
+                    $mail->Body = "<h3>TAHANAN</h3><p>Your OTP code is: <b>$otp</b>. This code expires in 10 minutes.</p>";
                     $mail->send();
 
-                    // Redirect to OTP page
                     header("Location: otp.php");
                     exit();
 
@@ -150,18 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
             <form method="POST" action=""> 
                 <h1>Login Form</h1> 
                 
-                <!-- Debug information  -->
-                <?php if (isset($_GET['debug'])): ?>
-                <div class="debug-info">
-                    <strong>Debug Info:</strong><br>
-                    
-                    User Agent: <?php echo htmlspecialchars(substr($_SERVER['HTTP_USER_AGENT'], 0, 50)); ?>...<br>
-                    IP: <?php echo $_SERVER['REMOTE_ADDR']; ?><br>
-                    HTTPS: <?php echo (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'Yes' : 'No'; ?>
-                </div>
-                <?php endif; ?>
-                
-                <!-- Show error/success messages neatly --> 
+                <!-- Show error/success messages --> 
                 <?php if (!empty($errorMsg)): ?> 
                     <p class="message error"><?php echo $errorMsg; ?></p> 
                 <?php elseif (!empty($_SESSION['success'])): ?> 
@@ -179,8 +167,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                 <div class="remember-forgot"> 
                     <label><input type="checkbox" name="remember_me" value="1" <?php echo isset($_POST['remember_me']) ? 'checked' : ''; ?>> Remember me</label> 
                     <a href="forgot_password.php" class="forgot-link">Forgot Password?</a>
-
- 
                 </div><br> 
                 <button type="submit" class="btn login">Login</button> 
                 

@@ -53,13 +53,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
             if ($role === "landlord") {
-                $sql = "INSERT INTO landlordtbl (firstName, email, password, status, created_at) VALUES (?, ?, ?, 'pending', NOW())";
+                $sql = "INSERT INTO landlordtbl (username, email, password, status, created_at) VALUES (?, ?, ?, 'pending', NOW())";
             } else {
-                $sql = "INSERT INTO tenanttbl (firstName, email, password, status, created_at) VALUES (?, ?, ?, 'pending', NOW())";
+                $sql = "INSERT INTO tenanttbl (username, email, password, status, created_at) VALUES (?, ?, ?, 'pending', NOW())";
             }
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("sss", $username, $email, $hashedPassword);
-
+            
             if ($stmt->execute()) {
                 // generate OTP
                 $otp = rand(100000, 999999);
@@ -126,9 +126,9 @@ if (isset($_SESSION['google_signup'])) {
         unset($_SESSION['google_signup']);
     } else {
         if ($role === "landlord") {
-            $sql = "INSERT INTO landlordtbl (firstName, email, password, status, created_at) VALUES (?, ?, '', 'pending', NOW())";
+            $sql = "INSERT INTO landlordtbl (username, email, password, status, created_at) VALUES (?, ?, '', 'pending', NOW())";
         } else {
-            $sql = "INSERT INTO tenanttbl (firstName, email, password, status, created_at) VALUES (?, ?, '', 'pending', NOW())";
+            $sql = "INSERT INTO tenanttbl (username, email, password, status, created_at) VALUES (?, ?, '', 'pending', NOW())";
         }
         $stmt = $conn->prepare($sql);
         $stmt->bind_param("ss", $username, $email);

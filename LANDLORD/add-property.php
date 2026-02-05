@@ -44,7 +44,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
     if ($address === '') $errors[] = "Address is required.";
     if ($barangay === '') $errors[] = "Barangay is required.";
     if ($price <= 0) $errors[] = "Price must be greater than 0.";
-    if ($rooms <= 0) $errors[] = "Number of rooms is required.";
+    if ($rooms < 0) $errors[] = "Number of rooms is required.";
     if ($category === '') $errors[] = "Category is required.";
     if (empty($latitude) || empty($longitude)) $errors[] = "Location must be pinned on the map.";
     if (empty($_FILES['image']['name'][0])) $errors[] = "At least one image is required.";
@@ -122,13 +122,6 @@ if (!empty($_SESSION['success'])) {
 }
 ?>
 
-
-
-
-
-
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -193,16 +186,6 @@ if (!empty($_SESSION['success'])) {
             <h2>Add Property</h2>
             <div class="row gy-4 justify-content-center">
                 <div class="col-lg-6">
-                    <?php if (!empty($errors)): ?>
-                        <div class="alert alert-danger">
-                            <?php foreach ($errors as $e) echo "<div>$e</div>"; ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($success)): ?>
-                        <div class="alert alert-success"><?= $success; ?></div>
-                    <?php endif; ?>
-
                     <form id="property-form" method="POST" enctype="multipart/form-data" action="add-property.php">
 
                         <div class="row mb-1">
@@ -250,8 +233,6 @@ if (!empty($_SESSION['success'])) {
                                     <option value="Santo Niño">Santo Niño</option>
                                     <option value="United Bayanihan">United Bayanihan</option>
                                     <option value="United Better Living">United Better Living</option>
-
-                                    <!-- BASTA 27 TO -->
                                 </select>
                             </div>
                             <div class="col">
@@ -269,9 +250,8 @@ if (!empty($_SESSION['success'])) {
                                 <label class="form-label">Price</label>
                                 <div style="position: relative;">
                                     <span style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%);">₱</span>
-                                    <input type="text" name="price" class="form-control" placeholder="0.00" style="padding-left: 25px;" required>
+                                    <input type="number" name="price" class="form-control" placeholder="0.00" style="padding-left: 25px;" step="0.01" min="1" required>
                                 </div>
-
                             </div>
                             <div class="col">
                                 <label class="form-label">No. of Rooms</label>
@@ -302,25 +282,35 @@ if (!empty($_SESSION['success'])) {
                         <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Description</label>
-                                <textarea name="description" class="form-control"></textarea>
+                                <textarea name="description" class="form-control" rows="3"></textarea>
                             </div>
+                        </div>
+
+                        <div class="row mb-1">
                             <div class="col">
-                                <label class="form-label">Images</label>
-                                <input type="file" name="image[]" class="form-control" accept="image/*" multiple>
+                                <label class="form-label">Images (Select multiple)</label>
+                                <input type="file" name="image[]" class="form-control" accept="image/*" multiple required>
+                                <small class="text-muted">You can select multiple images at once</small>
                             </div>
                         </div>
 
                         <div class="row mb-3">
                             <div class="col">
-                                <label>Pin Location</label>
+                                <label class="form-label">Pin Location on Map</label>
                                 <div id="map"></div>
-                                <input type="hidden" name="latitude" id="latitude">
-                                <input type="hidden" name="longitude" id="longitude">
+                                <input type="hidden" name="latitude" id="latitude" required>
+                                <input type="hidden" name="longitude" id="longitude" required>
+                                <small class="text-muted">Click on the map to pin your property location</small>
                             </div>
                         </div>
+                        
                         <div class="mb-1">
-                            <button type="submit" class="main-button mx-2">Add property</button>
-                            <button class="main-button" onclick="location.href='landlord-properties.php'">Cancel</button>
+                            <button type="submit" class="main-button mx-2">
+                                <i class="fas fa-plus"></i> Add Property
+                            </button>
+                            <button type="button" class="main-button" onclick="location.href='landlord-properties.php'">
+                                <i class="fas fa-times"></i> Cancel
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -360,31 +350,28 @@ if (!empty($_SESSION['success'])) {
             document.getElementById('longitude').value = lng;
         });
 
-        document.getElementById("property-form").addEventListener("submit", async function(e) {
-            e.preventDefault();
-
-            const formData = new FormData(this);
-
-            try {
-                const response = await fetch("", {
-                    method: "POST",
-                    body: formData
-                });
-                const result = await response.json();
-
-
-            }
-            catch (success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Added Successfully!',
-                    text: 'Your property was added successfuly.',
-                    confirmButtonColor: '#4caf50'
-                });
-                this.reset(); // Clear the form
-            }
-
+        // Show success message if property was added
+        <?php if (!empty($success)): ?>
+        Swal.fire({
+            icon: 'success',
+            title: 'Added Successfully!',
+            text: 'Your property was added successfully.',
+            confirmButtonColor: '#4caf50'
+        }).then(() => {
+            // Redirect to properties page
+            window.location.href = 'landlord-properties.php';
         });
+        <?php endif; ?>
+
+        // Show error messages if any
+        <?php if (!empty($errors)): ?>
+        Swal.fire({
+            icon: 'error',
+            title: 'Submission Error!',
+            html: '<?php echo implode("<br>", array_map("htmlspecialchars", $errors)); ?>',
+            confirmButtonColor: '#dc3545'
+        });
+        <?php endif; ?>
     </script>
 </body>
 
