@@ -277,6 +277,7 @@ if (!empty($_SESSION['success'])) {
                                 <label class="form-label">No. of Rooms</label>
                                 <select name="rooms" class="form-control" required>
                                     <option value="" disabled selected>Select No. of Rooms</option>
+                                    <option value="0">Studio Type</option>
                                     <option value="1">1 Bedroom</option>
                                     <option value="2">2 Bedrooms</option>
                                     <option value="3">3 Bedrooms</option>

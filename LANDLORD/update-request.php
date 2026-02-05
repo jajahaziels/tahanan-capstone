@@ -2,47 +2,41 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $request_id = intval($_POST['request_id']);
-    $listing_id = intval($_POST['listing_id']);
-    $action = $_POST['action'];
+$request_id = intval($_POST['request_id'] ?? 0);
+$action = $_POST['action'] ?? '';
 
-    if ($action === "approve") {
-        $status = "approved";
-
-        // Prevent multiple approvals for same listing
-        $check = $conn->prepare("SELECT ID FROM renttbl WHERE listing_id=? AND status='approved'");
-        $check->bind_param("i", $listing_id);
-        $check->execute();
-        if ($check->get_result()->num_rows > 0) {
-            die("⚠️ This property already has an approved tenant.");
-        }
-    } elseif ($action === "reject") {
-        $status = "rejected";
-    } else {
-        die("Invalid action.");
-    }
-
-    // Update renttbl
-    $sql = "UPDATE renttbl SET status=? WHERE ID=?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("si", $status, $request_id);
-
-    if ($stmt->execute() && $stmt->affected_rows > 0) {
-        if ($status === "approved") {
-            echo "<script>
-                alert('✅ Rental request approved successfully!');
-                window.location.href='landlord-rental.php?request_id=$request_id';
-            </script>";
-        } else {
-            echo "<script>
-                alert('❌ Rental request rejected.');
-                window.location.href='property-details.php?ID=$listing_id';
-            </script>";
-        }
-        exit;
-    } else {
-        echo "⚠️ Update failed (maybe already $status or invalid request_id: $request_id)";
-    }
+if ($request_id <= 0 || empty($action)) {
+    http_response_code(400);
+    echo "Invalid request";
+    exit;
 }
+
+if ($action === 'reject') {
+    // Delete the request from the table
+    $stmt = $conn->prepare("DELETE FROM requesttbl WHERE ID = ?");
+    $stmt->bind_param("i", $request_id);
+    if ($stmt->execute()) {
+        echo "Request rejected and deleted";
+    } else {
+        http_response_code(500);
+        echo "Failed to delete request";
+    }
+    $stmt->close();
+} elseif ($action === 'remove') {
+    // Optional: remove already rejected request
+    $stmt = $conn->prepare("DELETE FROM requesttbl WHERE ID = ?");
+    $stmt->bind_param("i", $request_id);
+    if ($stmt->execute()) {
+        echo "Request removed";
+    } else {
+        http_response_code(500);
+        echo "Failed to remove request";
+    }
+    $stmt->close();
+} else {
+    http_response_code(400);
+    echo "Invalid action";
+}
+
+$conn->close();
 ?>

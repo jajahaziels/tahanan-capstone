@@ -495,9 +495,15 @@ $result = $conn->query($sql);
                                                 </div>
 
                                                 <div class="landlord-actions">
-                                                    <div class="btn"><i class="fa-solid fa-user"></i></div>
-                                                    <div class="btn"><i class="fas fa-comment-dots"></i></div>
+                                                    <a href="landlord-profile.php?id=<?= $property['landlord_id']; ?>" class="btn">
+                                                            <i class="fa-solid fa-user"></i>
+                                                    </a>
+
+                                                    <a href="tenant-messages.php?landlord_id=<?= $property['landlord_id']; ?>" class="btn">
+                                                            <i class="fas fa-comment-dots"></i>
+                                                    </a>
                                                 </div>
+
                                             </div>
                                         </div>
                                     </div>
