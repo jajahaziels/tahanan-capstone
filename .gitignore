@@ -1,2 +1,5 @@
 # Ignore Composer vendor folder
 /vendor/
+
+# Ignore uploads folder
+LANDLORD/uploads/
