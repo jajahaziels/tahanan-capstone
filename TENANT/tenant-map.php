@@ -29,7 +29,7 @@ while ($row = $result->fetch_assoc()) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title> <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?></title>
+<title>Tenant <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?></title>
 
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <link rel="stylesheet" href="../css/style.css">
@@ -147,14 +147,44 @@ while ($row = $result->fetch_assoc()) {
             const legendDiv = document.createElement("div");
             legendDiv.classList.add("map-legend");
             legendDiv.innerHTML = `
-        <div class="legend-item"><span class="legend-color" style="background:green;"></span>Budget‑friendly ≤ ₱10k</div>
-        <div class="legend-item"><span class="legend-color" style="background:orange;"></span>Comfortable ₱10k–20k</div>
-        <div class="legend-item"><span class="legend-color" style="background:purple;"></span>Premium > ₱20k</div>
-        <div class="legend-item"><span class="legend-color" style="background:red;"></span>Flood‑prone (indicative)</div>
-        <div class="legend-item"><span class="legend-color" style="background:orange;"></span>West Valley Fault (approximate)</div>
-        <div class="legend-item"><span class="legend-color" style="background:red; border:2px solid black;"></span>Hospital</div>
-        <div class="legend-item"><span class="legend-color" style="background:yellow; border:2px solid black;"></span>Evacuation Center</div>
-    `;
+    <div class="legend-item">
+        <span class="legend-color" style="background:green;"></span>
+        Budget-friendly ≤ ₱10k
+    </div>
+
+    <div class="legend-item">
+        <span class="legend-color" style="background:orange;"></span>
+        Comfortable ₱10k–20k
+    </div>
+
+    <div class="legend-item">
+        <span class="legend-color" style="background:purple;"></span>
+        Premium > ₱20k
+    </div>
+
+    <div class="legend-item">
+        <span class="legend-color" style="background:red;"></span>
+        Flood-prone Area
+    </div>
+
+    <div class="legend-item">
+        <span class="legend-color" style="background:red; height:4px;"></span>
+        Fault Line
+    </div>
+
+    <div class="legend-item">
+        <img src="https://maps.google.com/mapfiles/ms/icons/hospitals.png"
+             style="width:18px;height:18px;margin-right:6px;">
+        Hospital
+    </div>
+
+    <div class="legend-item">
+        <img src="https://maps.google.com/mapfiles/ms/icons/blue-pushpin.png"
+             style="width:18px;height:18px;margin-right:6px;">
+        Evacuation Center
+    </div>
+`;
+
             map.controls[google.maps.ControlPosition.LEFT_TOP].push(legendDiv);
 
             // Plot property markers
@@ -178,26 +208,33 @@ while ($row = $result->fetch_assoc()) {
                 bounds.extend(pos);
             });
 
-            // Hospitals
+            // ---------------- HOSPITAL MARKERS ----------------
             hospitals.forEach(h => {
                 new google.maps.Marker({
                     position: { lat: h.lat, lng: h.lng },
                     map: map,
-                    icon: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
-                    title: h.name
+                    title: h.name,
+                    icon: {
+                        url: "https://maps.google.com/mapfiles/ms/icons/hospitals.png",
+                        scaledSize: new google.maps.Size(32, 32)
+                    }
                 });
-                bounds.extend({ lat: h.lat, lng: h.lng });
+                bounds.extend(new google.maps.LatLng(h.lat, h.lng));
             });
 
-            // Evacuation centers
+
+            // ---------------- EVACUATION MARKERS ----------------
             evacCenters.forEach(e => {
                 new google.maps.Marker({
                     position: { lat: e.lat, lng: e.lng },
                     map: map,
-                    icon: "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
-                    title: e.name
+                    title: e.name,
+                    icon: {
+                        url: "https://maps.google.com/mapfiles/ms/icons/blue-pushpin.png",
+                        scaledSize: new google.maps.Size(32, 32)
+                    }
                 });
-                bounds.extend({ lat: e.lat, lng: e.lng });
+                bounds.extend(new google.maps.LatLng(e.lat, e.lng));
             });
 
             // Approximate flood polygons for each barangay (Level A)
