@@ -65,10 +65,10 @@ try {
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $user = $stmt->get_result()->fetch_assoc();
-    
+
     if ($user) {
         $full_name = trim($user['firstName'] . ' ' . ($user['middleName'] ? $user['middleName'] . ' ' : '') . $user['lastName']);
-        
+
         echo json_encode([
             "success" => true,
             "user_id" => $user_id,
@@ -83,7 +83,7 @@ try {
             "redirect" => "../LOGIN/login.php"
         ]);
     }
-    
+
     $stmt->close();
 } catch (Exception $e) {
     echo json_encode([

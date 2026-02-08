@@ -98,8 +98,7 @@ if ($result['rent_count'] > 0) {
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
-    <!-- LEAFLET -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+   
     <title><?= htmlspecialchars($property['listingName']); ?> - Details</title>
     <style>
         .tenant-page {
@@ -403,20 +402,125 @@ if ($result['rent_count'] > 0) {
     <script src="../js/bootstrap.bundle.min.js"></script>
     <!-- SCROLL REVEAL -->
     <script src="https://unpkg.com/scrollreveal"></script>
-    <!-- LEAFLET JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="../js/contact-landlord.js"></script>
-    <script>
-        var lat = <?= $property['latitude'] ?: 14.3647 ?>;
-        var lng = <?= $property['longitude'] ?: 121.0556 ?>;
-
-        var map = L.map('map').setView([lat, lng], 15);
-
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
-
-        L.marker([lat, lng]).addTo(map).bindPopup("<?= htmlspecialchars($property['listingName']); ?>");
+    <script 
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap" 
+        async 
+        defer>
     </script>
+
+   <script>
+function initMap() {
+    const lat = <?= $property['latitude'] ?: 14.3647 ?>;
+        const lng = <?= $property['longitude'] ?: 121.0556 ?>;
+
+        const apartmentLocation = { lat: lat, lng: lng };
+
+        const map = new google.maps.Map(document.getElementById("map"), {
+            center: apartmentLocation,
+            zoom: 15,
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: true
+        });
+
+        /* 🏠 APARTMENT MARKER */
+        new google.maps.Marker({
+            position: apartmentLocation,
+            map: map,
+            title: "<?= htmlspecialchars($property['listingName']); ?>",
+            icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+        });
+
+        const service = new google.maps.places.PlacesService(map);
+        const infoWindow = new google.maps.InfoWindow();
+
+        /* 📏 DISTANCE FUNCTION */
+        function getDistanceKM(lat1, lng1, lat2, lng2) {
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+
+            const a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                Math.cos(lat1 * Math.PI / 180) *
+                Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLng / 2) * Math.sin(dLng / 2);
+
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            const distance = R * c;
+
+            return distance < 1
+                ? `${Math.round(distance * 1000)} meters`
+                : `${distance.toFixed(2)} km`;
+        }
+
+        /* 🏥 HOSPITALS */
+        service.nearbySearch({
+            location: apartmentLocation,
+            radius: 3000,
+            type: "hospital"
+        }, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                results.forEach(place => {
+                    const distance = getDistanceKM(
+                        lat, lng,
+                        place.geometry.location.lat(),
+                        place.geometry.location.lng()
+                    );
+
+                    const marker = new google.maps.Marker({
+                        position: place.geometry.location,
+                        map: map,
+                        title: place.name,
+                        icon: "https://maps.google.com/mapfiles/ms/icons/hospitals.png"
+                    });
+
+                    marker.addListener("click", () => {
+                        infoWindow.setContent(`
+                        <strong>🏥 ${place.name}</strong><br>
+                        Distance: ${distance}
+                    `);
+                        infoWindow.open(map, marker);
+                    });
+                });
+            }
+        });
+
+        /* 🚨 EVACUATION CENTERS */
+        service.nearbySearch({
+            location: apartmentLocation,
+            radius: 5000,
+            keyword: "evacuation center"
+        }, (results, status) => {
+            if (status === google.maps.places.PlacesServiceStatus.OK) {
+                results.forEach(place => {
+                    const distance = getDistanceKM(
+                        lat, lng,
+                        place.geometry.location.lat(),
+                        place.geometry.location.lng()
+                    );
+
+                    const marker = new google.maps.Marker({
+                        position: place.geometry.location,
+                        map: map,
+                        title: place.name,
+                        icon: "https://maps.google.com/mapfiles/ms/icons/caution.png"
+                    });
+
+                    marker.addListener("click", () => {
+                        infoWindow.setContent(`
+                        <strong>🚨 ${place.name}</strong><br>
+                        Distance: ${distance}
+                    `);
+                        infoWindow.open(map, marker);
+                    });
+                });
+            }
+        });
+    }
+</script>
+
+
 
 </body>

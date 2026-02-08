@@ -55,10 +55,10 @@ try {
 
     // Add members
     $member_stmt = $conn->prepare("INSERT INTO conversation_members (conversation_id, user_id, user_type, joined_at) VALUES (?, ?, ?, NOW())");
-    
+
     $member_stmt->bind_param("iis", $conversation_id, $user1_id, $user1_type);
     $member_stmt->execute();
-    
+
     $member_stmt->bind_param("iis", $conversation_id, $user2_id, $user2_type);
     $member_stmt->execute();
 

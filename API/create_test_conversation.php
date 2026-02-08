@@ -60,7 +60,7 @@ try {
     $stmt = $conn->prepare("INSERT INTO conversation_members (conversation_id, user_id, user_type, joined_at) VALUES (?, ?, 'landlord', NOW())");
     $stmt->bind_param("ii", $conversation_id, $landlord_id);
     $stmt->execute();
-    
+
     // Add tenant as member
     $stmt = $conn->prepare("INSERT INTO conversation_members (conversation_id, user_id, user_type, joined_at) VALUES (?, ?, 'tenant', NOW())");
     $stmt->bind_param("ii", $conversation_id, $tenant_id);
@@ -73,7 +73,7 @@ try {
     $stmt->execute();
 
     $conn->commit();
-    
+
     echo "<h3 style='color: green;'>✓ Test conversation created successfully!</h3>";
     echo "<p><strong>Conversation ID:</strong> $conversation_id</p>";
     echo "<p><strong>Between:</strong> {$landlord['firstName']} {$landlord['lastName']} (Landlord) and {$tenant['firstName']} {$tenant['lastName']} (Tenant)</p>";

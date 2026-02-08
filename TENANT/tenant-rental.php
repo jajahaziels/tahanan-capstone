@@ -178,7 +178,7 @@ $stmt->close();
         .dashboard-card {
             border-radius: 14px;
             padding: 22px;
-            min-height: 260px;
+            min-height: 300px;
             box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
             position: relative;
         }
@@ -543,9 +543,7 @@ h4, h5 {
                                                     title="View Contract">
                                                     <i class="bi bi-file-earmark-pdf"></i>
                                                 </a>
-                                                <a href="rent-payment.php?lease_id=<?= $l['lease_id']; ?>" class="btn btn-success btn-sm" title="Pay Rent">
-                                                    <i class="bi bi-cash-stack"></i>
-                                                </a>
+                                                
                                                 <button class="btn btn-warning btn-sm renew-btn" data-lease="<?= $l['lease_id']; ?>" title="Renew">
                                                     <i class="bi bi-arrow-repeat"></i>
                                                 </button>
