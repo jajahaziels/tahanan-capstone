@@ -32,12 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
     );
     $stmt->execute();
 
-    // Set login session
     $_SESSION['user_id'] = $_SESSION['otp_user_id'];
-    $_SESSION['username'] = $_SESSION['otp_name'];
+    $_SESSION['username'] = $_SESSION['otp_username'] ?? $_SESSION['otp_name']; // Use username if available, fallback to name
+    $_SESSION['full_name'] = $_SESSION['otp_name']; // Keep full name separately
     $_SESSION['user_type'] = $_SESSION['otp_role'];
 
-    // Set tenant_id or landlord_id
+    // CRITICAL: Set tenant_id or landlord_id
     if ($_SESSION['otp_role'] === 'tenant') {
       $_SESSION['tenant_id'] = $_SESSION['otp_user_id'];
     } elseif ($_SESSION['otp_role'] === 'landlord') {
@@ -57,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
       $_SESSION['otp_role'], 
       $_SESSION['otp_expiry'], 
       $_SESSION['otp_name'],
+      $_SESSION['otp_username'],
       $_SESSION['otp_email'],
       $_SESSION['otp_redirect']
     );

@@ -11,62 +11,86 @@ if (!$tenant_id) {
 
 // edit acc for tenant
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $firstName = mysqli_real_escape_string($conn, $_POST['firstName']);
-    $lastName = mysqli_real_escape_string($conn, $_POST['lastName']);
-    $username = mysqli_real_escape_string($conn, $_POST['username']);
-    $middleName = mysqli_real_escape_string($conn, $_POST['middleName']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $phoneNum = mysqli_real_escape_string($conn, $_POST['phoneNum']);
-    $birthday = mysqli_real_escape_string($conn, $_POST['birthday']);
-    $gender = mysqli_real_escape_string($conn, $_POST['gender']);
+    $firstName = trim($_POST['firstName']);
+    $lastName = trim($_POST['lastName']);
+    $username = trim($_POST['username']);
+    $middleName = trim($_POST['middleName']);
+    $email = trim($_POST['email']);
+    $phoneNum = trim($_POST['phoneNum']);
+    $birthday = $_POST['birthday'];
+    $gender = $_POST['gender'];
 
     // file uploads
-    $upload_dir = "../uploads/";
-    if (!file_exists($upload_dir))
+    $upload_dir = __DIR__ . "/../uploads/";
+    
+    if (!file_exists($upload_dir)) {
         mkdir($upload_dir, 0777, true);
+    }
 
-    $profilePic = $verificationId = "";
+    $profilePic = "";
 
     if (isset($_FILES['profilePic']) && $_FILES['profilePic']['error'] == 0) {
         $profilePic = time() . "_profile_" . basename($_FILES['profilePic']['name']);
-        move_uploaded_file($_FILES['profilePic']['tmp_name'], $upload_dir . $profilePic);
+        $full_path = $upload_dir . $profilePic;
+        
+        $uploaded = move_uploaded_file($_FILES['profilePic']['tmp_name'], $full_path);
+        
+        if (!$uploaded) {
+            $error_message = "Failed to upload profile picture!";
+        }
     }
 
-    if (isset($_FILES['govID']) && $_FILES['govID']['error'] == 0) {
-        $verificationId = time() . "_govid_" . basename($_FILES['govID']['name']);
-        move_uploaded_file($_FILES['govID']['tmp_name'], $upload_dir . $verificationId);
+    // Update database
+    if ($profilePic != "") {
+        $sql = "UPDATE tenanttbl SET 
+                firstName = ?,
+                lastName = ?,
+                middleName = ?,
+                email = ?,
+                phoneNum = ?,
+                birthday = ?,
+                gender = ?,
+                username = ?,
+                profilePic = ?
+                WHERE ID = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssssssssi", $firstName, $lastName, $middleName, $email, $phoneNum, $birthday, $gender, $username, $profilePic, $tenant_id);
+    } else {
+        $sql = "UPDATE tenanttbl SET 
+                firstName = ?,
+                lastName = ?,
+                middleName = ?,
+                email = ?,
+                phoneNum = ?,
+                birthday = ?,
+                gender = ?,
+                username = ?
+                WHERE ID = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssssssssi", $firstName, $lastName, $middleName, $email, $phoneNum, $birthday, $gender, $username, $tenant_id);
     }
 
-    $sql = "UPDATE tenanttbl SET 
-            firstName='$firstName',
-            lastName='$lastName',
-            middleName='$middleName',
-            email='$email',
-            phoneNum='$phoneNum',
-            birthday='$birthday',
-            gender='$gender',
-            userName='$username'";
-
-    if ($profilePic != "")
-        $sql .= ", profilePic='$profilePic'";
-    if ($verificationId != "")
-        $sql .= ", verificationId='$verificationId'";
-
-    $sql .= " WHERE ID='$tenant_id'";
-
-    if (mysqli_query($conn, $sql)) {
+    if ($stmt->execute()) {
+        // Update session variables
+        $_SESSION['username'] = $username;
+        $_SESSION['full_name'] = trim($firstName . ' ' . $lastName);
+        
         $_SESSION['success_message'] = "Account updated successfully!";
         header("Location: account.php");
         exit;
     } else {
-        $error_message = "Error updating account: " . mysqli_error($conn);
+        $error_message = "Error updating account: " . $stmt->error;
     }
+    $stmt->close();
 }
 
 // get tenant data
-$sql = "SELECT * FROM tenanttbl WHERE ID='$tenant_id'";
-$result = mysqli_query($conn, $sql);
-$user = mysqli_fetch_assoc($result);
+$stmt = $conn->prepare("SELECT * FROM tenanttbl WHERE ID = ?");
+$stmt->bind_param("i", $tenant_id);
+$stmt->execute();
+$result = $stmt->get_result();
+$user = $result->fetch_assoc();
+$stmt->close();
 ?>
 
 
@@ -132,9 +156,17 @@ $user = mysqli_fetch_assoc($result);
 
             <div class="row justify-content-center">
                 <div class="col-lg-10">
+                
+                    <?php if (isset($_SESSION['success_message'])): ?>
+                        <div class="alert alert-success">
+                            <?= $_SESSION['success_message']; unset($_SESSION['success_message']); ?>
+                        </div>
+                    <?php endif; ?>
+                    
                     <?php if (isset($error_message)): ?>
                         <div class="alert alert-danger"><?= $error_message ?></div>
                     <?php endif; ?>
+                    
                     <div class="row gy-4 justify-content-center edit">
                         <div class="col-lg-8">
                             <form class="mt-4" method="POST" enctype="multipart/form-data">

@@ -2,18 +2,36 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-// login tenant from session
-$tenant_id = $_SESSION['user_id'];
+// Get tenant ID from session with fallback
+$tenant_id = $_SESSION['tenant_id'] ?? $_SESSION['user_id'] ?? null;
+
+// If still no tenant_id, redirect to login
+if (!$tenant_id) {
+    header("Location: ../LOGIN/login.php");
+    exit();
+}
+
+// Ensure tenant_id is set in session for future use
+if (!isset($_SESSION['tenant_id'])) {
+    $_SESSION['tenant_id'] = $tenant_id;
+}
 
 // fetch tenant profile
-$sql = "SELECT firstName, lastName, phoneNum, email, created_at, profilePic 
+$sql = "SELECT firstName, lastName, phoneNum, email, created_at, profilePic, username
         FROM tenanttbl 
-        WHERE ID= ?";
+        WHERE ID = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $tenant_id);
 $stmt->execute();
 $result = $stmt->get_result();
 $tenant = $result->fetch_assoc();
+
+// Check if tenant exists
+if (!$tenant) {
+    session_destroy();
+    header("Location: ../LOGIN/login.php?error=invalid_session");
+    exit();
+}
 
 // image path
 $profilePath = $tenant['profilePic'] ?? '';
@@ -21,8 +39,25 @@ if (!empty($profilePath) && !str_starts_with($profilePath, 'http')) {
     $profilePath = "../uploads/" . $profilePath;
 }
 
-$firstLetter = strtoupper(substr($tenant['firstName'], 0, 1));
-$fullName = ucwords($tenant['firstName'] . ' ' . $tenant['lastName']);
+// DEBUG: Check if file exists
+$fileExists = !empty($profilePath) && file_exists(__DIR__ . '/' . $profilePath);
+$debugPath = !empty($profilePath) ? __DIR__ . '/' . $profilePath : 'No path';
+
+
+// Handle cases where firstName/lastName might be NULL or empty
+if (!empty($tenant['firstName'])) {
+    $firstLetter = strtoupper(substr($tenant['firstName'], 0, 1));
+    if (!empty($tenant['lastName'])) {
+        $fullName = ucwords($tenant['firstName'] . ' ' . $tenant['lastName']);
+    } else {
+        $fullName = ucwords($tenant['firstName']);
+    }
+} else {
+    // If firstName is NULL/empty, use username instead
+    $usernameDisplay = $tenant['username'] ?? 'Tenant';
+    $firstLetter = strtoupper(substr($usernameDisplay, 0, 1));
+    $fullName = ucwords($usernameDisplay);
+}
 ?>
 
 <!DOCTYPE html>
@@ -129,6 +164,16 @@ $fullName = ucwords($tenant['firstName'] . ' ' . $tenant['lastName']);
             justify-content: center !important;
             font-size: 64px !important;
             font-weight: 700 !important;
+        }
+
+        .profile-image-uploaded {
+            width: 160px !important;
+            height: 160px !important;
+            border-radius: 50% !important;
+            border: 6px solid white !important;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+            object-fit: cover !important;
+            display: block !important;
         }
 
         /* Profile Name */
@@ -241,12 +286,12 @@ $fullName = ucwords($tenant['firstName'] . ' ' . $tenant['lastName']);
             gap: 8px !important;
             font-size: 0.95rem !important;
             text-decoration: none !important;
-            white-space: nowrap !important; /* Add this */
-            min-width: fit-content !important; /* Add this */
+            white-space: nowrap !important;
+            min-width: fit-content !important;
         }
 
         .small-button i {
-            flex-shrink: 0; /* Add this to prevent icon from shrinking */
+            flex-shrink: 0;
         }
 
         .small-button:first-child {
@@ -345,6 +390,7 @@ $fullName = ucwords($tenant['firstName'] . ' ' . $tenant['lastName']);
     <!-- ACCOUNT PAGE -->
     <div class="tenant-page">
         <div class="container m-auto">
+            
             <!-- Page Header -->
             <div class="page-header">
                 <h1 class="page-title">My Account</h1>
@@ -360,10 +406,7 @@ $fullName = ucwords($tenant['firstName'] . ' ' . $tenant['lastName']);
                                 <?php if (!empty($tenant['profilePic'])): ?>
                                     <img src="<?= htmlspecialchars($profilePath); ?>"
                                         alt="<?= htmlspecialchars($fullName); ?>"
-                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    <div class="avatar" style="display: none;">
-                                        <?= $firstLetter ?>
-                                    </div>
+                                        class="profile-image-uploaded">
                                 <?php else: ?>
                                     <div class="avatar">
                                         <?= $firstLetter ?>

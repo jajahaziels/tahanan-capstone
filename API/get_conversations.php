@@ -27,10 +27,22 @@ $stmt = $conn->prepare("
         cm_other.user_type as other_user_type,
         CASE 
             WHEN cm_other.user_type = 'landlord' THEN 
-                CONCAT(l.firstName, ' ', COALESCE(l.middleName, ''), ' ', l.lastName)
+                COALESCE(
+                    NULLIF(TRIM(CONCAT(COALESCE(l.firstName, ''), ' ', COALESCE(l.middleName, ''), ' ', COALESCE(l.lastName, ''))), ''),
+                    l.username,
+                    CONCAT('Landlord #', l.ID)
+                )
             WHEN cm_other.user_type = 'tenant' THEN 
-                CONCAT(t.firstName, ' ', COALESCE(t.middleName, ''), ' ', t.lastName)
+                COALESCE(
+                    NULLIF(TRIM(CONCAT(COALESCE(t.firstName, ''), ' ', COALESCE(t.middleName, ''), ' ', COALESCE(t.lastName, ''))), ''),
+                    t.username,
+                    CONCAT('Tenant #', t.ID)
+                )
         END as other_user_name,
+        CASE 
+            WHEN cm_other.user_type = 'landlord' THEN l.profilePic
+            WHEN cm_other.user_type = 'tenant' THEN t.profilePic
+        END as other_user_profile_pic,
         CASE 
             WHEN cm_other.user_type = 'landlord' THEN l.email
             WHEN cm_other.user_type = 'tenant' THEN t.email
@@ -48,7 +60,6 @@ $stmt = $conn->prepare("
     ORDER BY COALESCE(last_message_time, c.created_at) DESC
 ");
 
-// FIXED: "isi" matches 3 parameters
 $stmt->bind_param("isi", $user_id, $user_type, $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -56,7 +67,9 @@ $result = $stmt->get_result();
 $conversations = [];
 while ($row = $result->fetch_assoc()) {
     // Clean up the name (remove extra spaces)
-    $row['other_user_name'] = preg_replace('/\s+/', ' ', trim($row['other_user_name']));
+    if (!empty($row['other_user_name'])) {
+        $row['other_user_name'] = preg_replace('/\s+/', ' ', trim($row['other_user_name']));
+    }
     $conversations[] = $row;
 }
 

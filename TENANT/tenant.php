@@ -4,6 +4,19 @@ include '../session_auth.php';
 
 $tenant_id = $_SESSION['tenant_id'];
 
+// Fetch tenant information for display
+$tenant_sql = "SELECT firstName, lastName, username FROM tenanttbl WHERE ID = ?";
+$tenant_stmt = $conn->prepare($tenant_sql);
+$tenant_stmt->bind_param("i", $tenant_id);
+$tenant_stmt->execute();
+$tenant_result = $tenant_stmt->get_result();
+$tenant_data = $tenant_result->fetch_assoc();
+
+// Set tenant name for display
+$tenant_name = isset($tenant_data['firstName']) && isset($tenant_data['lastName']) 
+    ? ucwords(strtolower($tenant_data['firstName'] . ' ' . $tenant_data['lastName']))
+    : (isset($_SESSION['username']) ? ucwords(strtolower($_SESSION['username'])) : 'Tenant');
+
 // Handle search and filters
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $barangay = isset($_GET['barangay']) ? $_GET['barangay'] : '';
@@ -66,7 +79,7 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
-    <title>Tenant <?= htmlspecialchars(ucwords(strtolower($_SESSION['username'])));?>!</title>
+    <title><?= htmlspecialchars($tenant_name); ?> - Tahanan</title>
     <style>
         .tenant-page {
             margin-top: 140px !important;
@@ -402,7 +415,7 @@ $result = $conn->query($sql);
     <!-- HOME PAGE CONTENT -->
     <div class="tenant-page">
         <div class="container m-auto">
-            <h1>Welcome, Tenant <?= htmlspecialchars(ucwords(strtolower($_SESSION['username']))); ?>!</h1>
+            <h1>Welcome, <?= htmlspecialchars($tenant_name); ?>!</h1>
             <p>Here are some featured properties</p>
 
             <!-- SEARCH CONTAINER -->
@@ -495,11 +508,11 @@ $result = $conn->query($sql);
                                                 </div>
 
                                                 <div class="landlord-actions">
-                                                    <a href="landlord-profile.php?id=<?= $property['landlord_id']; ?>" class="btn">
+                                                    <a href="landlord-profile.php?id=<?= $row['landlord_id']; ?>" class="btn">
                                                             <i class="fa-solid fa-user"></i>
                                                     </a>
 
-                                                    <a href="tenant-messages.php?landlord_id=<?= $property['landlord_id']; ?>" class="btn">
+                                                    <a href="tenant-messages.php?landlord_id=<?= $row['landlord_id']; ?>" class="btn">
                                                             <i class="fas fa-comment-dots"></i>
                                                     </a>
                                                 </div>

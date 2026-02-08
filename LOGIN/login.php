@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
     $email = strtolower(trim($_POST['email']));
     $password = trim($_POST['password']);
 
+    // Add admin table here
     $roleMap = [
         'landlordtbl' => ['redirect' => '/TAHANAN/LANDLORD/landlord-properties.php', 'db_role' => 'landlord'],
         'tenanttbl' => ['redirect' => '/TAHANAN/TENANT/tenant.php', 'db_role' => 'tenant'],
@@ -33,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
 
     $found = false;
     foreach ($roleMap as $table => $map) {
-        $stmt = $conn->prepare("SELECT ID, password, firstName, lastName FROM `$table` WHERE email=? LIMIT 1");
+        $stmt = $conn->prepare("SELECT ID, password, firstName, lastName, username FROM `$table` WHERE email=? LIMIT 1");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $res = $stmt->get_result();
@@ -46,11 +47,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                 $dbRole = $map['db_role'];
                 $redirect = $map['redirect'];
                 $deviceHash = getDeviceHash();
+                
+                $fullName = $row['firstName'] . ' ' . $row['lastName'];
+                $username = !empty($row['username']) ? $row['username'] : $row['firstName'];
 
                 // --- NO OTP FOR ADMIN ---
                 if ($dbRole === 'admin') {
                     $_SESSION['user_id'] = $userId;
-                    $_SESSION['username'] = $row['firstName'] . ' ' . $row['lastName'];
+                    $_SESSION['username'] = $username;
+                    $_SESSION['full_name'] = $fullName;
                     $_SESSION['user_type'] = $dbRole;
                     $_SESSION['admin_id'] = $userId;
 
@@ -67,10 +72,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                 if ($resTrusted && $resTrusted->num_rows > 0) {
                     // Trusted device → login immediately
                     $_SESSION['user_id'] = $userId;
-                    $_SESSION['username'] = $row['firstName'] . ' ' . $row['lastName'];
+                    $_SESSION['username'] = $username;
+                    $_SESSION['full_name'] = $fullName;
                     $_SESSION['user_type'] = $dbRole;
 
-                    // Set tenant_id / landlord_id for message system
+                    // CRITICAL: Set tenant_id / landlord_id for message system
                     if ($dbRole === 'tenant') {
                         $_SESSION['tenant_id'] = $userId;
                     } elseif ($dbRole === 'landlord') {
@@ -87,10 +93,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                 $_SESSION['otp_user_id'] = $userId;
                 $_SESSION['otp_device_hash'] = $deviceHash;
                 $_SESSION['otp_role'] = $dbRole;
-                $_SESSION['otp_expiry'] = time() + 600;
-                $_SESSION['otp_name'] = $row['firstName'] . ' ' . $row['lastName'];
+                $_SESSION['otp_expiry'] = time() + 600; // 10 minutes
+                $_SESSION['otp_name'] = $fullName;
+                $_SESSION['otp_username'] = $username; // ADDED: Store username too
                 $_SESSION['otp_email'] = $email;
-                $_SESSION['otp_redirect'] = $redirect;
+                $_SESSION['otp_redirect'] = $redirect; 
                 
                 // Send OTP via email
                 $mail = new PHPMailer(true);
@@ -109,6 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                     $mail->Body = "<h3>TAHANAN</h3><p>Your OTP code is: <b>$otp</b>. This code expires in 10 minutes.</p>";
                     $mail->send();
 
+                    // Redirect to OTP page
                     header("Location: otp.php");
                     exit();
 
@@ -129,9 +137,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
 }
 ?>
 
-
-
-
 <!DOCTYPE html> 
 <html lang="en"> 
 <head> 
@@ -139,8 +144,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
     <meta charset="UTF-8"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Login Form</title> 
-
 </head> 
 
 <body> 
@@ -149,7 +155,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
             <form method="POST" action=""> 
                 <h1>Login Form</h1> 
                 
-                <!-- Show error/success messages --> 
+                <!-- Debug information  -->
+                <?php if (isset($_GET['debug'])): ?>
+                <div class="debug-info">
+                    <strong>Debug Info:</strong><br>
+                    User Agent: <?php echo htmlspecialchars(substr($_SERVER['HTTP_USER_AGENT'], 0, 50)); ?>...<br>
+                    IP: <?php echo $_SERVER['REMOTE_ADDR']; ?><br>
+                    HTTPS: <?php echo (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'Yes' : 'No'; ?>
+                </div>
+                <?php endif; ?>
+                
+                <!-- Show error/success messages neatly --> 
                 <?php if (!empty($errorMsg)): ?> 
                     <p class="message error"><?php echo $errorMsg; ?></p> 
                 <?php elseif (!empty($_SESSION['success'])): ?> 
