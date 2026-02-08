@@ -2,58 +2,85 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-// Get property ID from URL (case-insensitive)
-$idParam = $_GET['id'] ?? $_GET['ID'] ?? null;
-
-if (!$idParam || !is_numeric($idParam)) {
+$listingID = intval($_GET['id'] ?? $_GET['ID'] ?? 0);
+if ($listingID <= 0)
     die("Invalid property ID.");
-}
 
-$listingID = intval($idParam);
-
-// Fetch property and landlord info (for tenant view)
+/* 📌 Fetch listing */
 $sql = "
-    SELECT 
-        l.ID AS listing_id,
-        l.listingName,
-        l.address,
-        l.barangay,
-        l.category,
-        l.rooms,
-        l.price,
-        l.listingDesc,
-        l.images,
-        l.latitude,
-        l.longitude,
-        ld.ID AS landlord_id,
-        ld.firstName AS landlord_fname,
-        ld.lastName AS landlord_lname,
-        ld.profilePic,
-        ld.phoneNum AS landlord_phone,
-        ld.email AS landlord_email
-    FROM listingtbl l
-    JOIN landlordtbl ld ON l.landlord_id = ld.ID
-    WHERE l.ID = ?
-    LIMIT 1
-";
+SELECT 
+    l.ID AS listing_id,
+    l.listingName,
+    l.address,
+    l.barangay,
+    l.category,
+    l.rooms,
+    l.price,
+    l.listingDesc,
+    l.images,
+    l.latitude,
+    l.longitude,
 
+    ld.ID AS landlord_id,
+    ld.firstName AS landlord_fname,
+    ld.lastName AS landlord_lname,
+    ld.profilePic AS landlord_profilePic
+FROM listingtbl l
+JOIN landlordtbl ld ON l.landlord_id = ld.ID
+WHERE l.ID = ?
+LIMIT 1
+";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $listingID);
 $stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows === 0) {
+$res = $stmt->get_result();
+if ($res->num_rows === 0)
     die("Property not found.");
+$property = $res->fetch_assoc();
+$stmt->close();
+
+$images = json_decode($property['images'], true) ?? [];
+
+/* 🔍 Check tenant request status */
+$tenant_id = $_SESSION['tenant_id'] ?? 0;
+$requestStatus = null;
+
+if ($tenant_id > 0) {
+    $checkSql = "
+        SELECT status
+        FROM requesttbl
+        WHERE tenant_id = ? AND listing_id = ?
+        ORDER BY id DESC
+        LIMIT 1
+    ";
+    $stmt = $conn->prepare($checkSql);
+    $stmt->bind_param("ii", $tenant_id, $listingID);
+    $stmt->execute();
+    $r = $stmt->get_result();
+    if ($row = $r->fetch_assoc()) {
+        $requestStatus = $row['status']; // pending | approved | rejected
+    }
+    $stmt->close();
 }
 
-$property = $result->fetch_assoc();
-$images = json_decode($property['images'], true) ?? [];
-$stmt->close();
+// Check if tenant already has an active rent
+$checkSql = "
+    SELECT COUNT(*) AS rent_count
+    FROM renttbl
+    WHERE tenant_id = ?
+    AND status = 'active'
+";
+
+$checkStmt = $conn->prepare($checkSql);
+$checkStmt->bind_param("i", $tenant_id);
+$checkStmt->execute();
+$result = $checkStmt->get_result()->fetch_assoc();
+$checkStmt->close();
+
+if ($result['rent_count'] > 0) {
+    die("You already have an active apartment. You cannot apply for another one.");
+}
 ?>
-
-
-
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -137,6 +164,33 @@ $stmt->close();
         }
     </style>
 </head>
+     
+        <div class="modal fade" id="applyConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Application</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                Are you sure you want to apply for
+                <strong><?= htmlspecialchars($property['listingName']); ?></strong>?
+            </div>
+
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="main-button" data-bs-dismiss="modal">Cancel</button>
+
+                <form action="apply.php" method="POST">
+                    <input type="hidden" name="listing_id" value="<?= $property['listing_id']; ?>">
+                    <button type="submit" class="main-button">Yes, Apply</button>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
 
 <body>
     <!-- HEADER -->
@@ -197,9 +251,26 @@ $stmt->close();
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0 mt-0"><?= htmlspecialchars($property['listingName']); ?></h4>
                         <!-- Apply Button (triggers modal) -->
-                        <button type="button" class="main-button mx-5" data-bs-toggle="modal" data-bs-target="#applyModal">
-                            Apply
-                        </button>
+                        <?php if ($requestStatus === 'pending'): ?>
+                        
+                            <button class="main-button mx-5" disabled>
+                                ⏳ Application Pending
+                            </button>
+                        
+                        <?php elseif ($requestStatus === 'approved'): ?>
+                        
+                            <button class="main-button mx-5" data-bs-toggle="modal" data-bs-target="#reapplyModal">
+                                Apply Again
+                            </button>
+                        
+                        <?php else: ?>
+                        
+                            <button class="main-button mx-5" data-bs-toggle="modal" data-bs-target="#applyConfirmModal">
+                                Apply
+                            </button>
+                        
+                        <?php endif; ?>
+
 
                         <!-- Modal -->
                         <div class="modal fade" id="applyModal" tabindex="-1" aria-labelledby="applyModalLabel" aria-hidden="true">
@@ -237,6 +308,34 @@ $stmt->close();
                                 </div>
                             </div>
                         </div>
+
+                        <div class="modal fade" id="reapplyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Apply Again?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                You already had an <strong>approved</strong> request for this property.<br>
+                Do you want to apply again?
+            </div>
+
+            <div class="modal-footer justify-content-center">
+                <button type="button" class="main-button" data-bs-dismiss="modal">Cancel</button>
+
+                <form action="apply.php" method="POST">
+                    <input type="hidden" name="listing_id" value="<?= $property['listing_id']; ?>">
+                                            <button type="submit" class="main-button">Yes, Apply Again</button>
+                                        </form>
+                                    </div>
+                        
+                                </div>
+                            </div>
+                        </div>
+
 
 
                     </div>

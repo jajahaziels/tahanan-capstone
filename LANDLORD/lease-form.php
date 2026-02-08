@@ -133,77 +133,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     /* =========================
        GENERATE PDF
     ========================= */
+
     $pdf = new FPDF();
     $pdf->AddPage();
+    $pdf->SetAutoPageBreak(true, 25);
 
     // Title
-    $pdf->SetFont('Arial', 'B', 16);
-    $pdf->Cell(0, 10, 'LEASE AGREEMENT', 0, 1, 'C');
-    $pdf->Ln(5);
+    $pdf->SetFont('Arial', 'B', 18);
+    $pdf->Cell(0, 12, 'LEASE AGREEMENT', 0, 1, 'C');
+    $pdf->Ln(10);
 
-    // Property, Tenant, Landlord, Rent, Deposit, Contract
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(35, 8, "Property:", 0, 0);
-    $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(0, 8, "{$request['listingName']}", 0, 1);
+    // Helper function
+    function pdfRow($pdf, $label, $value)
+    {
+        $pdf->SetFont('Arial', 'B', 12);
+        $pdf->Cell(45, 8, $label, 0, 0);
+        $pdf->SetFont('Arial', '', 12);
+        $pdf->MultiCell(0, 8, $value);
+        $pdf->Ln(2);
+    }
 
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(35, 8, "Tenant:", 0, 0);
-    $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(0, 8, "{$request['tenant_first']} {$request['tenant_last']}", 0, 1);
+    /* =========================
+       LEASE DETAILS
+    ========================= */
+    pdfRow($pdf, "Property:", $request['listingName']);
+    pdfRow($pdf, "Tenant:", "{$request['tenant_first']} {$request['tenant_last']}");
+    pdfRow($pdf, "Landlord:", "{$request['landlord_first']} {$request['landlord_last']}");
+    pdfRow($pdf, "Rent:", "PHP " . number_format($rent, 2));
+    pdfRow($pdf, "Deposit:", "PHP " . number_format($deposit, 2));
+    pdfRow($pdf, "Contract Period:", "$start_date to $end_date");
 
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(35, 8, "Landlord:", 0, 0);
-    $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(0, 8, "{$request['landlord_first']} {$request['landlord_last']}", 0, 1);
+    $pdf->Ln(10);
 
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(35, 8, "Rent:", 0, 0);
-    $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(0, 8, "PHP " . number_format($rent, 2), 0, 1);
+        /* =========================
+        TERMS & CONDITIONS
+        ========================= */
+        $pdf->SetFont('Arial', 'B', 13);
+        $pdf->Cell(0, 10, "TERMS & CONDITIONS", 0, 1);
+        $pdf->Ln(2);
 
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(35, 8, "Deposit:", 0, 0);
-    $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(0, 8, "PHP " . number_format($deposit, 2), 0, 1);
+    $pdf->SetFont('Arial', '', 11);
+    foreach ($all_terms as $term) {
+        $pdf->MultiCell(0, 8, "- " . $term);
+        $pdf->Ln(2);
+    }
 
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(35, 8, "Contract:", 0, 0);
-    $pdf->SetFont('Arial', '', 12);
-    $pdf->Cell(0, 8, "$start_date to $end_date", 0, 1);
+    $pdf->Ln(10);
+    $pdf->SetLineWidth(0.6);
+    $pdf->Line(15, $pdf->GetY(), $pdf->GetPageWidth() - 15, $pdf->GetY());
+
+    $pdf->Ln(40);
+
+    /* =========================
+       SIGNATURE SECTION
+    ========================= */
+    $lineWidth = 75;
+    $gap = 25;
+    $pageWidth = $pdf->GetPageWidth();
+    $startX = ($pageWidth - ($lineWidth * 2 + $gap)) / 2;
+    $y = $pdf->GetY();
+
+    $pdf->SetLineWidth(0.5);
+
+    // Signature lines
+    $pdf->Line($startX, $y, $startX + $lineWidth, $y);
+    $pdf->Line($startX + $lineWidth + $gap, $y, $startX + ($lineWidth * 2) + $gap, $y);
 
     $pdf->Ln(6);
 
-    // Terms & Conditions
+    // Labels
     $pdf->SetFont('Arial', 'B', 12);
-    $pdf->Cell(0, 8, "TERMS & CONDITIONS", 0, 1);
-    $pdf->SetFont('Arial', '', 11);
-    foreach ($all_terms as $term) {
-        $pdf->MultiCell(0, 7, "- " . $term);
-    }
+    $pdf->SetX($startX);
+    $pdf->Cell($lineWidth, 8, "Landlord Signature", 0, 0, 'C');
+    $pdf->SetX($startX + $lineWidth + $gap);
+    $pdf->Cell($lineWidth, 8, "Tenant Signature", 0, 1, 'C');
 
-    $pdf->Ln(30);
+    $pdf->Ln(20);
 
-    // Signatures centered with black line
-    $lineWidth = 80; // width of the signature line
-    $centerX = ($pdf->GetPageWidth() - ($lineWidth * 2 + 20)) / 2; // spacing between lines
-
-    $pdf->SetFont('Arial', 'B', 12);
-
-    // Draw lines
-    $pdf->SetLineWidth(0.5);
-    $pdf->Line($centerX, $pdf->GetY(), $centerX + $lineWidth, $pdf->GetY()); // Landlord line
-    $pdf->Line($centerX + $lineWidth + 20, $pdf->GetY(), $centerX + $lineWidth * 2 + 20, $pdf->GetY()); // Tenant line
-
-    $pdf->Ln(5); // move below the line
-
-    // Signature labels
-    $pdf->SetFont('Arial', 'B', 12);
-    $pdf->SetX($centerX);
-    $pdf->Cell($lineWidth, 8, "Landlord", 0, 0, 'C');
-    $pdf->SetX($centerX + $lineWidth + 20);
-    $pdf->Cell($lineWidth, 8, "Tenant", 0, 1, 'C');
-
+    /* =========================
+       SAVE PDF
+    ========================= */
     $folder = "../LANDLORD/leases/";
     if (!file_exists($folder)) {
         mkdir($folder, 0777, true);
@@ -211,6 +220,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $pdf_file = $folder . "lease_{$lease_id}.pdf";
     $pdf->Output('F', $pdf_file);
+
 
     /* =========================
        UPDATE PDF PATH IN DATABASE
@@ -243,78 +253,126 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 ?>
 
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-    <title>Create Lease</title>
+    <meta charset="UTF-8">
+    <title>Create Lease Agreement</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
     <style>
         body {
-            font-family: Arial;
+            font-family: Arial, sans-serif;
             background: #f4f6f8;
+            padding: 40px 0;
         }
 
         .container {
-            width: 650px;
-            margin: 30px auto;
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 720px;
+            margin: auto;
+            background: #fff;
+            padding: 45px 55px 55px;
+            border-radius: 18px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.08);
+        }
+
+        .lease-title {
+            font-size: 34px;
+            font-weight: 800;
+            color: #8d0b41;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 35px;
+        }
+
+        .section {
+            margin-top: 35px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            border-left: 5px solid #8d0b41;
+            padding-left: 12px;
+            margin-bottom: 18px;
+        }
+
+        .info p {
+            margin: 6px 0;
+            font-size: 15px;
         }
 
         label {
-            font-weight: bold;
+            font-weight: 600;
+            margin-top: 20px;
             display: block;
-            margin-top: 15px;
         }
 
-        input,
-        select {
+        input[type="date"],
+        input[type="number"],
+        input[type="text"] {
             width: 100%;
-            padding: 10px;
-            border-radius: 6px;
+            padding: 14px 16px;
+            margin-top: 8px;
+            border-radius: 10px;
             border: 1px solid #ccc;
-            margin-top: 5px;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+
+        input:focus {
+            border-color: #8d0b41;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(141,11,65,0.15);
         }
 
         .term-row {
             display: flex;
-            align-items: center;
-            margin: 10px 0;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 12px 14px;
+            background: #fafafa;
+            border-radius: 10px;
+            margin-bottom: 10px;
         }
 
         .term-row input {
-            width: auto;
-            transform: scale(1.3);
-            margin-right: 12px;
+            transform: scale(1.2);
+            margin-top: 4px;
         }
 
         .term-text {
-            font-weight: bold;
+            font-size: 14px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        #customArea input {
+            margin-top: 10px;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 45px;
         }
 
         button {
-            border-radius: .3rem;
+            border-radius: 10px;
             cursor: pointer;
-            font-size: 1rem;
-            letter-spacing: 3px;
-            padding: .4rem 2rem;
-            border: 4px solid transparent;
-            background-color: pink;
-            color: white;
-            margin-top: 5px;
-            margin-bottom: 5px;
-        }
-
-        button:hover {
-            transform: scale(0.95);
-            border-right: 4px solid #7c7c7c;
-            border-bottom: 4px solid #7c7c7c;
+            font-size: 15px;
+            padding: 12px 28px;
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            transition: 0.2s;
         }
 
         .addCustomField {
             background-color: #8d0b41;
+            margin-top: 10px;
         }
 
         .send {
@@ -325,20 +383,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background-color: #FF3F33;
         }
 
-        .lease-title {
-            font-size: 36px;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            color: #8d0b41;
-        }
-
-        .lease-title i {
-            margin-right: 9px;
-            font-size: 30px;
+        button:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
         }
     </style>
+
     <script>
         function addCustomField() {
             const div = document.getElementById("customArea");
@@ -346,61 +396,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             input.type = "text";
             input.name = "custom_terms[]";
             input.placeholder = "Enter landlord agreement";
-            input.style.marginTop = "10px";
             div.appendChild(input);
         }
     </script>
 </head>
 
 <body>
-    <div class="container">
-        <h2 class="lease-title"><i class="fa-solid fa-file-contract"></i> Lease Agreement</h2>
 
-        <p><b>Property:</b> <?= htmlspecialchars($request['listingName']) ?> </p>
-        <p><b>Owner/Landlord:</b> <?= htmlspecialchars($request['landlord_first'] . ' ' . $request['landlord_last']) ?>
-        </p>
-        <p><b>Tenant:</b> <?= htmlspecialchars($request['tenant_first'] . ' ' . $request['tenant_last']) ?> </p>
+<div class="container">
 
-        <form method="POST">
+    <h2 class="lease-title">
+        <i class="fa-solid fa-file-contract"></i> Lease Agreement
+    </h2>
+
+    <!-- PROPERTY INFO -->
+    <div class="info section">
+        <div class="section-title">Property Information</div>
+        <p><b>Property:</b> <?= htmlspecialchars($request['listingName']) ?></p>
+        <p><b>Landlord:</b> <?= htmlspecialchars($request['landlord_first'] . ' ' . $request['landlord_last']) ?></p>
+        <p><b>Tenant:</b> <?= htmlspecialchars($request['tenant_first'] . ' ' . $request['tenant_last']) ?></p>
+    </div>
+
+    <form method="POST">
+
+        <!-- LEASE DETAILS -->
+        <div class="section">
+            <div class="section-title">Lease Details</div>
+
             <label>Start Date</label>
             <input type="date" name="start_date" required>
 
             <label>End of Contract</label>
             <input type="date" name="end_date" required>
 
-            <label>Rent</label>
+            <label>Monthly Rent</label>
             <input type="number" name="rent" value="<?= htmlspecialchars($request['price']) ?>" required>
 
-            <label>Deposit</label>
+            <label>Security Deposit</label>
             <input type="number" name="deposit" required>
+        </div>
 
-            <label>Terms & Agreements</label>
-            <div class="term-row"><input type="checkbox" name="terms[]"
-                    value="Tenant pays 1 month advance rent and 1 month security deposit." checked> <span
-                    class="term-text">Tenant pays 1 month advance rent and 1 month security deposit.</span></div>
-            <div class="term-row"><input type="checkbox" name="terms[]"
-                    value="Security deposit refundable upon move-out minus damages." checked> <span
-                    class="term-text">Security deposit refundable upon move-out minus damages.</span></div>
-            <div class="term-row"><input type="checkbox" name="terms[]"
-                    value="Rent must be paid on or before the due date." checked> <span class="term-text">Rent must be
-                    paid on or before the due date.</span></div>
-            <div class="term-row"><input type="checkbox" name="terms[]" value="No subleasing without landlord approval."
-                    checked> <span class="term-text">No subleasing without landlord approval.</span></div>
-            <div class="term-row"><input type="checkbox" name="terms[]" value="No pets allowed." checked> <span
-                    class="term-text">No pets allowed.</span></div>
+        <!-- TERMS -->
+        <div class="section">
+            <div class="section-title">Terms & Agreements</div>
 
-            <hr>
-            <label>Landlord Custom Agreements</label>
+            <div class="term-row">
+                <input type="checkbox" name="terms[]" value="Tenant pays 1 month advance rent and 1 month security deposit." checked>
+                <span class="term-text">Tenant pays 1 month advance rent and 1 month security deposit.</span>
+            </div>
+
+            <div class="term-row">
+                <input type="checkbox" name="terms[]" value="Security deposit refundable upon move-out minus damages." checked>
+                <span class="term-text">Security deposit refundable upon move-out minus damages.</span>
+            </div>
+
+            <div class="term-row">
+                <input type="checkbox" name="terms[]" value="Rent must be paid on or before the due date." checked>
+                <span class="term-text">Rent must be paid on or before the due date.</span>
+            </div>
+
+            <div class="term-row">
+                <input type="checkbox" name="terms[]" value="No subleasing without landlord approval." checked>
+                <span class="term-text">No subleasing without landlord approval.</span>
+            </div>
+
+            <div class="term-row">
+                <input type="checkbox" name="terms[]" value="No pets allowed." checked>
+                <span class="term-text">No pets allowed.</span>
+            </div>
+        </div>
+
+        <!-- CUSTOM TERMS -->
+        <div class="section">
+            <div class="section-title">Custom Agreements</div>
+
             <div id="customArea">
                 <input type="text" name="custom_terms[]" placeholder="Enter landlord agreement">
             </div>
 
-            <button type="button" onclick="addCustomField()" class="addCustomField">Add Another
-                Agreement</button><br><br>
-            <button type="submit" class="send">Send</button>
-            <button type="button" class="cancel" onclick="history.back()">Cancel</button>
-        </form>
-    </div>
-</body>
+            <button type="button" class="addCustomField" onclick="addCustomField()">
+                Add Another Agreement
+            </button>
+        </div>
 
+        <!-- ACTIONS -->
+        <div class="btn-group">
+            <button type="button" class="cancel" onclick="history.back()">Cancel</button>
+            <button type="submit" class="send">Send Lease</button>
+        </div>
+
+    </form>
+
+</div>
+
+</body>
 </html>

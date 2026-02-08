@@ -125,7 +125,7 @@ $firstLetter = strtoupper(substr($tenant['firstName'], 0, 1));
                     <div class="account-action d-flex justify-content-start align-items-center mt-4">
                         <!-- Chat button -->
                         <button class="small-button"
-                            onclick="location.href='landlord-messages.php?tenant_id=<?= htmlspecialchars($tenant['ID']); ?>'">
+                            onclick="location.href='landlord-message.php?tenant_id=<?= htmlspecialchars($tenant['ID']); ?>'">
                             Chat
                         </button>
 

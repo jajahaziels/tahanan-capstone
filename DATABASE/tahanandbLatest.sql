@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 08, 2026 at 02:08 AM
+-- Generation Time: Feb 05, 2026 at 02:08 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,25 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `tahanandb`
 --
-
-DELIMITER $$
---
--- Procedures
---
-CREATE DEFINER=`root`@`localhost` PROCEDURE `GetLandlordRatingStats` (IN `p_landlord_id` INT)   BEGIN
-    SELECT 
-        COUNT(*) as total_reviews,
-        AVG(rating) as average_rating,
-        SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) as five_stars,
-        SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) as four_stars,
-        SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as three_stars,
-        SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) as two_stars,
-        SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as one_star
-    FROM reviews
-    WHERE landlord_id = p_landlord_id;
-END$$
-
-DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -62,28 +43,6 @@ CREATE TABLE `admintbl` (
 
 INSERT INTO `admintbl` (`ID`, `firstName`, `lastName`, `middleName`, `email`, `password`, `phoneNum`) VALUES
 (1, 'Tahanan', 'Admin', NULL, 'tahanan@gmail.com', '$2y$10$hWiI.qZdoJmwUqN8a0Fhiu0pZ9rM//HZYYO5uJNSsq8iqJL.LzTnS', 2147483647);
-
--- --------------------------------------------------------
-
---
--- Table structure for table `admin_actions`
---
-
-CREATE TABLE `admin_actions` (
-  `id` int(11) NOT NULL,
-  `admin_username` varchar(100) DEFAULT NULL,
-  `action_type` varchar(50) DEFAULT NULL,
-  `target_landlord_id` int(11) DEFAULT NULL,
-  `notes` text DEFAULT NULL,
-  `action_timestamp` datetime DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `admin_actions`
---
-
-INSERT INTO `admin_actions` (`id`, `admin_username`, `action_type`, `target_landlord_id`, `notes`, `action_timestamp`) VALUES
-(1, 'Tahanan Admin', 'verified', 3, NULL, '2026-02-05 21:03:54');
 
 -- --------------------------------------------------------
 
@@ -203,25 +162,6 @@ INSERT INTO `landlordtbl` (`ID`, `username`, `firstName`, `lastName`, `middleNam
 -- --------------------------------------------------------
 
 --
--- Stand-in structure for view `landlord_rating_summary`
--- (See below for the actual view)
---
-CREATE TABLE `landlord_rating_summary` (
-`landlord_id` int(11)
-,`firstName` varchar(50)
-,`lastName` varchar(50)
-,`total_reviews` bigint(21)
-,`average_rating` decimal(7,4)
-,`five_star_count` decimal(22,0)
-,`four_star_count` decimal(22,0)
-,`three_star_count` decimal(22,0)
-,`two_star_count` decimal(22,0)
-,`one_star_count` decimal(22,0)
-);
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `leasetbl`
 --
 
@@ -248,7 +188,8 @@ CREATE TABLE `leasetbl` (
 --
 
 INSERT INTO `leasetbl` (`ID`, `listing_id`, `tenant_id`, `landlord_id`, `start_date`, `end_date`, `rent`, `deposit`, `terms`, `created_at`, `status`, `pdf_path`, `tenant_response`, `lease_status`, `visible_to_tenant`) VALUES
-(168, 4, 1, 1, '2026-02-13', '2026-06-02', 1500.00, 40000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No subleasing without landlord approval.\",\"No karaoke at past 10 in the midnight\",\"No parking\"]', '2026-02-07 03:46:00', 'active', '../LANDLORD/leases/lease_168.pdf', 'accepted', 'active', 1);
+(154, 4, 1, 1, '2026-02-06', '2026-03-09', 1500.00, 1000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No subleasing without landlord approval.\",\"No pets allowed.\",\"No karaoke at past 10 in the midnight\"]', '2026-02-05 00:39:59', 'terminated', '../LANDLORD/leases/lease_154.pdf', 'rejected', 'active', 1),
+(155, 2, 1, 1, '2026-02-15', '2026-05-22', 12000.00, 2000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No subleasing without landlord approval.\",\"No pets allowed.\"]', '2026-02-05 00:40:54', 'pending', '../LANDLORD/leases/lease_155.pdf', 'pending', 'active', 1);
 
 -- --------------------------------------------------------
 
@@ -290,43 +231,6 @@ INSERT INTO `listingtbl` (`ID`, `listingName`, `price`, `listingDesc`, `images`,
 -- --------------------------------------------------------
 
 --
--- Table structure for table `maintenance_attachmentstbl`
---
-
-CREATE TABLE `maintenance_attachmentstbl` (
-  `id` int(11) NOT NULL,
-  `maintenance_id` int(11) NOT NULL,
-  `file_path` varchar(255) NOT NULL,
-  `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `maintenance_requeststbl`
---
-
-CREATE TABLE `maintenance_requeststbl` (
-  `id` int(11) NOT NULL,
-  `lease_id` int(11) NOT NULL,
-  `tenant_id` int(11) NOT NULL,
-  `landlord_id` int(11) NOT NULL,
-  `title` varchar(150) NOT NULL,
-  `description` text NOT NULL,
-  `category` enum('Plumbing','Electrical','Appliances','Structural','Pest Control','Cleaning','Other') DEFAULT 'Other',
-  `priority` enum('Low','Medium','High','Urgent') DEFAULT 'Medium',
-  `status` enum('Pending','Approved','In Progress','Completed','Rejected') DEFAULT 'Pending',
-  `requested_date` date DEFAULT curdate(),
-  `scheduled_date` date DEFAULT NULL,
-  `completed_date` date DEFAULT NULL,
-  `landlord_remarks` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `messages`
 --
 
@@ -355,61 +259,6 @@ INSERT INTO `messages` (`id`, `conversation_id`, `sender_id`, `content`, `file_p
 -- --------------------------------------------------------
 
 --
--- Table structure for table `paymentstbl`
---
-
-CREATE TABLE `paymentstbl` (
-  `id` int(11) NOT NULL,
-  `lease_id` int(11) NOT NULL,
-  `tenant_id` int(11) NOT NULL,
-  `landlord_id` int(11) NOT NULL,
-  `payment_type` enum('Rent','Security Deposit','Advance Rent','Utility','Penalty','Other') NOT NULL,
-  `amount` decimal(10,2) NOT NULL,
-  `due_date` date NOT NULL,
-  `paid_date` date DEFAULT NULL,
-  `payment_method` enum('Cash','Bank Transfer','GCash','PayMaya','Cheque','Other') DEFAULT NULL,
-  `status` enum('Pending','Paid','Overdue','Cancelled') DEFAULT 'Pending',
-  `reference_no` varchar(100) DEFAULT NULL,
-  `remarks` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `properties`
---
-
-CREATE TABLE `properties` (
-  `id` int(11) NOT NULL,
-  `landlord_id` int(11) NOT NULL,
-  `property_name` varchar(255) NOT NULL,
-  `address` text DEFAULT NULL,
-  `status` enum('active','inactive') DEFAULT 'active',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `rental_agreements`
---
-
-CREATE TABLE `rental_agreements` (
-  `id` int(11) NOT NULL,
-  `landlord_id` int(11) NOT NULL,
-  `tenant_id` int(11) NOT NULL,
-  `property_id` int(11) DEFAULT NULL,
-  `status` enum('active','expired','terminated') DEFAULT 'active',
-  `start_date` date NOT NULL,
-  `end_date` date DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `renttbl`
 --
 
@@ -427,13 +276,6 @@ CREATE TABLE `renttbl` (
   `request_status` enum('pending','approved','denied') DEFAULT 'pending',
   `tenant_removed` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `renttbl`
---
-
-INSERT INTO `renttbl` (`ID`, `lease_id`, `date`, `status`, `landlord_id`, `tenant_id`, `listing_id`, `start_date`, `end_date`, `tenant_request`, `request_status`, `tenant_removed`) VALUES
-(65, 168, '0000-00-00', 'approved', 1, 1, 4, '2026-02-13', '2026-06-02', 'none', 'pending', 0);
 
 -- --------------------------------------------------------
 
@@ -455,7 +297,9 @@ CREATE TABLE `requesttbl` (
 --
 
 INSERT INTO `requesttbl` (`ID`, `date`, `tenant_id`, `listing_id`, `status`, `lease_id`) VALUES
-(62, '2026-02-07', 1, 4, 'approved', NULL);
+(48, '2026-02-05', 1, 11, 'pending', NULL),
+(49, '2026-02-05', 1, 4, 'approved', NULL),
+(50, '2026-02-05', 1, 2, 'approved', NULL);
 
 -- --------------------------------------------------------
 
@@ -469,51 +313,6 @@ CREATE TABLE `reset_password` (
   `token` varchar(255) NOT NULL,
   `expires_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `reviews`
---
-
-CREATE TABLE `reviews` (
-  `id` int(11) NOT NULL,
-  `landlord_id` int(11) NOT NULL,
-  `tenant_id` int(11) NOT NULL,
-  `rating` tinyint(1) NOT NULL,
-  `review_text` text NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `reviews`
---
-
-INSERT INTO `reviews` (`id`, `landlord_id`, `tenant_id`, `rating`, `review_text`, `created_at`, `updated_at`) VALUES
-(1, 1, 7, 5, '676767676767676767sixseven', '2026-02-05 08:35:23', '2026-02-05 08:35:36'),
-(0, 1, 1, 5, 'DSDFDFSDFSDGDGSDGFGDFGDFGDF', '2026-02-06 04:59:11', NULL);
-
---
--- Triggers `reviews`
---
-DELIMITER $$
-CREATE TRIGGER `prevent_duplicate_reviews` BEFORE INSERT ON `reviews` FOR EACH ROW BEGIN
-    DECLARE review_count INT;
-    
-    SELECT COUNT(*) INTO review_count
-    FROM reviews
-    WHERE landlord_id = NEW.landlord_id 
-    AND tenant_id = NEW.tenant_id
-    AND created_at > DATE_SUB(NOW(), INTERVAL 30 DAY);
-    
-    IF review_count > 0 THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Cannot submit multiple reviews within 30 days';
-    END IF;
-END
-$$
-DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -543,7 +342,7 @@ CREATE TABLE `tenanttbl` (
 --
 
 INSERT INTO `tenanttbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `verificationId`, `birthday`, `gender`, `profilePic`, `created_at`, `status`, `phoneNum`) VALUES
-(1, 'Jaja', 'Jahaziel', 'Sison', 'Bautusta', 'jahaziel.sison@cdsp.edu.ph', '$2y$10$PaxpUKQNdWKjJJXnBWfK1OonMOtoguy1iNaouAototdAtrxtXmqhK', NULL, '2004-08-07', 'Female', '1770343112_profile_551246401_1344915943899367_5892129137320406716_n.jpg', '2025-11-08 00:54:25', 'active', 2147483647);
+(1, '', 'Jahaziel', 'Sison', NULL, 'jahaziel.sison@cdsp.edu.ph', '$2y$10$PaxpUKQNdWKjJJXnBWfK1OonMOtoguy1iNaouAototdAtrxtXmqhK', NULL, NULL, NULL, NULL, '2025-11-08 00:54:25', 'active', NULL);
 
 -- --------------------------------------------------------
 
@@ -568,15 +367,6 @@ INSERT INTO `trusted_devices` (`ID`, `user_id`, `device_hash`, `last_ip`, `last_
 (1, 1, '4d18388e047e300d3ba3a84c4f37faa3d1747ad346e1d8ba11e7333a9089ac32', '::1', '2025-11-10 15:36:58', 'landlord'),
 (2, 1, '4d18388e047e300d3ba3a84c4f37faa3d1747ad346e1d8ba11e7333a9089ac32', '::1', '2025-12-13 22:07:02', 'tenant');
 
--- --------------------------------------------------------
-
---
--- Structure for view `landlord_rating_summary`
---
-DROP TABLE IF EXISTS `landlord_rating_summary`;
-
-CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `landlord_rating_summary`  AS SELECT `l`.`ID` AS `landlord_id`, `l`.`firstName` AS `firstName`, `l`.`lastName` AS `lastName`, count(`r`.`id`) AS `total_reviews`, avg(`r`.`rating`) AS `average_rating`, sum(case when `r`.`rating` = 5 then 1 else 0 end) AS `five_star_count`, sum(case when `r`.`rating` = 4 then 1 else 0 end) AS `four_star_count`, sum(case when `r`.`rating` = 3 then 1 else 0 end) AS `three_star_count`, sum(case when `r`.`rating` = 2 then 1 else 0 end) AS `two_star_count`, sum(case when `r`.`rating` = 1 then 1 else 0 end) AS `one_star_count` FROM (`landlordtbl` `l` left join `reviews` `r` on(`l`.`ID` = `r`.`landlord_id`)) GROUP BY `l`.`ID`, `l`.`firstName`, `l`.`lastName` ;
-
 --
 -- Indexes for dumped tables
 --
@@ -586,15 +376,6 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW 
 --
 ALTER TABLE `admintbl`
   ADD PRIMARY KEY (`ID`);
-
---
--- Indexes for table `admin_actions`
---
-ALTER TABLE `admin_actions`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `idx_admin` (`admin_username`),
-  ADD KEY `idx_landlord` (`target_landlord_id`),
-  ADD KEY `idx_timestamp` (`action_timestamp`);
 
 --
 -- Indexes for table `cancel_requesttbl`
@@ -650,35 +431,10 @@ ALTER TABLE `listingtbl`
   ADD KEY `fk_listing_landlord` (`landlord_id`);
 
 --
--- Indexes for table `maintenance_attachmentstbl`
---
-ALTER TABLE `maintenance_attachmentstbl`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `maintenance_id` (`maintenance_id`);
-
---
--- Indexes for table `maintenance_requeststbl`
---
-ALTER TABLE `maintenance_requeststbl`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `lease_id` (`lease_id`),
-  ADD KEY `tenant_id` (`tenant_id`),
-  ADD KEY `landlord_id` (`landlord_id`);
-
---
 -- Indexes for table `messages`
 --
 ALTER TABLE `messages`
   ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `paymentstbl`
---
-ALTER TABLE `paymentstbl`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `lease_id` (`lease_id`),
-  ADD KEY `tenant_id` (`tenant_id`),
-  ADD KEY `landlord_id` (`landlord_id`);
 
 --
 -- Indexes for table `renttbl`
@@ -768,7 +524,7 @@ ALTER TABLE `landlordtbl`
 -- AUTO_INCREMENT for table `leasetbl`
 --
 ALTER TABLE `leasetbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=169;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=156;
 
 --
 -- AUTO_INCREMENT for table `listingtbl`
@@ -777,40 +533,22 @@ ALTER TABLE `listingtbl`
   MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
--- AUTO_INCREMENT for table `maintenance_attachmentstbl`
---
-ALTER TABLE `maintenance_attachmentstbl`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `maintenance_requeststbl`
---
-ALTER TABLE `maintenance_requeststbl`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `paymentstbl`
---
-ALTER TABLE `paymentstbl`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `renttbl`
 --
 ALTER TABLE `renttbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=66;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
 
 --
 -- AUTO_INCREMENT for table `requesttbl`
 --
 ALTER TABLE `requesttbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=51;
 
 --
 -- AUTO_INCREMENT for table `tenanttbl`
@@ -851,28 +589,6 @@ ALTER TABLE `extension_requesttbl`
 --
 ALTER TABLE `listingtbl`
   ADD CONSTRAINT `fk_listing_landlord` FOREIGN KEY (`landlord_id`) REFERENCES `landlordtbl` (`ID`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `maintenance_attachmentstbl`
---
-ALTER TABLE `maintenance_attachmentstbl`
-  ADD CONSTRAINT `maintenance_attachmentstbl_ibfk_1` FOREIGN KEY (`maintenance_id`) REFERENCES `maintenance_requeststbl` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `maintenance_requeststbl`
---
-ALTER TABLE `maintenance_requeststbl`
-  ADD CONSTRAINT `maintenance_requeststbl_ibfk_1` FOREIGN KEY (`lease_id`) REFERENCES `leasetbl` (`ID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `maintenance_requeststbl_ibfk_2` FOREIGN KEY (`tenant_id`) REFERENCES `tenanttbl` (`ID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `maintenance_requeststbl_ibfk_3` FOREIGN KEY (`landlord_id`) REFERENCES `landlordtbl` (`ID`) ON DELETE CASCADE;
-
---
--- Constraints for table `paymentstbl`
---
-ALTER TABLE `paymentstbl`
-  ADD CONSTRAINT `paymentstbl_ibfk_1` FOREIGN KEY (`lease_id`) REFERENCES `leasetbl` (`ID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `paymentstbl_ibfk_2` FOREIGN KEY (`tenant_id`) REFERENCES `tenanttbl` (`ID`) ON DELETE CASCADE,
-  ADD CONSTRAINT `paymentstbl_ibfk_3` FOREIGN KEY (`landlord_id`) REFERENCES `landlordtbl` (`ID`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `renttbl`
