@@ -111,7 +111,53 @@ if (!isset($_SESSION['landlord_id'])) {
         $cancelRequests = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         $stmt->close();
     }
+
 }
+
+// --- Query 4: Active Maintenance Requests ---
+$sqlActiveMaintenance = "
+    SELECT 
+        m.*,
+        t.firstName,
+        t.lastName,
+        t.email,
+        t.phoneNum
+    FROM maintenance_requeststbl m
+    JOIN tenanttbl t ON m.tenant_id = t.ID
+    JOIN leasetbl l ON m.lease_id = l.ID
+    WHERE l.listing_id = ? AND m.status != 'Completed'
+    ORDER BY 
+        CASE m.status 
+            WHEN 'Pending' THEN 1
+            WHEN 'Approved' THEN 2
+            WHEN 'In Progress' THEN 3
+        END,
+        m.created_at DESC
+";
+$stmt4 = $conn->prepare($sqlActiveMaintenance);
+$stmt4->bind_param("i", $listingID);
+$stmt4->execute();
+$activeMaintenance = $stmt4->get_result();
+$stmt4->close();
+
+// --- Query 5: Completed Maintenance History ---
+$sqlMaintenanceHistory = "
+    SELECT 
+        m.*,
+        t.firstName,
+        t.lastName
+    FROM maintenance_requeststbl m
+    JOIN tenanttbl t ON m.tenant_id = t.ID
+    JOIN leasetbl l ON m.lease_id = l.ID
+    WHERE l.listing_id = ? AND m.status = 'Completed'
+    ORDER BY m.completed_date DESC
+    LIMIT 10
+";
+$stmt5 = $conn->prepare($sqlMaintenanceHistory);
+$stmt5->bind_param("i", $listingID);
+$stmt5->execute();
+$maintenanceHistory = $stmt5->get_result();
+$stmt5->close();
 ?>
 
 <!DOCTYPE html>
@@ -155,6 +201,38 @@ if (!isset($_SESSION['landlord_id'])) {
         .small-button {
             margin-right: 5px;
         }
+
+        /* Make maintenance blend into rental-details */
+.rental-details .card {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    padding-left: 20px;
+    padding-right: 20px;
+    
+}
+
+.rental-details .card-header {
+    background: transparent;
+    
+}
+
+/* Match maintenance card to tenant info card size */
+.maintenance-card-wrapper {
+    max-width: 820px;   /* same visual width as tenant info card */
+    margin: 0 auto;
+}
+
+.maintenance-card-wrapper .card {
+    min-height: 260px;  /* matches tenant info card height */
+    border-radius: 20px;
+}
+
+
+
+
+
+        
     </style>
 </head>
 
@@ -288,6 +366,118 @@ if (!isset($_SESSION['landlord_id'])) {
 
         </div>
     </div>
+
+        <!-- Content Grid -->
+        <div class="row justify-content-center mb-4">
+        <div class="col-lg-11 col-md-11 col-sm-12 rental-details">
+            <!-- Main Content -->
+            <div>
+                <!-- Active Maintenance -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <i class="bi bi-tools"></i> Active Maintenance Requests
+                            <?php
+                            $pendingCount = 0;
+                            if ($activeMaintenance->num_rows > 0) {
+                                $activeMaintenance->data_seek(0);
+                                while ($m = $activeMaintenance->fetch_assoc()) {
+                                    if ($m['status'] === 'Pending') $pendingCount++;
+                                }
+                                $activeMaintenance->data_seek(0);
+                            }
+                            if ($pendingCount > 0): ?>
+                                <span class="badge bg-danger rounded-pill"><?= $pendingCount; ?></span>
+                            <?php endif; ?>
+                        </h3>
+                    </div>
+
+                    <?php if ($activeMaintenance->num_rows > 0): ?>
+                        <?php while ($m = $activeMaintenance->fetch_assoc()): ?>
+                            <div class="maintenance-item <?= htmlspecialchars(str_replace(' ', '.', $m['status'])); ?>">
+                                <div class="maintenance-header">
+                                    <div style="flex: 1;">
+                                        <div class="maintenance-title">
+                                            <i class="bi bi-wrench-adjustable"></i>
+                                            <?= htmlspecialchars($m['title']); ?>
+                                        </div>
+                                        <div class="maintenance-meta">
+                                            <span>
+                                                <i class="bi bi-person"></i>
+                                                <?= htmlspecialchars($m['firstName'] . ' ' . $m['lastName']); ?>
+                                            </span>
+                                            <span>
+                                                <i class="bi bi-calendar3"></i>
+                                                <?= date('M d, Y', strtotime($m['requested_date'])); ?>
+                                            </span>
+                                            <span class="category-badge"><?= htmlspecialchars($m['category']); ?></span>
+                                        </div>
+                                    </div>
+                                    <span class="priority-badge priority-<?= htmlspecialchars($m['priority']); ?>">
+                                        <?= htmlspecialchars($m['priority']); ?>
+                                    </span>
+                                </div>
+
+                                <div class="maintenance-description">
+                                    <?= nl2br(htmlspecialchars($m['description'])); ?>
+                                </div>
+
+                                <div class="maintenance-actions">
+                                    <div>
+                                        <?php if (!empty($m['photo_path']) && file_exists($m['photo_path'])): ?>
+                                            <button class="photo-badge" onclick="viewPhoto('<?= htmlspecialchars($m['photo_path']); ?>')">
+                                                <i class="bi bi-camera-fill"></i> View Photo
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div>
+                                        <?php if ($m['status'] === 'Pending'): ?>
+                                            <button class="btn-action btn-confirm" onclick="confirmRequest(<?= $m['id']; ?>)">
+                                                <i class="bi bi-check-circle"></i> Confirm Request
+                                            </button>
+                                        <?php elseif ($m['status'] === 'Approved' || $m['status'] === 'In Progress'): ?>
+                                            <button class="btn-action btn-complete" onclick="completeRequest(<?= $m['id']; ?>)">
+                                                <i class="bi bi-check-all"></i> Mark Complete
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endwhile; ?>
+                    <?php else: ?>
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>No active maintenance requests</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+
+                <!-- History -->
+                <?php if ($maintenanceHistory->num_rows > 0): ?>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">
+                                <i class="bi bi-clock-history"></i> Maintenance History
+                            </h3>
+                        </div>
+
+                        <?php while ($h = $maintenanceHistory->fetch_assoc()): ?>
+                            <div class="history-item">
+                                <div class="history-title">
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                    <?= htmlspecialchars($h['title']); ?>
+                                </div>
+                                <div class="history-meta">
+                                    <?= htmlspecialchars($h['firstName'] . ' ' . $h['lastName']); ?> •
+                                    Completed: <?= date('M d, Y', strtotime($h['completed_date'])); ?> •
+                                    <?= htmlspecialchars($h['category']); ?>
+                                </div>
+                            </div>
+                        <?php endwhile; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
 
     <script src="../js/script.js"></script>
     <script src="../js/bootstrap.bundle.min.js?v=<?= time(); ?>" defer></script>

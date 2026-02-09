@@ -148,7 +148,8 @@ if ($rental) {
     padding: 20px; /* nice spacing inside the box */
     border-radius: 20px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.16);
-    margin-top: 20px; /* closer to carousel/calendar */
+    margin-top: 20px; 
+    margin-bottom: 20px;
 }
 
 </style>

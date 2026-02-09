@@ -2,7 +2,7 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
-$landlord_id = $_SESSION['landlord_id']; 
+$landlord_id = $_SESSION['landlord_id'];
 
 // Fetch active tenants and their last payment info based on tahanandb schema
 $query = "SELECT 
@@ -47,8 +47,9 @@ while ($row = $result->fetch_assoc()) {
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
-    <title>History</title>
+    <title>Active Tenants & Payments</title>
 </head>
+
 <style>
     /* Payments Section Styles */
     .payments-section {
@@ -98,7 +99,6 @@ while ($row = $result->fetch_assoc()) {
         vertical-align: middle;
     }
 
-    /* Small Avatar for Table */
     .profile-avatar-sm {
         width: 40px;
         height: 40px;
@@ -110,13 +110,6 @@ while ($row = $result->fetch_assoc()) {
         justify-content: center;
         font-weight: 600;
         font-size: 14px;
-    }
-
-    .payment-status-badge {
-        padding: 6px 12px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
     }
 
     .section-header {
@@ -167,79 +160,121 @@ while ($row = $result->fetch_assoc()) {
 <body>
     <!-- HEADER -->
     <?php include '../Components/landlord-header.php'; ?>
-    <div>
 
-        <!-- Active Tenants & Payments -->
-        <div class="payments-section">
-            <div class="section-header">
-                <h3 class="section-title">
-                    <i class="fas fa-credit-card"></i>
-                    Active Tenants & Payments
-                </h3>
-                <?php if (!empty($active_tenants)): ?>
-                    <span class="action-btn-primary" style="padding: 5px 15px; border-radius: 20px; font-size: 14px;">
-                        <?= count($active_tenants) ?> Active
-                    </span>
-                <?php endif; ?>
-            </div>
-
+    <div class="payments-section">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-credit-card"></i>
+                Active Tenants & Payments
+            </h3>
             <?php if (!empty($active_tenants)): ?>
-                <div class="table-responsive">
-                    <table class="table align-middle">
-                        <thead>
-                            <tr>
-                                <th>Profile</th>
-                                <th>Tenant Name</th>
-                                <th>Property</th>
-                                <th>Rent Amount</th>
-                                <th>Last Payment</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($active_tenants as $tenant):
-                                $tenant_name = ucwords(strtolower($tenant['firstName'] . ' ' . $tenant['lastName']));
-                                $tenant_initial = strtoupper(substr($tenant['firstName'], 0, 1));
-                                $last_payment = $tenant['last_payment_date'] ? date("M j, Y", strtotime($tenant['last_payment_date'])) : 'No Payment';
-                            ?>
-                                <tr>
-                                    <td>
-                                        <?php if (!empty($tenant['profilePic'])): ?>
-                                            <img src="../uploads/profiles/<?= htmlspecialchars($tenant['profilePic']) ?>"
-                                                alt="<?= htmlspecialchars($tenant_name) ?>"
-                                                class="rounded-circle" width="40" height="40"
-                                                style="object-fit: cover; border: 2px solid #8d0b41;">
-                                        <?php else: ?>
-                                            <div class="profile-avatar-sm"><?= $tenant_initial ?></div>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="fw-bold text-dark"><?= htmlspecialchars($tenant_name) ?></td>
-                                    <td>
-                                        <span class="text-muted"><i class="fas fa-home me-1"></i> <?= htmlspecialchars($tenant['property_name']) ?></span>
-                                    </td>
-                                    <td>
-                                        <span class="fw-bold" style="color: #2d3748;">₱<?= number_format($tenant['amount'] ?? 0, 2) ?></span>
-                                    </td>
-                                    <td>
-                                        <span class="badge <?= $tenant['last_payment_date'] ? 'bg-light text-success' : 'bg-light text-danger' ?>" style="border: 1px solid currentColor;">
-                                            <?= $last_payment ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php else: ?>
-                <div class="empty-reviews">
-                    <i class="fas fa-user-slash"></i>
-                    <h3>No Active Tenants</h3>
-                    <p>Once you approve applications, your active tenants and their rent status will appear here.</p>
-                </div>
+                <span class="action-btn-primary" style="padding: 5px 15px; border-radius: 20px; font-size: 14px;">
+                    <?= count($active_tenants) ?> Active
+                </span>
             <?php endif; ?>
+        </div>
+
+        <?php if (!empty($active_tenants)): ?>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Profile</th>
+                            <th>Tenant Name</th>
+                            <th>Property</th>
+                            <th>Rent Amount</th>
+                            <th>Last Payment</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($active_tenants as $tenant):
+                            $tenant_name = ucwords(strtolower($tenant['firstName'] . ' ' . $tenant['lastName']));
+                            $tenant_initial = strtoupper(substr($tenant['firstName'], 0, 1));
+                            $last_payment = $tenant['last_payment_date'] ? date("M j, Y", strtotime($tenant['last_payment_date'])) : 'No Payment';
+                            ?>
+                            <tr>
+                                <td>
+                                    <?php if (!empty($tenant['profilePic'])): ?>
+                                        <img src="../uploads/profiles/<?= htmlspecialchars($tenant['profilePic']) ?>"
+                                            alt="<?= htmlspecialchars($tenant_name) ?>" class="rounded-circle" width="40"
+                                            height="40" style="object-fit: cover; border: 2px solid #8d0b41;">
+                                    <?php else: ?>
+                                        <div class="profile-avatar-sm"><?= $tenant_initial ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="fw-bold text-dark"><?= htmlspecialchars($tenant_name) ?></td>
+                                <td>
+                                    <span class="text-muted"><i class="fas fa-home me-1"></i>
+                                        <?= htmlspecialchars($tenant['property_name']) ?></span>
+                                </td>
+                                <td>
+                                    <span class="fw-bold"
+                                        style="color: #2d3748;">₱<?= number_format($tenant['amount'] ?? 0, 2) ?></span>
+                                </td>
+                                <td>
+                                    <button
+                                        class="btn btn-sm <?= $tenant['last_payment_date'] ? 'btn-success' : 'btn-danger' ?>"
+                                        style="border-radius: 20px; font-size: 0.8rem;" data-bs-toggle="modal"
+                                        data-bs-target="#paymentModal" data-tenant="<?= $tenant['tenant_id'] ?>"
+                                        data-name="<?= htmlspecialchars($tenant_name) ?>">
+                                        <?= $last_payment ?>
+                                    </button>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="empty-reviews">
+                <i class="fas fa-user-slash"></i>
+                <h3>No Active Tenants</h3>
+                <p>Once you approve applications, your active tenants and their rent status will appear here.</p>
+            </div>
+        <?php endif; ?>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form id="paymentForm" method="post" action="record-payment.php">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Record Payment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="tenant_id" id="tenant_id">
+                        <div class="mb-3">
+                            <label for="amount" class="form-label">Payment Amount</label>
+                            <input type="number" class="form-control" name="amount" id="amount" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="paid_date" class="form-label">Payment Date</label>
+                            <input type="date" class="form-control" name="paid_date" id="paid_date" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Save Payment</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 
+    <script src="../js/bootstrap.bundle.min.js"></script>
+    <script>
+        var paymentModal = document.getElementById('paymentModal');
+        paymentModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var tenantId = button.getAttribute('data-tenant');
+            var tenantName = button.getAttribute('data-name');
 
+            paymentModal.querySelector('#tenant_id').value = tenantId;
+            paymentModal.querySelector('.modal-title').textContent = 'Record Payment for ' + tenantName;
+        });
+    </script>
 </body>
 
 </html>

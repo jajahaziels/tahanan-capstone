@@ -74,8 +74,7 @@ include '../session_auth.php';
 </head>
 
 <!-- HEADER -->
-    <?php include '../Components/landlord-header.php'; ?>
-
+<?php include '../Components/landlord-header.php' ?>
 
 <div class="landlord-page">
     <div class="container m-auto">
@@ -127,20 +126,20 @@ include '../session_auth.php';
                             </div>
                             <div class="support-contact text-center">
                                 <i class="fa-solid fa-envelope"></i>
-                                <p class="fs-6 mb-0">Phone number</p>
-                                <p class="fs-6 mb-0">0912315782</p>
+                                <p class="fs-6 mb-0">Email Address</p>
+                                <p class="fs-6 mb-0">tahanan@gmail.com</p>
                             </div>
                             <div class="support-contact text-center">
                                 <i class="fa-solid fa-location-dot"></i>
-                                <p class="fs-6 mb-0">Phone number</p>
-                                <p class="fs-6 mb-0">0912315782</p>
+                                <p class="fs-6 mb-0">Location</p>
+                                <p class="fs-6 mb-0"> Phase 1A, Pacita Complex 1, S.P.L 4023</p>
                             </div>
                             <div class="support-contact text-center">
                                 <i class="fa-solid fa-clock"></i>
-                                <p class="fs-6 mb-0">Phone number</p>
-                                <p class="fs-6 mb-0">0912315782</p>
+                                <p class="fs-6 mb-0">Contact Hours</p>
+                                <p class="fs-6 mb-0">Monday - Friday: 9AM - 5PM</p>
                             </div>
-                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -158,67 +157,42 @@ include '../session_auth.php';
 <script src="../js/bootstrap.bundle.min.js"></script>
 <!-- SCROLL REVEAL -->
 <script src="https://unpkg.com/scrollreveal"></script>
-<!-- LEAFLET JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<!-- GOOGLE MAPS -->
+<div id="map" class="mt-2" style="height:300px;"></div>
+
 <script>
-    // Initialize map centered at Colegio de San Pedro
-    var map = L.map('map').setView([14.3476602, 121.0594527], 17); // zoomed in closer
-
-    // Tile layer (OpenStreetMap)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    // Fixed marker at Colegio de San Pedro
-    var marker = L.marker([14.3476602, 121.0594527]).addTo(map)
-        .bindPopup("<b>Colegio de San Pedro</b>").openPopup();
-
-
-    document.getElementById("contact-form").addEventListener("submit", async function(e) {
-        e.preventDefault();
-
-        const formData = new FormData(this);
-
-        Swal.fire({
-            title: 'Sending...',
-            text: 'Please wait while we send your message.',
-            allowOutsideClick: false,
-            didOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
-        try {
-            const response = await fetch("https://api.web3forms.com/submit", {
-                method: "POST",
-                body: formData
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Message Sent!',
-                    text: 'Your email was sent successfully.',
-                    confirmButtonColor: '#4caf50'
-                });
-                this.reset(); // Clear the form
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Something went wrong: ' + result.message
-                });
-            }
-        } catch (error) {
-            Swal.fire({
-                icon: 'error',
-                title: 'Network Error',
-                text: 'Unable to send your message. Please try again later.'
-            });
-        }
+function initMap() {
+    // Centered at Colegio de San Pedro
+    const colegio = { lat: 14.3476602, lng: 121.0594527 };
+    
+    // Initialize map
+    const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 17,
+        center: colegio
     });
+
+    // Marker
+    const marker = new google.maps.Marker({
+        position: colegio,
+        map: map,
+        title: "Colegio de San Pedro"
+    });
+
+    // Info window
+    const infoWindow = new google.maps.InfoWindow({
+        content: "<b>Colegio de San Pedro</b>"
+    });
+
+    marker.addListener("click", () => {
+        infoWindow.open(map, marker);
+    });
+}
 </script>
+
+<!-- Google Maps API (replace YOUR_API_KEY with your key) -->
+<script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap">
+</script>
+
 
 </html>

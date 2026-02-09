@@ -328,47 +328,49 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             </div>
         </div>
     </div>
-
     <!-- MAIN JS -->
     <script src="../js/script.js" defer></script>
     <!-- BS JS -->
     <script src="../js/bootstrap.bundle.min.js"></script>
     <!-- SCROLL REVEAL -->
     <script src="https://unpkg.com/scrollreveal"></script>
-    <!-- LEAFLET JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <!-- SweetAlert Script -->
+    <!-- GOOGLE MAPS API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        var lat = parseFloat(document.getElementById('latitude').value) || 14.3647;
-        var lng = parseFloat(document.getElementById('longitude').value) || 121.0556;
+    function initMap() {
+    // Default coordinates if none
+    var lat = parseFloat(document.getElementById('latitude').value) || 14.3647;
+    var lng = parseFloat(document.getElementById('longitude').value) || 121.0556;
+    
+    var map = new google.maps.Map(document.getElementById('map'), {
+        center: {lat: lat, lng: lng},
+        zoom: 15
+    });
 
-        var map = L.map('map').setView([lat, lng], 15);
+    // Marker
+    var marker = new google.maps.Marker({
+        position: {lat: lat, lng: lng},
+        map: map,
+        draggable: true
+    });
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+    // Update hidden inputs when marker is dragged
+    marker.addListener('dragend', function(event) {
+        document.getElementById('latitude').value = event.latLng.lat();
+        document.getElementById('longitude').value = event.latLng.lng();
+    });
 
-        var marker;
+    // Click on map to move marker
+    map.addListener('click', function(event) {
+        var clickedLocation = event.latLng;
+        marker.setPosition(clickedLocation);
+        document.getElementById('latitude').value = clickedLocation.lat();
+        document.getElementById('longitude').value = clickedLocation.lng();
+    });
+}
+</script>
 
-        if (!isNaN(lat) && !isNaN(lng)) {
-            marker = L.marker([lat, lng]).addTo(map).bindPopup("Current Location").openPopup();
-        }
-
-        map.on('click', function(e) {
-            lat = e.latlng.lat;
-            lng = e.latlng.lng;
-
-            if (marker) {
-                map.removeLayer(marker);
-            }
-
-            marker = L.marker([lat, lng]).addTo(map).bindPopup("Selected Location").openPopup();
-
-            document.getElementById('latitude').value = lat;
-            document.getElementById('longitude').value = lng;
-        });
-    </script>
     <script>
         document.getElementById('deleteBtn').addEventListener('click', function() {
             Swal.fire({
