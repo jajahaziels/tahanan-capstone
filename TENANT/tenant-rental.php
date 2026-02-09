@@ -239,6 +239,13 @@ $stmt->close();
             background: transparent;
             border: 1px solid currentColor;
             font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .card-btn:hover {
+            background: currentColor;
+            color: white !important;
         }
 
         .box {
@@ -318,11 +325,14 @@ $stmt->close();
             text-decoration: none;
             border: none;
             font-weight: 500;
+            transition: all 0.3s;
         }
 
         .complaint-btn:hover {
             background: #8d0b41;
             color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(172, 17, 82, 0.3);
         }
 
 
@@ -418,8 +428,15 @@ h4, h5 {
     letter-spacing: 0.3px !important;
     color: #25343F;
     margin-bottom: 16px;
+}
 
-    
+.alert-success {
+    background: #d4edda;
+    border-color: #c3e6cb;
+    color: #155724;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 20px;
 }
 
     </style>
@@ -429,6 +446,12 @@ h4, h5 {
     <?php include '../Components/tenant-header.php'; ?>
 
     <div class="container">
+        <?php if (isset($_GET['success'])): ?>
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle"></i> Your maintenance request has been submitted successfully!
+            </div>
+        <?php endif; ?>
+
         <div class="dashboard-cards">
 
             <!-- Rent Payment -->
@@ -470,7 +493,9 @@ h4, h5 {
                 <p><strong>Your Last Request:</strong>
                     <?= isset($maintenance['created_at']) ? date("F d, Y", strtotime($maintenance['created_at'])) : 'No Request Yet'; ?>
                 </p>
-                <button class="card-btn">Create New</button>
+                <button class="card-btn" onclick="window.location.href='maintenance-create.php'" style="color:#000;">
+                    Create New
+                </button>
             </div>
         </div>
 
@@ -599,24 +624,21 @@ h4, h5 {
                                     <p>
                                         <strong>Status:</strong>
                                         <span class="complaint-status">
-                                            <?= htmlspecialchars($complaintStatus); ?>
+                                            <?php
+                                            $statusClass = match ($complaintStatus) {
+                                                'pending' => 'text-warning',
+                                                'in_progress' => 'text-primary',
+                                                'resolved' => 'text-success',
+                                                'rejected' => 'text-danger',
+                                                default => 'text-muted'
+                                            };
+                                            ?>
+                                            <span class="<?= $statusClass; ?>">
+                                                <?= ucfirst(str_replace('_', ' ', htmlspecialchars($complaintStatus))); ?>
+                                            </span>
                                         </span>
                                     </p>
                                 </div>
-
-                                <?php
-$statusClass = match ($complaintStatus) {
-    'pending' => 'text-warning',
-    'in_progress' => 'text-primary',
-    'resolved' => 'text-success',
-    'rejected' => 'text-danger',
-    default => 'text-muted'
-};
-?>
-<span class="complaint-status <?= $statusClass; ?>">
-    <?= htmlspecialchars($complaintStatus); ?>
-</span>
-
                             </div>
                         </div>
 
@@ -638,7 +660,7 @@ $statusClass = match ($complaintStatus) {
             });
 
             // Confirm removal
-            document.getElementById('confirmRemoveLease').addEventListener('click', () => {
+            document.getElementById('confirmRemoveLease')?.addEventListener('click', () => {
                 if (!leaseToRemove) return;
 
                 fetch('tenant-remove.php', {

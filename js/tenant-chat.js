@@ -1,3 +1,5 @@
+
+
 console.log('✅ tenant-chat.js (improved) is loading!');
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -26,6 +28,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   
   console.log('🎯 Target Conversation ID from URL:', targetConversationId);
 
+  /* ========================================
+     INITIALIZATION
+     ======================================== */
   
   // Check session and get user info
   try {

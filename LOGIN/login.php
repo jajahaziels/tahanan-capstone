@@ -34,7 +34,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
 
     $found = false;
     foreach ($roleMap as $table => $map) {
-        $stmt = $conn->prepare("SELECT ID, password, firstName, lastName, username FROM `$table` WHERE email=? LIMIT 1");
+        // FIXED: Check if username column exists in this table before selecting it
+        $columns = "ID, password, firstName, lastName";
+        $checkUsername = $conn->query("SHOW COLUMNS FROM `$table` LIKE 'username'");
+        if ($checkUsername && $checkUsername->num_rows > 0) {
+            $columns .= ", username";
+        }
+        
+        $stmt = $conn->prepare("SELECT $columns FROM `$table` WHERE email=? LIMIT 1");
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $res = $stmt->get_result();
@@ -48,8 +55,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                 $redirect = $map['redirect'];
                 $deviceHash = getDeviceHash();
                 
-                $fullName = $row['firstName'] . ' ' . $row['lastName'];
-                $username = !empty($row['username']) ? $row['username'] : $row['firstName'];
+                // FIXED: Handle case where lastName or username might not exist
+                $fullName = trim(($row['firstName'] ?? '') . ' ' . ($row['lastName'] ?? ''));
+                $username = isset($row['username']) && !empty($row['username']) ? $row['username'] : ($row['firstName'] ?? 'User');
 
                 // --- NO OTP FOR ADMIN ---
                 if ($dbRole === 'admin') {
@@ -95,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                 $_SESSION['otp_role'] = $dbRole;
                 $_SESSION['otp_expiry'] = time() + 600; // 10 minutes
                 $_SESSION['otp_name'] = $fullName;
-                $_SESSION['otp_username'] = $username; // ADDED: Store username too
+                $_SESSION['otp_username'] = $username;
                 $_SESSION['otp_email'] = $email;
                 $_SESSION['otp_redirect'] = $redirect; 
                 

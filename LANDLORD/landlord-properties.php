@@ -4,19 +4,24 @@ include '../session_auth.php';
 
 $landlord_id = $_SESSION['landlord_id'];
 
-// Fetch all landlord properties + check if they have approved rents
+// Fetch all landlord properties with maintenance request count
 $sql = "
 SELECT l.*,
        r.ID AS rent_id,
-       r.status AS rent_status
+       r.status AS rent_status,
+       COUNT(DISTINCT CASE WHEN m.status = 'Pending' THEN m.id END) as pending_maintenance
 FROM listingtbl l
 LEFT JOIN renttbl r 
        ON r.listing_id = l.ID AND r.status = 'approved'
+LEFT JOIN maintenance_requeststbl m
+       ON m.landlord_id = ? AND m.lease_id IN (
+           SELECT ID FROM leasetbl WHERE listing_id = l.ID AND status = 'active'
+       ) AND m.status = 'Pending'
 WHERE l.landlord_id = ?
 GROUP BY l.ID
 ";
 $stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $landlord_id);
+$stmt->bind_param("ii", $landlord_id, $landlord_id);
 $stmt->execute();
 $result = $stmt->get_result();
 ?>
@@ -42,6 +47,38 @@ $result = $stmt->get_result();
         .main-button { display: inline-flex; align-items: center; gap: 4px; padding: 20px 3px; white-space: nowrap; line-height: 1; border-radius: 8px; width: auto; min-width: max-content; }
         .main-button i { margin-right: 6px; }
         .price-tag { font-weight: 600; color: #007bff; position: absolute; bottom: 10px; left: 10px; background: rgba(255,255,255,0.8); padding: 5px 10px; border-radius: 5px; }
+        
+        /* Maintenance notification badge */
+        .maintenance-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #dc3545;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+            z-index: 10;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                box-shadow: 0 2px 8px rgba(220, 53, 69, 0.4);
+            }
+            50% {
+                box-shadow: 0 2px 12px rgba(220, 53, 69, 0.7);
+            }
+        }
+        
+        .maintenance-badge i {
+            font-size: 1rem;
+        }
     </style>
 </head>
 
@@ -66,6 +103,7 @@ $result = $stmt->get_result();
                         <?php if ($result && $result->num_rows > 0): ?>
                             <?php while ($row = $result->fetch_assoc()): ?>
                                 <?php $isOccupied = !empty($row['rent_id']); ?>
+                                <?php $hasMaintenance = $row['pending_maintenance'] > 0; ?>
 
                                 <div class="col-lg-4 col-sm-12">
                                     <div class="cards mb-4">
@@ -79,6 +117,14 @@ $result = $stmt->get_result();
                                             ?>
                                             <img src="<?= htmlspecialchars($imagePath); ?>" alt="Property Image"
                                                 class="property-img" style="width:100%; max-height:200px; object-fit:cover;">
+
+                                            <!-- Maintenance Notification Badge -->
+                                            <?php if ($hasMaintenance): ?>
+                                                <div class="maintenance-badge">
+                                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                                    <?= $row['pending_maintenance']; ?> Request<?= $row['pending_maintenance'] > 1 ? 's' : ''; ?>
+                                                </div>
+                                            <?php endif; ?>
 
                                             <div class="status">
                                                 <p class="<?= $isOccupied ? 'status-occupied' : 'status-available'; ?>">

@@ -139,7 +139,7 @@ $conn->begin_transaction();
 try {
     // Create conversation title
     $title = "Chat about " . ($property_name ? $property_name : "Property #" . $property_id);
-
+    
     $stmt = $conn->prepare("INSERT INTO conversations (type, title, created_at) VALUES ('private', ?, NOW())");
     $stmt->bind_param("s", $title);
     $stmt->execute();
@@ -149,7 +149,7 @@ try {
     $stmt = $conn->prepare("INSERT INTO conversation_members (conversation_id, user_id, user_type, joined_at) VALUES (?, ?, 'tenant', NOW())");
     $stmt->bind_param("ii", $conversation_id, $tenant_id);
     $stmt->execute();
-
+    
     // Add landlord as member
     $stmt = $conn->prepare("INSERT INTO conversation_members (conversation_id, user_id, user_type, joined_at) VALUES (?, ?, 'landlord', NOW())");
     $stmt->bind_param("ii", $conversation_id, $landlord_id);
@@ -161,13 +161,14 @@ try {
     } else {
         $initial_message = "Hello! I'm reaching out about" . ($property_name ? ": " . $property_name : " this property") . ".";
     }
-
-    $stmt = $conn->prepare("INSERT INTO messages (conversation_id, sender_id, content, content_type, status, created_at) VALUES (?, ?, ?, 'text', 'active', NOW())");
-    $stmt->bind_param("iis", $conversation_id, $current_user_id, $initial_message);
+    
+    // FIXED: Added sender_type column
+    $stmt = $conn->prepare("INSERT INTO messages (conversation_id, sender_id, sender_type, content, content_type, status, created_at) VALUES (?, ?, ?, ?, 'text', 'active', NOW())");
+    $stmt->bind_param("iiss", $conversation_id, $current_user_id, $user_type, $initial_message);
     $stmt->execute();
 
     $conn->commit();
-
+    
     echo json_encode([
         "success" => true,
         "conversation_id" => $conversation_id,

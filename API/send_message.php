@@ -4,9 +4,9 @@ header('Content-Type: application/json');
 
 // Database connection
 $host = "localhost";
-$user = "root";
-$pass = "";
-$db = "tahanandb";
+$user = "root";       
+$pass = "";           
+$db   = "tahanandb";  
 
 $conn = new mysqli($host, $user, $pass, $db);
 
@@ -40,7 +40,7 @@ if (!$sender_id) {
 
 // Get data from request
 $conversation_id = $_POST['conversation_id'] ?? null;
-$message = $_POST['message'] ?? null;
+$message         = $_POST['message'] ?? null;
 
 if (!$conversation_id) {
     echo json_encode(["success" => false, "error" => "Missing conversation_id"]);
@@ -66,20 +66,20 @@ $content_type = 'text';
 
 if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
     $upload_dir = '../uploads/chat_files/';
-
+    
     if (!is_dir($upload_dir)) {
         mkdir($upload_dir, 0777, true);
     }
-
+    
     $file_tmp = $_FILES['file']['tmp_name'];
     $file_name = $_FILES['file']['name'];
     $file_size = $_FILES['file']['size'];
     $file_ext = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
-
+    
     // Validate file type
     $allowed_images = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     $allowed_docs = ['pdf', 'doc', 'docx', 'txt', 'xlsx', 'xls'];
-
+    
     if (in_array($file_ext, $allowed_images)) {
         $file_type = 'image';
         $content_type = 'image';
@@ -90,22 +90,22 @@ if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
         echo json_encode(["success" => false, "error" => "File type not allowed"]);
         exit;
     }
-
+    
     // Check file size (max 10MB)
     if ($file_size > 10485760) {
         echo json_encode(["success" => false, "error" => "File too large (max 10MB)"]);
         exit;
     }
-
+    
     // Generate unique filename
     $unique_name = uniqid() . '_' . time() . '.' . $file_ext;
     $file_path = $upload_dir . $unique_name;
-
+    
     if (!move_uploaded_file($file_tmp, $file_path)) {
         echo json_encode(["success" => false, "error" => "Failed to upload file"]);
         exit;
     }
-
+    
     if (empty($message)) {
         $message = $file_name;
     }
