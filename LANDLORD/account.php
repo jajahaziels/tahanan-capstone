@@ -99,13 +99,13 @@ if ($table_check && $table_check->num_rows > 0) {
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
     <title>Account - <?= htmlspecialchars($fullName); ?> | Tahanan</title>
-    
+
     <style>
         /* ========================================
-           ACCOUNT PAGE STYLES
-           Modern, Professional Design
+            ACCOUNT PAGE STYLES
+            Modern, Professional Design
            ======================================== */
-        
+
         .landlord-page {
             margin-top: 140px !important;
             padding: 0 40px 60px 40px;
@@ -710,10 +710,10 @@ if ($table_check && $table_check->num_rows > 0) {
                         <!-- Profile Image -->
                         <div class="profile-image-wrapper">
                             <?php if (!empty($landlord['profilePic'])): ?>
-                                <img src="<?= htmlspecialchars($profilePath); ?>" 
-                                     alt="<?= htmlspecialchars($fullName); ?>" 
-                                     class="profile-image"
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <img src="<?= htmlspecialchars($profilePath); ?>"
+                                    alt="<?= htmlspecialchars($fullName); ?>"
+                                    class="profile-image"
+                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <div class="profile-avatar" style="display: none;">
                                     <?= $firstLetter ?>
                                 </div>
@@ -805,6 +805,10 @@ if ($table_check && $table_check->num_rows > 0) {
                                     <i class="fas fa-share-alt"></i>
                                     Share Profile
                                 </button>
+                                <button class="action-btn action-btn-secondary" onclick="location.href='history.php'">
+                                    <i class="fas fa-history"></i>
+                                    View History
+                                </button>
                                 <button class="action-btn action-btn-danger" onclick="confirmDelete()">
                                     <i class="fas fa-trash-alt"></i>
                                     Delete Account
@@ -831,7 +835,7 @@ if ($table_check && $table_check->num_rows > 0) {
                         <div class="rating-overview">
                             <div class="rating-number"><?= number_format($avg_rating, 1) ?></div>
                             <div class="rating-stars">
-                                <?php 
+                                <?php
                                 for ($i = 1; $i <= 5; $i++) {
                                     if ($i <= floor($avg_rating)) {
                                         echo '<i class="fas fa-star"></i>';
@@ -853,67 +857,67 @@ if ($table_check && $table_check->num_rows > 0) {
                             foreach ($reviews as $review) {
                                 $rating_counts[$review['rating']]++;
                             }
-                            
+
                             for ($star = 5; $star >= 1; $star--):
                                 $count = $rating_counts[$star];
                                 $percentage = $total_reviews > 0 ? ($count / $total_reviews) * 100 : 0;
                             ?>
-                            <div class="rating-bar-item">
-                                <div class="rating-bar-label">
-                                    <?= $star ?> <i class="fas fa-star" style="font-size: 12px;"></i>
+                                <div class="rating-bar-item">
+                                    <div class="rating-bar-label">
+                                        <?= $star ?> <i class="fas fa-star" style="font-size: 12px;"></i>
+                                    </div>
+                                    <div class="rating-bar-bg">
+                                        <div class="rating-bar-fill" style="width: <?= $percentage ?>%"></div>
+                                    </div>
+                                    <div class="rating-bar-count"><?= $count ?></div>
                                 </div>
-                                <div class="rating-bar-bg">
-                                    <div class="rating-bar-fill" style="width: <?= $percentage ?>%"></div>
-                                </div>
-                                <div class="rating-bar-count"><?= $count ?></div>
-                            </div>
                             <?php endfor; ?>
                         </div>
                     </div>
 
                     <!-- Reviews List -->
                     <div class="reviews-list">
-                        <?php foreach ($reviews as $review): 
+                        <?php foreach ($reviews as $review):
                             $tenant_name = ucwords(strtolower($review['tenant_first_name'] . ' ' . $review['tenant_last_name']));
                             $tenant_initial = strtoupper(substr($review['tenant_first_name'], 0, 1));
                             $review_date = date("F j, Y", strtotime($review['created_at']));
                             $time_ago = getTimeAgo($review['created_at']);
                         ?>
-                        <div class="review-card">
-                            <div class="review-header">
-                                <!-- Tenant Avatar -->
-                                <?php if (!empty($review['tenant_profile_pic'])): ?>
-                                    <img src="../uploads/profiles/<?= htmlspecialchars($review['tenant_profile_pic']); ?>" 
-                                         alt="<?= htmlspecialchars($tenant_name); ?>" 
-                                         class="reviewer-avatar"
-                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    <div class="reviewer-avatar-placeholder" style="display: none;">
-                                        <?= $tenant_initial ?>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="reviewer-avatar-placeholder">
-                                        <?= $tenant_initial ?>
-                                    </div>
-                                <?php endif; ?>
-
-                                <div class="review-info">
-                                    <h4 class="reviewer-name"><?= htmlspecialchars($tenant_name); ?></h4>
-                                    <div class="review-meta">
-                                        <div class="review-rating">
-                                            <?php for ($i = 1; $i <= 5; $i++): ?>
-                                                <i class="<?= $i <= $review['rating'] ? 'fas' : 'far' ?> fa-star"></i>
-                                            <?php endfor; ?>
+                            <div class="review-card">
+                                <div class="review-header">
+                                    <!-- Tenant Avatar -->
+                                    <?php if (!empty($review['tenant_profile_pic'])): ?>
+                                        <img src="../uploads/profiles/<?= htmlspecialchars($review['tenant_profile_pic']); ?>"
+                                            alt="<?= htmlspecialchars($tenant_name); ?>"
+                                            class="reviewer-avatar"
+                                            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                        <div class="reviewer-avatar-placeholder" style="display: none;">
+                                            <?= $tenant_initial ?>
                                         </div>
-                                        <span>•</span>
-                                        <div class="review-date">
-                                            <i class="far fa-clock"></i>
-                                            <?= $time_ago ?>
+                                    <?php else: ?>
+                                        <div class="reviewer-avatar-placeholder">
+                                            <?= $tenant_initial ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <div class="review-info">
+                                        <h4 class="reviewer-name"><?= htmlspecialchars($tenant_name); ?></h4>
+                                        <div class="review-meta">
+                                            <div class="review-rating">
+                                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                    <i class="<?= $i <= $review['rating'] ? 'fas' : 'far' ?> fa-star"></i>
+                                                <?php endfor; ?>
+                                            </div>
+                                            <span>•</span>
+                                            <div class="review-date">
+                                                <i class="far fa-clock"></i>
+                                                <?= $time_ago ?>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
+                                <p class="review-text"><?= nl2br(htmlspecialchars($review['review_text'])); ?></p>
                             </div>
-                            <p class="review-text"><?= nl2br(htmlspecialchars($review['review_text'])); ?></p>
-                        </div>
                         <?php endforeach; ?>
                     </div>
 
@@ -927,91 +931,91 @@ if ($table_check && $table_check->num_rows > 0) {
                 <?php endif; ?>
             </div>
         </div>
-    </div>
+        <!-- SCRIPTS -->
+        <script src="../js/bootstrap.bundle.min.js"></script>
+        <script src="../js/script.js" defer></script>
+        <script src="https://unpkg.com/scrollreveal"></script>
 
-    <!-- SCRIPTS -->
-    <script src="../js/bootstrap.bundle.min.js"></script>
-    <script src="../js/script.js" defer></script>
-    <script src="https://unpkg.com/scrollreveal"></script>
-    
-    <script>
-        // Share Profile Function
-        function shareProfile() {
-            const profileUrl = window.location.href;
-            const profileText = "Check out <?= htmlspecialchars($fullName); ?>'s profile on Tahanan";
-            
-            if (navigator.share) {
-                navigator.share({
-                    title: 'Landlord Profile',
-                    text: profileText,
-                    url: profileUrl
-                }).catch(err => console.log('Error sharing:', err));
-            } else {
-                // Fallback: Copy to clipboard
-                navigator.clipboard.writeText(profileUrl).then(() => {
-                    alert('Profile link copied to clipboard!');
-                }).catch(err => {
-                    console.error('Could not copy text:', err);
-                });
-            }
-        }
+        <script>
+            // Share Profile Function
+            function shareProfile() {
+                const profileUrl = window.location.href;
+                const profileText = "Check out <?= htmlspecialchars($fullName); ?>'s profile on Tahanan";
 
-        // Confirm Delete Function
-        function confirmDelete() {
-            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
-                if (confirm('This will permanently delete all your data. Are you absolutely sure?')) {
-                    window.location.href = 'delete-account.php';
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Landlord Profile',
+                        text: profileText,
+                        url: profileUrl
+                    }).catch(err => console.log('Error sharing:', err));
+                } else {
+                    // Fallback: Copy to clipboard
+                    navigator.clipboard.writeText(profileUrl).then(() => {
+                        alert('Profile link copied to clipboard!');
+                    }).catch(err => {
+                        console.error('Could not copy text:', err);
+                    });
                 }
             }
-        }
 
-        // Animate rating bars on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            const ratingBars = document.querySelectorAll('.rating-bar-fill');
-            ratingBars.forEach(bar => {
-                const width = bar.style.width;
-                bar.style.width = '0';
-                setTimeout(() => {
-                    bar.style.width = width;
-                }, 100);
-            });
-        });
+            // Confirm Delete Function
+            function confirmDelete() {
+                if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                    if (confirm('This will permanently delete all your data. Are you absolutely sure?')) {
+                        window.location.href = 'delete-account.php';
+                    }
+                }
+            }
 
-        // ScrollReveal Animations
-        if (typeof ScrollReveal !== 'undefined') {
-            ScrollReveal().reveal('.profile-card', {
-                duration: 800,
-                origin: 'bottom',
-                distance: '30px',
-                easing: 'ease-out'
-            });
-
-            ScrollReveal().reveal('.reviews-section', {
-                duration: 800,
-                origin: 'bottom',
-                distance: '30px',
-                delay: 200,
-                easing: 'ease-out'
+            // Animate rating bars on page load
+            document.addEventListener('DOMContentLoaded', () => {
+                const ratingBars = document.querySelectorAll('.rating-bar-fill');
+                ratingBars.forEach(bar => {
+                    const width = bar.style.width;
+                    bar.style.width = '0';
+                    setTimeout(() => {
+                        bar.style.width = width;
+                    }, 100);
+                });
             });
 
-            ScrollReveal().reveal('.review-card', {
-                duration: 600,
-                origin: 'bottom',
-                distance: '20px',
-                interval: 100,
-                easing: 'ease-out'
-            });
-        }
-    </script>
+            // ScrollReveal Animations
+            if (typeof ScrollReveal !== 'undefined') {
+                ScrollReveal().reveal('.profile-card', {
+                    duration: 800,
+                    origin: 'bottom',
+                    distance: '30px',
+                    easing: 'ease-out'
+                });
+
+                ScrollReveal().reveal('.reviews-section', {
+                    duration: 800,
+                    origin: 'bottom',
+                    distance: '30px',
+                    delay: 200,
+                    easing: 'ease-out'
+                });
+
+                ScrollReveal().reveal('.review-card', {
+                    duration: 600,
+                    origin: 'bottom',
+                    distance: '20px',
+                    interval: 100,
+                    easing: 'ease-out'
+                });
+            }
+        </script>
 </body>
+
 </html>
 
 <?php
 // Helper function to get time ago
-function getTimeAgo($datetime) {
+function getTimeAgo($datetime)
+{
     $time = strtotime($datetime);
     $diff = time() - $time;
-    
+
     if ($diff < 60) {
         return 'Just now';
     } elseif ($diff < 3600) {

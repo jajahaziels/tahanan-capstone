@@ -61,6 +61,12 @@ input[type=number] {
     --shadow-color: rgba(255, 255, 255, 0.25);
 }
 
+/* notification */
+.bell-icon {
+    color: var(--main-color);
+}
+
+
 /* box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.75); */
 h1 {
     font-weight: 900;
