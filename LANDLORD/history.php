@@ -2,6 +2,34 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
+$landlord_id = $_SESSION['landlord_id']; 
+
+// Fetch active tenants and their last payment info based on tahanandb schema
+$query = "SELECT 
+            t.ID as tenant_id, 
+            t.firstName, 
+            t.lastName, 
+            t.profilePic,
+            l.listingName as property_name, 
+            ls.rent as amount, 
+            MAX(p.paid_date) AS last_payment_date
+          FROM leasetbl ls
+          JOIN tenanttbl t ON ls.tenant_id = t.ID
+          JOIN listingtbl l ON ls.listing_id = l.ID
+          LEFT JOIN paymentstbl p ON ls.ID = p.lease_id
+          WHERE ls.landlord_id = ? 
+          AND ls.status = 'active'
+          GROUP BY ls.ID";
+
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $landlord_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+$active_tenants = [];
+while ($row = $result->fetch_assoc()) {
+    $active_tenants[] = $row;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -115,26 +143,25 @@ include '../session_auth.php';
     }
 
     .empty-reviews {
-            text-align: center;
-            padding: 60px 20px;
-            color: #718096;
-        }
+        text-align: center;
+        padding: 60px 20px;
+        color: #718096;
+    }
 
-        .empty-reviews i {
-            font-size: 64px;
-            color: #cbd5e0;
-            margin-bottom: 20px;
-        }
+    .empty-reviews i {
+        font-size: 64px;
+        color: #cbd5e0;
+        margin-bottom: 20px;
+    }
 
-        .empty-reviews h3 {
-            color: #4a5568;
-            margin-bottom: 8px;
-        }
+    .empty-reviews h3 {
+        color: #4a5568;
+        margin-bottom: 8px;
+    }
 
-        .empty-reviews p {
-            color: #a0aec0;
-        }
-    
+    .empty-reviews p {
+        color: #a0aec0;
+    }
 </style>
 
 <body>
