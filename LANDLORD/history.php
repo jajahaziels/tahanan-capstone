@@ -30,6 +30,62 @@ $active_tenants = [];
 while ($row = $result->fetch_assoc()) {
     $active_tenants[] = $row;
 }
+
+// Fetch maintenance requests / complaints for this landlord
+$complaints_query = "SELECT 
+                        mr.ID as complaint_id,
+                        mr.title,
+                        mr.description,
+                        mr.category,
+                        mr.priority,
+                        mr.status,
+                        mr.requested_date,
+                        mr.scheduled_date,
+                        mr.completed_date,
+                        mr.photo_path,
+                        t.firstName,
+                        t.lastName,
+                        t.profilePic,
+                        l.listingName as property_name
+                    FROM maintenance_requeststbl mr
+                    JOIN leasetbl ls ON mr.lease_id = ls.ID
+                    JOIN tenanttbl t ON ls.tenant_id = t.ID
+                    JOIN listingtbl l ON ls.listing_id = l.ID
+                    WHERE mr.landlord_id = ?
+                    ORDER BY mr.requested_date DESC";
+
+$stmt2 = $conn->prepare($complaints_query);
+$stmt2->bind_param("i", $landlord_id);
+$stmt2->execute();
+$result2 = $stmt2->get_result();
+
+$complaints = [];
+while ($row = $result2->fetch_assoc()) {
+    $complaints[] = $row;
+}
+
+function getPriorityBadge($priority)
+{
+    return match (strtolower($priority)) {
+        'low' => '<span class="badge bg-success">Low</span>',
+        'medium' => '<span class="badge bg-warning text-dark">Medium</span>',
+        'high' => '<span class="badge bg-danger">High</span>',
+        'urgent' => '<span class="badge bg-dark text-white">Urgent</span>',
+        default => '<span class="badge bg-secondary">' . htmlspecialchars($priority) . '</span>'
+    };
+}
+
+function getStatusBadge($status)
+{
+    return match (strtolower($status)) {
+        'pending' => '<span class="badge bg-warning text-dark">Pending</span>',
+        'in progress' => '<span class="badge bg-primary">Scheduled</span>', // Friendly label
+        'completed' => '<span class="badge bg-success">Completed</span>',
+        'rejected' => '<span class="badge bg-danger">Rejected</span>',
+        default => '<span class="badge bg-secondary">' . htmlspecialchars($status) . '</span>'
+    };
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -155,6 +211,8 @@ while ($row = $result->fetch_assoc()) {
     .empty-reviews p {
         color: #a0aec0;
     }
+
+    
 </style>
 
 <body>
@@ -164,7 +222,7 @@ while ($row = $result->fetch_assoc()) {
     <div class="payments-section">
         <div class="section-header">
             <h3 class="section-title">
-                <i class="fas fa-credit-card"></i>
+                <i class="bi bi-tools" style="color: #8d0b41; font-size: 1.5rem; margin-right: 8px;"></i>
                 Active Tenants & Payments
             </h3>
             <?php if (!empty($active_tenants)): ?>
@@ -195,9 +253,11 @@ while ($row = $result->fetch_assoc()) {
                             <tr>
                                 <td>
                                     <?php if (!empty($tenant['profilePic'])): ?>
-                                        <img src="../uploads/profiles/<?= htmlspecialchars($tenant['profilePic']) ?>"
-                                            alt="<?= htmlspecialchars($tenant_name) ?>" class="rounded-circle" width="40"
-                                            height="40" style="object-fit: cover; border: 2px solid #8d0b41;">
+                                        <a href="tenant-profile.php?tenant_id=<?= $tenant['tenant_id'] ?>">
+                                            <img src="../uploads/<?= htmlspecialchars($tenant['profilePic']) ?>"
+                                                alt="<?= htmlspecialchars($tenant_name) ?>" class="rounded-circle" width="40" height="40"
+                                                style="object-fit: cover; border: 2px solid #8d0b41;">
+                                        </a>
                                     <?php else: ?>
                                         <div class="profile-avatar-sm"><?= $tenant_initial ?></div>
                                     <?php endif; ?>
@@ -263,6 +323,171 @@ while ($row = $result->fetch_assoc()) {
         </div>
     </div>
 
+    <div class="payments-section mt-5">
+    <div class="section-header">
+        <h3 class="section-title">
+            <i class="fas fa-tools"></i>
+            Complaint / Maintenance Requests
+        </h3>
+        <?php if (!empty($complaints)): ?>
+                <span class="action-btn-primary" style="padding: 5px 15px; border-radius: 20px; font-size: 14px;">
+                    <?= count($complaints) ?> Requests
+                </span>
+            <?php endif; ?>
+        </div>
+    
+        <!-- Maintenance Request Table -->
+        <?php if (!empty($complaints)): ?>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Profile</th>
+                            <th>Tenant Name</th>
+                            <th>Property</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Requested Date</th>
+                            <th>Scheduled Date</th>
+                            <th>Completed Date</th>
+                            <th>Photo</th>
+                            <th>Action</th>
+                        </tr>
+                    <thead>
+                <tbody>
+        <?php foreach ($complaints as $complaint):
+            $status = strtolower(trim($complaint['status']));
+            $tenant_name = ucwords(strtolower($complaint['firstName'] . ' ' . $complaint['lastName']));
+                            $tenant_initial = strtoupper(substr($complaint['firstName'], 0, 1));
+                            $requested_date = $complaint['requested_date'] ? date("M j, Y", strtotime($complaint['requested_date'])) : '-';
+                            $scheduled_date = $complaint['scheduled_date'] ? date("M j, Y", strtotime($complaint['scheduled_date'])) : '-';
+                            $completed_date = $complaint['completed_date'] ? date("M j, Y", strtotime($complaint['completed_date'])) : '-';
+                            ?>
+                            <tr>
+                                <td>
+                                    <?php if (!empty($complaint['profilePic'])): ?>
+                                        <a href="tenant-profile.php?tenant_id=<?= $tenant['tenant_id'] ?>">
+                                            <img src="../uploads/<?= htmlspecialchars($tenant['profilePic']) ?>"
+                                                alt="<?= htmlspecialchars($tenant_name) ?>" class="rounded-circle" width="40" height="40"
+                                                style="object-fit: cover; border: 2px solid #8d0b41;">
+                                        </a>
+                                    <?php else: ?>
+                                        <div class="profile-avatar-sm"><?= $tenant_initial ?></div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="fw-bold text-dark"><?= htmlspecialchars($tenant_name) ?></td>
+                                <td><span class="text-muted"><i
+                                            class="fas fa-home me-1"></i><?= htmlspecialchars($complaint['property_name']) ?></span></td>
+                                <td><?= htmlspecialchars($complaint['title']) ?></td>
+                                <td><?= htmlspecialchars($complaint['category']) ?></td>
+                                <td><?= getPriorityBadge($complaint['priority']) ?></td>
+                                <td><?= getStatusBadge($complaint['status']) ?></td>
+                                <td><?= $requested_date ?></td>
+                                <td><?= $scheduled_date ?></td>
+                                <td><?= $completed_date ?></td>
+                                <td>
+                                    <?php if (!empty($complaint['photo_path'])): ?>
+                                        <a href="../uploads/<?= htmlspecialchars($complaint['photo_path']) ?>" target="_blank">
+                                            <i class="fas fa-image"></i> View
+                                        </a>
+                                    <?php else: ?>
+                                        -
+                                    <?php endif; ?>
+                                </td>
+                                <td>
+                                    <?php if ($status === 'completed'): ?>
+
+    <!-- Remove only -->
+    <button class="btn btn-sm btn-outline-danger remove-complaint-btn"
+        data-id="<?= $complaint['complaint_id'] ?>">
+        <i class="fas fa-trash-alt me-1"></i> Remove <style>#8d0b41</style>
+    </button>
+
+<?php elseif ($status === 'rejected'): ?>
+
+    <!-- Respond + Remove -->
+    <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-primary"
+            data-bs-toggle="modal" 
+            data-bs-target="#complaintModal"
+            data-id="<?= $complaint['complaint_id'] ?>" 
+            data-title="<?= htmlspecialchars($complaint['title']) ?>">
+            <i class="fas fa-reply me-1"></i> Respond
+        </button>
+
+        <button class="btn btn-sm btn-outline-danger remove-complaint-btn"
+            data-id="<?= $complaint['complaint_id'] ?>">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+    </div>
+
+<?php else: ?>
+
+    <!-- pending + in progress -->
+    <button class="btn btn-sm btn-primary shadow-sm"
+        data-bs-toggle="modal" 
+        data-bs-target="#complaintModal"
+        data-id="<?= $complaint['complaint_id'] ?>" 
+        data-title="<?= htmlspecialchars($complaint['title']) ?>">
+        <i class="fas fa-reply me-1"></i> Respond
+    </button>
+
+<?php endif; ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="empty-reviews">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>No Complaints / Requests</h3>
+                <p>Once tenants submit maintenance requests, they will appear here for your review and action.</p>
+            </div>
+        <?php endif; ?>
+    </div>
+
+        <!-- Complaint Response Modal -->
+<div class="modal fade" id="complaintModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="complaintForm" method="post" action="maintenance-respond.php">
+                <div class="modal-header">
+                    <h5 class="modal-title">Respond to Complaint</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="complaint_id" id="complaint_id">
+                    <div class="mb-3">
+                        <label for="status" class="form-label">Status</label>
+                        <select class="form-select" name="status" id="status" required>
+    <option value="pending">Pending</option>
+    <option value="in progress">Scheduled</option> <!-- Friendly label -->
+    <option value="completed">Completed</option>
+    <option value="rejected">Rejected</option>
+</select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="response" class="form-label">Message / Action to Tenant</label>
+                        <textarea class="form-control" name="response" id="response" rows="3" placeholder="Write your message here..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="scheduled_date" class="form-label">Scheduled Date (if applicable)</label>
+                        <input type="date" class="form-control" name="scheduled_date" id="scheduled_date">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Send Response</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script>
         var paymentModal = document.getElementById('paymentModal');
@@ -275,6 +500,52 @@ while ($row = $result->fetch_assoc()) {
             paymentModal.querySelector('.modal-title').textContent = 'Record Payment for ' + tenantName;
         });
     </script>
+
+    <script>
+var complaintModal = document.getElementById('complaintModal');
+complaintModal.addEventListener('show.bs.modal', function (event) {
+    var button = event.relatedTarget;
+    var complaintId = button.getAttribute('data-id');
+    var title = button.getAttribute('data-title');
+    var status = button.getAttribute('data-status');
+
+    complaintModal.querySelector('#complaint_id').value = complaintId;
+    complaintModal.querySelector('.modal-title').textContent = 'Respond to: ' + title;
+    complaintModal.querySelector('#status').value = status;
+});
+</script>
+
+<script>
+    document.querySelectorAll('.remove-complaint-btn').forEach(button => {
+    button.addEventListener('click', function() {
+
+        const complaintId = this.dataset.id;
+
+        if (!confirm("Are you sure you want to remove this completed request?")) {
+            return;
+        }
+
+        fetch('maintenance-delete.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: 'complaint_id=' + complaintId
+        })
+        .then(res => res.text())
+        .then(response => {
+            if (response.trim() === 'success') {
+                location.reload();
+            } else {
+                alert("Failed to delete: " + response);
+            }
+        })
+        .catch(error => {
+            alert("Error: " + error);
+        });
+
+    });
+});
+</script>
+
 </body>
 
 </html>

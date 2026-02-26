@@ -91,7 +91,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Failed to submit request. Please try again.";
         }
     }
+
+function getPriorityBadge($priority) {
+    switch ($priority) {
+        case 'Low':
+            return '<span class="badge bg-success">Low</span>';
+        case 'Medium':
+            return '<span class="badge bg-warning text-dark">Medium</span>';
+        case 'High':
+            return '<span class="badge bg-danger">High</span>';
+        case 'Urgent':
+            return '<span class="badge bg-dark">Urgent</span>';
+        default:
+            return '<span class="badge bg-secondary">'.$priority.'</span>';
+    }
 }
+}
+
 ?>
 
 <!DOCTYPE html>

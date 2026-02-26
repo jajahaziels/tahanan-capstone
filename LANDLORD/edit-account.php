@@ -7,13 +7,13 @@ if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-// database connection
+// Database connection
 $conn = new mysqli("localhost", "root", "", "tahanandb");
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// fetch current user data
+// Fetch current user data
 $stmt = $conn->prepare("SELECT * FROM landlordtbl WHERE ID=?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -39,6 +39,21 @@ function uploadFile($file, $prefix, $dir)
 // Handle form submission
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
+    // PROFILE PICTURE: handle removal first
+    if (isset($_POST['removePhoto']) && $_POST['removePhoto'] == '1') {
+        if (!empty($user['profilePic']) && file_exists($upload_dir . $user['profilePic'])) {
+            unlink($upload_dir . $user['profilePic']);
+        }
+        $profilePic = null;
+    } else {
+        $profilePic = uploadFile($_FILES['profilePic'] ?? null, 'profile', $upload_dir) ?? $user['profilePic'];
+    }
+
+    // Other uploaded files
+    $verificationId = uploadFile($_FILES['verificationId'] ?? null, 'govid', $upload_dir) ?? $user['verificationId'];
+    $ID_image = uploadFile($_FILES['ID_image'] ?? null, 'selfie', $upload_dir) ?? $user['ID_image'];
+
+    // Other fields
     $firstName = $_POST['firstName'] ?? $user['firstName'];
     $lastName = $_POST['lastName'] ?? $user['lastName'];
     $middleName = $_POST['middleName'] ?? $user['middleName'];
@@ -53,12 +68,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $gender = $_POST['gender'] ?? $user['gender'];
     $username = $_POST['userName'] ?? $user['username'];
 
-    // File uploads
-    $profilePic = uploadFile($_FILES['profilePic'] ?? null, 'profile', $upload_dir) ?? $user['profilePic'];
-    $verificationId = uploadFile($_FILES['verificationId'] ?? null, 'govid', $upload_dir) ?? $user['verificationId'];
-    $ID_image = uploadFile($_FILES['ID_image'] ?? null, 'selfie', $upload_dir) ?? $user['ID_image'];
-
-    // Update query using ID
+    // Update query
     $stmt = $conn->prepare("UPDATE landlordtbl SET 
         firstName=?, lastName=?, middleName=?, username=?, street=?, barangay=?, city=?, province=?, zipCode=?, phoneNum=?, email=?, birthday=?, gender=?, profilePic=?, verificationId=?, ID_image=? 
         WHERE ID=?");
@@ -84,7 +94,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $user_id
     );
 
-
     if ($stmt->execute()) {
         $_SESSION['success_message'] = "Account updated successfully!";
         header("Location: account.php");
@@ -92,6 +101,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     } else {
         $error_message = "Error updating account: " . $stmt->error;
     }
+
     $stmt->close();
 }
 
@@ -114,42 +124,171 @@ $conn->close();
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
     <title>EDIT ACCOUNT</title>
     <style>
-        .landlord-page {
-            margin-top: 140px !important;
-        }
+        /* PAGE & CONTAINER */
+.landlord-page {
+    margin-top: 140px !important;
+    font-family: 'Inter', sans-serif;
+    color: #333;
+    background-color: #f9f9f9;
+}
 
-        .edit {
-            background-color: var(--bg-color);
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 2px 2px 10px var(--shadow-color);
-        }
+.edit {
+    background-color: var(--bg-color);
+    padding: 30px 25px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease-in-out;
+}
 
-        .profile-img {
-            width: 120px;
-            height: 120px;
-            background-color: #d9d9d9;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            position: relative;
-            cursor: pointer;
-            overflow: hidden;
-            border: 2px solid var(--main-color);
-        }
+.edit:hover {
+    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+}
 
-        .profile-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
+/* HEADINGS */
+h2, h4, h5 {
+    font-weight: 600;
+    color: var(--main-color);
+}
 
-        .upload-input {
-            display: none;
-        }
+/* PROFILE IMAGE */
+.profile-img {
+    width: 140px;
+    height: 140px;
+    background-color: #d9d9d9;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    overflow: hidden;
+    border: 2px solid var(--main-color);
+    transition: all 0.3s ease;
+}
+
+.profile-img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(108, 99, 255, 0.15);
+}
+
+.profile-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+/* INPUT FIELDS */
+input.form-control, select.form-control {
+    border-radius: 10px;
+    padding: 12px 15px;
+    border: 1px solid #ccc;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    background-color: #fafafa;
+}
+
+input.form-control:focus, select.form-control:focus {
+    border-color: var(--main-color);
+    box-shadow: 0 4px 12px rgba(141, 11, 65, 0.15);
+    outline: none;
+}
+
+.upload-input {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
+
+/* LABELS */
+label.form-label {
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+/* BUTTONS */
+.main-button {
+    background: linear-gradient(135deg, #8d0b41, #a3154f); 
+    color: #fff;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(141, 11, 65, 0.25);
+}
+
+.main-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(141, 11, 65, 0.35);
+}
+
+.main-button:active {
+    transform: scale(0.97);
+}
+
+/* REMOVE BUTTON */
+.btn-remove-modern {
+    background: linear-gradient(135deg, #8d0b41, #a3154f);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 12px;
+}
+
+.btn-remove-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(141, 11, 65, 0.35);
+}
+
+.btn-remove-modern:active {
+    transform: scale(0.96);
+}
+
+/* FORM SECTIONS */
+h4, h5 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+small.text-muted {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    color: #999;
+}
+
+/* FLEX LAYOUT FOR PROFILE PIC + REMOVE BUTTON */
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .edit {
+        padding: 20px;
+    }
+    .profile-img {
+        width: 120px;
+        height: 120px;
+    }
+}
     </style>
 </head>
 
@@ -168,20 +307,34 @@ $conn->close();
                         <div class="col-lg-12">
                             <form class="mt-4" method="POST" enctype="multipart/form-data">
                                 <div class="row mb-3">
-                                    <div class="col d-flex justify-content-center align-items-center">
-                                        <label class="profile-img" for="upload">
-                                            <span id="profile-text"
-                                                style="<?= !empty($user['profilePic']) ? 'display: none;' : '' ?>">add
-                                                img</span>
+                                    <div class="col d-flex justify-content-center align-items-center flex-column profile-container">
+                                        <div class="profile-img-wrapper" style="position: relative; width: 140px; height: 140px; border:2px solid var(--main-color); border-radius:50%; overflow:hidden; cursor:pointer;">
+                                        
+                                        <!-- Image Preview -->
                                             <img id="preview"
                                                 src="<?= !empty($user['profilePic']) ? '../uploads/' . htmlspecialchars($user['profilePic']) : '' ?>"
-                                                alt=""
-                                                style="<?= !empty($user['profilePic']) ? 'display: block;' : 'display: none;' ?>">
-                                            <input type="file" id="upload" name="profilePic" class="upload-input"
-                                                accept="image/*">
-                                        </label>
-                                    </div>
-                                    <div class="col">
+                                                alt="Profile Picture"
+                                                style="width:100%; height:100%; object-fit:cover; display: <?= !empty($user['profilePic']) ? 'block' : 'none' ?>; border-radius:50%;">
+                                        
+                                        <!-- Placeholder Text -->
+                                            <span id="profile-text"
+                                                style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-weight:bold; color:#555; <?= !empty($user['profilePic']) ? 'display:none;' : 'display:block;' ?>">
+                                                Add Photo
+                                            </span>
+
+                                        <!-- Hidden File Input -->
+                                            <input type="file" id="upload" name="profilePic" accept="image/*"
+                                                style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;">
+                                        </div>
+
+                                        <!-- Remove Button -->
+                                            <button type="button" id="remove-photo" class="btn-remove-modern mt-2"
+                                                style="<?= !empty($user['profilePic']) ? 'display:inline-flex;' : 'display:none;' ?>">
+                                                <i class="fa-solid fa-trash"></i> Remove Photo
+                                            </button>
+                                        </div>
+
+                                        <div class="col">
                                         <label class="form-label">Firstname</label>
                                         <input type="text" name="firstName" class="form-control"
                                             value="<?= htmlspecialchars($user['firstName'] ?? '') ?>" required>
@@ -203,10 +356,10 @@ $conn->close();
                                             value="<?= htmlspecialchars($user['email'] ?? '') ?>" required>
                                     </div>
 
-                                    <div class="col">
-                                        <label class="form-label">User Name</label>
-                                        <input type="text" name="userName" class="form-control"
-                                            value="<?= htmlspecialchars($user['userName'] ?? '') ?>" required>
+                                <div class="col-md-6">
+                                        <label class="form-label">Username</label>
+                                        <input type="text" name="username" class="form-control"
+                                    value="<?= htmlspecialchars($user['username'] ?? '') ?>">
                                     </div>
                                 </div>
 
@@ -252,9 +405,17 @@ $conn->close();
                                 <div class="row mb-3">
                                     <div class="col">
                                         <label class="form-label">Date of Birth</label>
-                                        <input type="date" name="birthday" class="form-control"
-                                            value="<?= htmlspecialchars($user['birthday'] ?? '') ?>">
+                                    <?php
+                                        // Calculate max allowed DOB: today - 19 years
+                                        $today = new DateTime();
+                                        $today->modify('-21 years');
+                                        $maxDOB = $today->format('Y-m-d');
+                                    ?>
+                                        <input type="date" name="birthday" class="form-control" value="<?= htmlspecialchars($user['birthday'] ?? '') ?>"
+                                            max="<?= $maxDOB ?>" required>
+                                        <small class="text-muted">You must be at least 21 years old.</small>
                                     </div>
+                                </div>
                                     <div class="col">
                                         <label class="form-label">Gender</label>
                                         <select name="gender" class="form-control" required>
@@ -314,24 +475,44 @@ $conn->close();
         </div>
     </div>
 
-    <script>
-        const uploadInput = document.getElementById('upload');
-        const preview = document.getElementById('preview');
-        const profileText = document.getElementById('profile-text');
+<script>
+const uploadInput = document.getElementById('upload');
+const preview = document.getElementById('preview');
+const profileText = document.getElementById('profile-text');
+const removeBtn = document.getElementById('remove-photo');
 
-        uploadInput.addEventListener('change', (event) => {
-            const file = event.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                    profileText.style.display = 'none';
-                };
-                reader.readAsDataURL(file);
-            }
-        });
-    </script>
+uploadInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            profileText.style.display = 'none';
+            removeBtn.style.display = 'inline-flex';
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+removeBtn.addEventListener('click', () => {
+    preview.src = '';
+    preview.style.display = 'none';
+    profileText.style.display = 'block';
+    removeBtn.style.display = 'none';
+    uploadInput.value = '';
+
+    // Add hidden input to tell PHP to remove photo
+    if (!document.getElementById('removePhotoInput')) {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'removePhoto';
+        input.id = 'removePhotoInput';
+        input.value = '1';
+        document.querySelector('form').appendChild(input);
+    }
+});
+</script>
 
     <script src="../js/script.js" defer></script>
     <script src="../js/bootstrap.bundle.min.js"></script>

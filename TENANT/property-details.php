@@ -404,7 +404,7 @@ if ($result['rent_count'] > 0) {
     <script src="https://unpkg.com/scrollreveal"></script>
     <script src="../js/contact-landlord.js"></script>
     <script 
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap" 
+        src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap" 
         async 
         defer>
     </script>

@@ -115,49 +115,70 @@ if (!isset($_SESSION['landlord_id'])) {
 }
 
 // --- Query 4: Active Maintenance Requests ---
-$sqlActiveMaintenance = "
-    SELECT 
-        m.*,
-        t.firstName,
-        t.lastName,
-        t.email,
-        t.phoneNum
-    FROM maintenance_requeststbl m
-    JOIN tenanttbl t ON m.tenant_id = t.ID
-    JOIN leasetbl l ON m.lease_id = l.ID
-    WHERE l.listing_id = ? AND m.status != 'Completed'
-    ORDER BY 
-        CASE m.status 
-            WHEN 'Pending' THEN 1
-            WHEN 'Approved' THEN 2
-            WHEN 'In Progress' THEN 3
-        END,
-        m.created_at DESC
-";
-$stmt4 = $conn->prepare($sqlActiveMaintenance);
-$stmt4->bind_param("i", $listingID);
-$stmt4->execute();
-$activeMaintenance = $stmt4->get_result();
-$stmt4->close();
 
-// --- Query 5: Completed Maintenance History ---
-$sqlMaintenanceHistory = "
-    SELECT 
-        m.*,
-        t.firstName,
-        t.lastName
-    FROM maintenance_requeststbl m
-    JOIN tenanttbl t ON m.tenant_id = t.ID
-    JOIN leasetbl l ON m.lease_id = l.ID
-    WHERE l.listing_id = ? AND m.status = 'Completed'
-    ORDER BY m.completed_date DESC
-    LIMIT 10
-";
-$stmt5 = $conn->prepare($sqlMaintenanceHistory);
-$stmt5->bind_param("i", $listingID);
-$stmt5->execute();
-$maintenanceHistory = $stmt5->get_result();
-$stmt5->close();
+// Fetch maintenance requests / complaints for this landlord
+$complaints_query = "SELECT 
+                        mr.ID as complaint_id,
+                        mr.title,
+                        mr.description,
+                        mr.category,
+                        mr.priority,
+                        mr.status,
+                        mr.requested_date,
+                        mr.scheduled_date,
+                        mr.completed_date,
+                        mr.photo_path,
+                        t.firstName,
+                        t.lastName,
+                        t.profilePic,
+                        l.listingName as property_name
+                    FROM maintenance_requeststbl mr
+                    JOIN leasetbl ls ON mr.lease_id = ls.ID
+                    JOIN tenanttbl t ON ls.tenant_id = t.ID
+                    JOIN listingtbl l ON ls.listing_id = l.ID
+                    WHERE mr.landlord_id = ?
+                    ORDER BY mr.requested_date DESC";
+
+$stmt2 = $conn->prepare($complaints_query);
+$stmt2->bind_param("i", $landlord_id);
+$stmt2->execute();
+$result2 = $stmt2->get_result();
+
+$complaints = [];
+while ($row = $result2->fetch_assoc()) {
+    $complaints[] = $row;
+}
+
+function getPriorityBadge($priority)
+{
+    return match (strtolower($priority)) {
+        'low' => '<span class="badge bg-success">Low</span>',
+        'medium' => '<span class="badge bg-warning text-dark">Medium</span>',
+        'high' => '<span class="badge bg-danger">High</span>',
+        'urgent' => '<span class="badge bg-dark text-white">Urgent</span>',
+        default => '<span class="badge bg-secondary">' . htmlspecialchars($priority) . '</span>'
+    };
+}
+
+function getStatusBadge($status)
+{
+    return match (strtolower($status)) {
+        'pending' => '<span class="badge bg-warning text-dark">Pending</span>',
+        'in progress' => '<span class="badge bg-primary">Scheduled</span>', // Friendly label
+        'completed' => '<span class="badge bg-success">Completed</span>',
+        'approved' => '<span class="badge bg-success">Approved</span>',
+        'rejected' => '<span class="badge bg-danger">Rejected</span>',
+        default => '<span class="badge bg-secondary">' . htmlspecialchars($status) . '</span>'
+    };
+}
+
+$statusOptions = [
+    'pending' => 'Pending',
+    'in progress' => 'Scheduled',
+    'completed' => 'Completed',
+    'approved' => 'Approved',
+    'rejected' => 'Rejected'
+];
 ?>
 
 <!DOCTYPE html>
@@ -192,11 +213,17 @@ $stmt5->close();
         }
 
         .rental-details {
-            background-color: var(--bg-color);
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.165);
-        }
+    background-color: var(--bg-color);
+    padding: 30px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    transition: 0.3s ease;
+}
+
+.rental-details:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
 
         .small-button {
             margin-right: 5px;
@@ -217,22 +244,7 @@ $stmt5->close();
     
 }
 
-/* Match maintenance card to tenant info card size */
-.maintenance-card-wrapper {
-    max-width: 820px;   /* same visual width as tenant info card */
-    margin: 0 auto;
-}
 
-.maintenance-card-wrapper .card {
-    min-height: 260px;  /* matches tenant info card height */
-    border-radius: 20px;
-}
-
-
-
-
-
-        
     </style>
 </head>
 
@@ -284,25 +296,38 @@ $stmt5->close();
                     </div>
                 </div>
 
-                <div class="row justify-content-center rental-details mb-4">
-                    <div class="col-lg-6 col-sm-12">
-                        <h2><?= htmlspecialchars($rental['listingName']); ?></h2>
-                        <p><strong>Address:</strong> <?= htmlspecialchars($rental['address']); ?></p>
-                        <p><strong>Start Date:</strong> <?= date("F j, Y", strtotime($rental['start_date'])); ?></p>
-                        <p><strong>End Date:</strong> <?= date("F j, Y", strtotime($rental['end_date'])); ?></p>
-                    </div>
-                    <div class="col-lg-5 col-sm-12">
-                        <h2>Tenant Info</h2>
-                        <p><strong>Name:</strong>
-                            <?= htmlspecialchars(ucwords(strtolower($rental['tenant_firstName'] . ' ' . $rental['tenant_lastName']))); ?>
-                        </p>
-                        <p><strong>Phone:</strong> <?= htmlspecialchars($rental['tenant_phone']); ?></p>
-                        <p><strong>Email:</strong> <?= htmlspecialchars($rental['tenant_email']); ?></p>
-                        <button class="small-button"
+                <!-- Rental + Tenant Info -->
+<div class="row justify-content-center mb-4">
+    <div class="col-lg-12 rental-details">
+
+        <div class="row">
+            <!-- Property Info -->
+            <div class="col-lg-6 col-md-6 col-sm-12">
+                <h2><?= htmlspecialchars($rental['listingName']); ?></h2>
+                                <p><strong>Address:</strong> <?= htmlspecialchars($rental['address']); ?></p>
+                                <p><strong>Start Date:</strong> <?= date("F j, Y", strtotime($rental['start_date'])); ?></p>
+                                <p><strong>End Date:</strong> <?= date("F j, Y", strtotime($rental['end_date'])); ?></p>
+                            </div>
+                
+                            <!-- Tenant Info -->
+                            <div class="col-lg-6 col-md-6 col-sm-12">
+                                <h2>Tenant Info</h2>
+                                <p><strong>Name:</strong>
+                                    <?= htmlspecialchars(ucwords(strtolower($rental['tenant_firstName'] . ' ' . $rental['tenant_lastName']))); ?>
+                                </p>
+                                <p><strong>Phone:</strong> <?= htmlspecialchars($rental['tenant_phone']); ?></p>
+                                <p><strong>Email:</strong> <?= htmlspecialchars($rental['tenant_email']); ?></p>
+                
+                                <div class="mt-3">
+                                    <button class="small-button"
                             onclick="window.location.href='tenant-profile.php?tenant_id=<?= $rental['tenant_id'] ?>'"><i
-                                class="fa-solid fa-user"></i></button>
-                        <button class="small-button" onclick="window.location.href='landlord-message.php'"><i
-                                class="fas fa-comment-dots"></i></button>
+                                            class="fa-solid fa-user"></i></button>
+                                    <button class="small-button" onclick="window.location.href='landlord-message.php'"><i
+                                            class="fas fa-comment-dots"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                
                     </div>
                 </div>
 
@@ -369,113 +394,123 @@ $stmt5->close();
 
         <!-- Content Grid -->
         <div class="row justify-content-center mb-4">
-        <div class="col-lg-11 col-md-11 col-sm-12 rental-details">
+        <div class="col-lg-8 rental-details">
             <!-- Main Content -->
             <div>
-                <!-- Active Maintenance -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">
-                            <i class="bi bi-tools"></i> Active Maintenance Requests
-                            <?php
-                            $pendingCount = 0;
-                            if ($activeMaintenance->num_rows > 0) {
-                                $activeMaintenance->data_seek(0);
-                                while ($m = $activeMaintenance->fetch_assoc()) {
-                                    if ($m['status'] === 'Pending') $pendingCount++;
-                                }
-                                $activeMaintenance->data_seek(0);
-                            }
-                            if ($pendingCount > 0): ?>
-                                <span class="badge bg-danger rounded-pill"><?= $pendingCount; ?></span>
-                            <?php endif; ?>
-                        </h3>
-                    </div>
-
-                    <?php if ($activeMaintenance->num_rows > 0): ?>
-                        <?php while ($m = $activeMaintenance->fetch_assoc()): ?>
-                            <div class="maintenance-item <?= htmlspecialchars(str_replace(' ', '.', $m['status'])); ?>">
-                                <div class="maintenance-header">
-                                    <div style="flex: 1;">
-                                        <div class="maintenance-title">
-                                            <i class="bi bi-wrench-adjustable"></i>
-                                            <?= htmlspecialchars($m['title']); ?>
-                                        </div>
-                                        <div class="maintenance-meta">
-                                            <span>
-                                                <i class="bi bi-person"></i>
-                                                <?= htmlspecialchars($m['firstName'] . ' ' . $m['lastName']); ?>
-                                            </span>
-                                            <span>
-                                                <i class="bi bi-calendar3"></i>
-                                                <?= date('M d, Y', strtotime($m['requested_date'])); ?>
-                                            </span>
-                                            <span class="category-badge"><?= htmlspecialchars($m['category']); ?></span>
-                                        </div>
-                                    </div>
-                                    <span class="priority-badge priority-<?= htmlspecialchars($m['priority']); ?>">
-                                        <?= htmlspecialchars($m['priority']); ?>
-                                    </span>
-                                </div>
-
-                                <div class="maintenance-description">
-                                    <?= nl2br(htmlspecialchars($m['description'])); ?>
-                                </div>
-
-                                <div class="maintenance-actions">
-                                    <div>
-                                        <?php if (!empty($m['photo_path']) && file_exists($m['photo_path'])): ?>
-                                            <button class="photo-badge" onclick="viewPhoto('<?= htmlspecialchars($m['photo_path']); ?>')">
-                                                <i class="bi bi-camera-fill"></i> View Photo
-                                            </button>
+                <!-- Maintenance Request Table -->
+        <div class="section-header">
+        <h3 class="section-title">
+            <i class="fas fa-tools"></i>
+            Complaint / Maintenance Requests
+        </h3>
+        <?php if (!empty($complaints)): ?>
+                <span class="action-btn-primary" style="padding: 5px 15px; border-radius: 20px; font-size: 14px;">
+                    <?= count($complaints) ?> Requests
+                </span>
+            <?php endif; ?>
+        </div>
+        
+        <!-- Maintenance Request Table -->
+        <?php if (!empty($complaints)): ?>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Requested Date</th>
+                            <th>Scheduled Date</th>
+                            <th>Completed Date</th>
+                            <th>Photo</th>
+                            <th>Action</th>
+                        </tr>
+                        <thead>
+                        <tbody>
+                            <?php foreach ($complaints as $complaint):
+                                $tenant_name = ucwords(strtolower($complaint['firstName'] . ' ' . $complaint['lastName']));
+                                $tenant_initial = strtoupper(substr($complaint['firstName'], 0, 1));
+                                $requested_date = $complaint['requested_date'] ? date("M j, Y", strtotime($complaint['requested_date'])) : '-';
+                                $scheduled_date = $complaint['scheduled_date'] ? date("M j, Y", strtotime($complaint['scheduled_date'])) : '-';
+                                $completed_date = $complaint['completed_date'] ? date("M j, Y", strtotime($complaint['completed_date'])) : '-';
+                                ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($complaint['title']) ?></td>
+                                    <td><?= htmlspecialchars($complaint['category']) ?></td>
+                                    <td><?= getPriorityBadge($complaint['priority']) ?></td>
+                                    <td><?= getStatusBadge($complaint['status']) ?></td>
+                                    <td><?= $requested_date ?></td>
+                                    <td><?= $scheduled_date ?></td>
+                                    <td><?= $completed_date ?></td>
+                                    <td>
+                                        <?php if (!empty($complaint['photo_path'])): ?>
+                                            <a href="../uploads/<?= htmlspecialchars($complaint['photo_path']) ?>" target="_blank">
+                                                <i class="fas fa-image"></i> View
+                                            </a>
+                                        <?php else: ?>
+                                            -
                                         <?php endif; ?>
-                                    </div>
-                                    <div>
-                                        <?php if ($m['status'] === 'Pending'): ?>
-                                            <button class="btn-action btn-confirm" onclick="confirmRequest(<?= $m['id']; ?>)">
-                                                <i class="bi bi-check-circle"></i> Confirm Request
-                                            </button>
-                                        <?php elseif ($m['status'] === 'Approved' || $m['status'] === 'In Progress'): ?>
-                                            <button class="btn-action btn-complete" onclick="completeRequest(<?= $m['id']; ?>)">
-                                                <i class="bi bi-check-all"></i> Mark Complete
-                                            </button>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endwhile; ?>
-                    <?php else: ?>
-                        <div class="empty-state">
-                            <i class="bi bi-inbox"></i>
-                            <p>No active maintenance requests</p>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#complaintModal"
+                                            data-id="<?= $complaint['complaint_id'] ?>"
+                                            data-title="<?= htmlspecialchars($complaint['title']) ?>"
+                                            data-status="<?= $complaint['status'] ?>">
+                                            Respond
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="empty-reviews">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>No Complaints / Requests</h3>
+                <p>Once tenants submit maintenance requests, they will appear here for your review and action.</p>
+            </div>
+        <?php endif; ?>
+        </div>
+        
+        <!-- Complaint Response Modal -->
+        <div class="modal fade" id="complaintModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form id="complaintForm" method="post" action="maintenance-respond.php">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Respond to Complaint</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
-                    <?php endif; ?>
+                        <div class="modal-body">
+                            <input type="hidden" name="complaint_id" id="complaint_id">
+                            <div class="mb-3">
+                                <label for="status" class="form-label">Status</label>
+                                <select class="form-select" name="status" id="status" required>
+                                    <option value="pending">Pending</option>
+                                    <option value="in progress">Scheduled</option> 
+                                    <option value="completed">Completed</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="response" class="form-label">Message / Action to Tenant</label>
+                                <textarea class="form-control" name="response" id="response" rows="3"
+                                    placeholder="Write your message here..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="scheduled_date" class="form-label">Scheduled Date (if applicable)</label>
+                                <input type="date" class="form-control" name="scheduled_date" id="scheduled_date">
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Send Response</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </form>
                 </div>
-
-                <!-- History -->
-                <?php if ($maintenanceHistory->num_rows > 0): ?>
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">
-                                <i class="bi bi-clock-history"></i> Maintenance History
-                            </h3>
-                        </div>
-
-                        <?php while ($h = $maintenanceHistory->fetch_assoc()): ?>
-                            <div class="history-item">
-                                <div class="history-title">
-                                    <i class="bi bi-check-circle-fill text-success"></i>
-                                    <?= htmlspecialchars($h['title']); ?>
-                                </div>
-                                <div class="history-meta">
-                                    <?= htmlspecialchars($h['firstName'] . ' ' . $h['lastName']); ?> •
-                                    Completed: <?= date('M d, Y', strtotime($h['completed_date'])); ?> •
-                                    <?= htmlspecialchars($h['category']); ?>
-                                </div>
-                            </div>
-                        <?php endwhile; ?>
-                    </div>
-                <?php endif; ?>
             </div>
         </div>
 
@@ -498,6 +533,21 @@ $stmt5->close();
             <?php endif; ?>
         });
     </script>
+    
+     <script>
+var complaintModal = document.getElementById('complaintModal');
+complaintModal.addEventListener('show.bs.modal', function (event) {
+    var button = event.relatedTarget;
+    var complaintId = button.getAttribute('data-id');
+    var title = button.getAttribute('data-title');
+    var status = button.getAttribute('data-status');
+
+    complaintModal.querySelector('#complaint_id').value = complaintId;
+    complaintModal.querySelector('.modal-title').textContent = 'Respond to: ' + title;
+    complaintModal.querySelector('#status').value = status;
+});
+</script>
+    
 </body>
 
 </html>

@@ -335,7 +335,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <!-- SCROLL REVEAL -->
     <script src="https://unpkg.com/scrollreveal"></script>
     <!-- GOOGLE MAPS API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
     function initMap() {

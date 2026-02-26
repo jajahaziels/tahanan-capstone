@@ -806,8 +806,8 @@ if ($table_check && $table_check->num_rows > 0) {
                                     Share Profile
                                 </button>
                                 <button class="action-btn action-btn-secondary" onclick="location.href='history.php'">
-                                    <i class="fas fa-history"></i>
-                                    View History
+                                    <i class="fas fa-building"></i>
+                                    Manage My Properties
                                 </button>
                                 <button class="action-btn action-btn-danger" onclick="confirmDelete()">
                                     <i class="fas fa-trash-alt"></i>

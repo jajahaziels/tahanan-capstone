@@ -74,35 +74,37 @@ if ($lease) {
 /* =========================
    FETCH MAINTENANCE INFO
 ========================= */
-$maintSql = "
-    SELECT status, created_at
+$maintenanceSql = "
+    SELECT *
     FROM maintenance_requeststbl
     WHERE tenant_id = ?
-    ORDER BY created_at DESC
-    LIMIT 1
+    ORDER BY 
+        CASE priority
+            WHEN 'Urgent' THEN 1
+            WHEN 'High' THEN 2
+            WHEN 'Medium' THEN 3
+            WHEN 'Low' THEN 4
+        END,
+        created_at DESC
 ";
-$maintStmt = $conn->prepare($maintSql);
-$maintStmt->bind_param("i", $tenant_id);
-$maintStmt->execute();
-$maintenance = $maintStmt->get_result()->fetch_assoc();
 
+$maintenanceStmt = $conn->prepare($maintenanceSql);
+$maintenanceStmt->bind_param("i", $tenant_id);
+$maintenanceStmt->execute();
+$maintenanceResult = $maintenanceStmt->get_result();
+$maintenanceRequests = $maintenanceResult->fetch_all(MYSQLI_ASSOC);
 
-$complaintSql = "
-    SELECT status, created_at
-    FROM maintenance_requeststbl
-    WHERE tenant_id = ?
-    ORDER BY created_at DESC
-    LIMIT 1
-";
-$complaintStmt = $conn->prepare($complaintSql);
-$complaintStmt->bind_param("i", $tenant_id);
-$complaintStmt->execute();
-$complaint = $complaintStmt->get_result()->fetch_assoc();
+/* =========================
+   UNREAD / PENDING COUNTER
+========================= */
 
-$complaintStatus = $complaint['status'] ?? 'No Request Yet';
-$complaintDate = isset($complaint['created_at'])
-    ? date("F d, Y", strtotime($complaint['created_at']))
-    : 'No Request Yet';
+$notificationCount = 0;
+
+foreach ($maintenanceRequests as $req) {
+    if ($req['status'] === 'Pending' || $req['status'] === 'In Progress') {
+        $notificationCount++;
+    }
+}
 
 /* =========================
    FETCH ALL LEASES (TABLE)
@@ -127,6 +129,50 @@ $stmt->bind_param("i", $tenant_id);
 $stmt->execute();
 $leases = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 $stmt->close();
+
+
+function getMaintenanceStatus($status, $created_at = null) {
+    // Handle overdue for Pending requests
+    if ($status === 'Pending' && $created_at) {
+        $created = new DateTime($created_at);
+        $now = new DateTime();
+        $days = $created->diff($now)->days;
+
+        if ($days > 3) {
+            return '<span class="badge bg-danger">OVERDUE</span>';
+        }
+    }
+
+    return match (strtolower($status)) {
+        'pending' => '<span class="badge bg-warning text-dark">Pending</span>',
+        'scheduled', 'in progress' => '<span class="badge bg-primary">Scheduled</span>',
+        'completed', 'resolved' => '<span class="badge bg-success">Completed</span>',
+        'rejected' => '<span class="badge bg-danger">Rejected</span>',
+        default => '<span class="badge bg-secondary">'.htmlspecialchars($status).'</span>'
+    };
+}
+
+function getPriorityBadge($priority) {
+    return match ($priority) {
+        'Low' => '<span class="badge bg-success">Low</span>',
+        'Medium' => '<span class="badge bg-warning text-dark">Medium</span>',
+        'High' => '<span class="badge bg-danger">High</span>',
+        'Urgent' => '<span class="badge bg-dark">Urgent</span>',
+        default => '<span class="badge bg-secondary">'.$priority.'</span>'
+    };
+}
+
+// Latest maintenance request
+$complaintDate = '-';
+$complaintStatus = 'No requests yet';
+
+if (!empty($maintenanceRequests)) {
+    $latestRequest = $maintenanceRequests[0]; // Already ordered by priority + date
+    $complaintDate = date("F j, Y", strtotime($latestRequest['created_at']));
+    $complaintStatus = $latestRequest['status'];
+}
+
+
 ?>
 
  
@@ -276,64 +322,104 @@ $stmt->close();
             border-radius: 50%;
         }
 
-        .complaint-card {
-            background: #ffffff;
-            border-radius: 14px;
-            padding: 22px;
-            border: 1px solid #ddd;
-            box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
-            position: relative;
-        }
+/* ============================= */
+/* IMPROVED COMPLAINT STATUS CARD */
+/* ============================= */
 
-        .complaint-card::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 6px;
-            height: 100%;
-            border-radius: 14px 0 0 14px;
-        }
+.complaint-card {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+    margin-top: 30px;
+    transition: all 0.3s ease;
+}
 
-        .complaint-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+.complaint-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
 
-        .complaint-header h5 {
-            font-weight: 600;
-            margin: 0;
-        }
+/* Header */
+.complaint-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
 
-        .complaint-body p {
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-        }
+.complaint-header h3 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+    color: #25343F;
+}
 
-        .complaint-status {
-            font-weight: 500;
-        }
+/* Body */
+.complaint-body {
+    font-size: 0.95rem;
+    color: #4a5568;
+}
 
-        .complaint-btn {
-            background: #ac1152;
-            color: #fff;
-            border-radius: 20px;
-            padding: 6px 18px;
-            font-size: 0.85rem;
-            text-decoration: none;
-            border: none;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
+.complaint-body p {
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
-        .complaint-btn:hover {
-            background: #8d0b41;
-            color: #fff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(172, 17, 82, 0.3);
-        }
+/* Status Badge Style */
+.complaint-status span {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Custom status colors (more modern than Bootstrap text-*) */
+.text-warning {
+    background: #fff7ed;
+    color: #c2410c !important;
+}
+
+.text-primary {
+    background: #eff6ff;
+    color: #1d4ed8 !important;
+}
+
+.text-success {
+    background: #ecfdf5;
+    color: #047857 !important;
+}
+
+.text-danger {
+    background: #fef2f2;
+    color: #b91c1c !important;
+}
+
+.text-muted {
+    background: #f3f4f6;
+    color: #6b7280 !important;
+}
+
+/* Button improvement */
+.complaint-btn {
+    background: #8d0b41;
+    color: #fff;
+    border-radius: 20px;
+    padding: 6px 16px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.complaint-btn:hover {
+    background: #6f0833;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(141, 11, 65, 0.3);
+}
 
 
         /* FINAL FONT OVERRIDE FOR BOOTSTRAP COMPONENTS */
@@ -372,6 +458,83 @@ $stmt->close();
 
 .btn {
     font-weight: 500;
+}
+
+/* ============================= */
+/* RENTALS PAGE STYLES */
+/* ============================= */
+.rentals-section {
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 22px;
+    border: 1px solid #ddd;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+    position: relative;
+    margin-top: 30px;
+}
+
+.rentals-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.rentals-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.rentals-title i {
+    color: #8d0b41;
+}
+
+/* Modern Table */
+.rentals-table {
+    border-collapse: separate;
+    border-spacing: 0 8px;
+    width: 100%;
+}
+
+.rentals-table thead th {
+    background-color: #f8fafc;
+    color: #718096;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    border: none;
+    padding: 16px;
+}
+
+.rentals-table tbody tr {
+    background-color: #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s ease;
+}
+
+.rentals-table tbody tr:hover {
+    transform: scale(1.005);
+    background-color: #fffafb;
+}
+
+.rentals-table td {
+    padding: 20px 16px;
+    border-top: 1px solid #edf2f7;
+    border-bottom: 1px solid #edf2f7;
+    color: #4a5568;
+    vertical-align: middle;
+}
+
+.rentals-table .btn-sm {
+    border-radius: 8px;
+    padding: 6px 10px;
 }
 
 .complaint-card h5,
@@ -487,121 +650,204 @@ h4, h5 {
                 <?php endforeach; ?>
             </div>
 
+            <!-- Remove Lease Modal -->
+<div class="modal fade" id="removeLeaseModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h5 class="modal-title">Remove Lease</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      
+      <div class="modal-body">
+        Are you sure you want to remove this lease?
+      </div>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" id="confirmRemoveLease" class="btn btn-danger">
+            Yes, Remove
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
             <!-- Maintenance -->
             <div class="dashboard-card card-maintenance">
-                <h5>Maintenance Request</h5>
-                <p><strong>Your Last Request:</strong>
-                    <?= isset($maintenance['created_at']) ? date("F d, Y", strtotime($maintenance['created_at'])) : 'No Request Yet'; ?>
-                </p>
-                <button class="card-btn" onclick="window.location.href='maintenance-create.php'" style="color:#000;">
-                    Create New
-                </button>
-            </div>
+                Maintenance Requests
+        <?php if ($notificationCount > 0): ?>
+            <span class="badge bg-danger"><?= $notificationCount ?></span>
+        <?php endif; ?>
+    </h5>
+
+    <?php if (empty($maintenanceRequests)): ?>
+        <p class="text-muted">No maintenance requests yet</p>
+    <?php else: ?>
+        <p><strong>Latest:</strong>
+            <?= date("F d, Y", strtotime($maintenanceRequests[0]['created_at'])) ?>
+        </p>
+        <p>
+            <?= getMaintenanceStatus(
+                $maintenanceRequests[0]['status'],
+                $maintenanceRequests[0]['created_at']
+            ); ?>
+        </p>
+    <?php endif; ?>
+
+    <button class="card-btn"
+        onclick="window.location.href='maintenance-create.php'"
+        style="color:#000;">
+        Create New
+    </button>
+
+    <button class="card-btn"
+            onclick="window.location.href='maintenance-history.php'"
+            style="background:#ddd;color:#000;">
+            Maintenance History
+        </button>
+    </div>
+
         </div>
 
-        <!-- My Rentals Table -->
-        <div class="mt-5">
-            <div class="box">
-                <h3 class="section-title">My Rentals</h3>
-                <table class="table table-bordered table-hover">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Apartment</th>
-                            <th>Price</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Status</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if ($leases): ?>
-                            <?php foreach ($leases as $l): ?>
-                                <tr data-lease="<?= $l['lease_id']; ?>">
-                                    <td class="apartment-name"><?= htmlspecialchars($l['listingName']); ?></td>
-                                    <td>₱<?= number_format($l['price']); ?>.00</td>
-                                    <td><?= date("F j, Y", strtotime($l['start_date'])); ?></td>
-                                    <td><?= date("F j, Y", strtotime($l['end_date'])); ?></td>
-                                    <td>
-                                        <?php
-                                        if ($l['tenant_response'] === 'rejected') {
-                                            echo '<span class="badge bg-danger">You Rejected</span>';
-                                        } else {
-                                            switch ($l['lease_status']) {
-                                                case 'pending':
-                                                    echo '<span class="badge bg-warning text-dark">Waiting for Your Approval</span>';
-                                                    break;
-                                                case 'active':
-                                                    echo '<span class="status-active"><span class="status-dot"></span> Active</span>';
-                                                    break;
-                                                case 'terminated':
-                                                    echo '<span class="badge bg-danger">Terminated</span>';
-                                                    break;
-                                                default:
-                                                    echo '<span class="badge bg-secondary">Unknown</span>';
-                                            }
-                                        }
-                                        ?>
-                                    </td>
-                                    <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <?php if ($l['lease_status'] === 'pending' && $l['tenant_response'] !== 'rejected'): ?>
-                                                <a href="<?= htmlspecialchars($l['pdf_path']); ?>" target="_blank" class="btn btn-primary btn-sm"
-                                                    title="View Contract">
-                                                    <i class="bi bi-file-earmark-pdf"></i>
-                                                </a>
-                                                <form action="tenant-accept.php" method="POST" class="d-inline">
-                                                    <input type="hidden" name="lease_id" value="<?= $l['lease_id']; ?>">
-                                                    <button class="btn btn-success btn-sm" title="Accept">
-                                                        <i class="bi bi-check2-circle"></i>
-                                                    </button>
-                                                </form>
-                                                <form action="tenant-reject.php" method="POST" class="d-inline"
-                                                    onsubmit="return confirm('Reject this lease agreement?');">
-                                                    <input type="hidden" name="lease_id" value="<?= $l['lease_id']; ?>">
-                                                    <button class="btn btn-danger btn-sm" title="Reject">
-                                                        <i class="bi bi-x-circle"></i>
-                                                    </button>
-                                                </form>
-                                            <?php elseif ($l['lease_status'] === 'active'): ?>
-                                                <a href="<?= htmlspecialchars($l['pdf_path']); ?>" target="_blank" class="btn btn-outline-primary btn-sm"
-                                                    title="View Contract">
-                                                    <i class="bi bi-file-earmark-pdf"></i>
-                                                </a>
-                                                
-                                                <button class="btn btn-warning btn-sm renew-btn" data-lease="<?= $l['lease_id']; ?>" title="Renew">
-                                                    <i class="bi bi-arrow-repeat"></i>
-                                                </button>
-                                                <button class="btn btn-danger btn-sm terminate-btn" data-lease="<?= $l['lease_id']; ?>" title="Terminate">
-                                                    <i class="bi bi-x-square"></i>
-                                                </button>
-                                            <?php elseif ($l['tenant_response'] === 'rejected'): ?>
-                                                <button class="btn btn-danger btn-sm remove-btn" data-lease="<?= $l['lease_id']; ?>" title="Remove">
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            <?php else: ?>
-                                                <span class="text-muted">No action</span>
-                                            <?php endif; ?>
-                                        </div>
-                                    </td>
+<!-- My Rentals Section -->
+<div class="rentals-section">
 
-                                </tr>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <tr>
-                                <td colspan="6" class="text-center text-muted">No rentals available</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+    <div class="rentals-header">
+        <h3 class="rentals-title">
+            <i class="bi bi-house-door"></i> My Rentals
+        </h3>
+    </div>
+
+    <table class="rentals-table">
+        <thead>
+            <tr>
+                <th>Apartment</th>
+                <th>Price</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <?php if ($leases): ?>
+                <?php foreach ($leases as $l): ?>
+                    <tr data-lease="<?= $l['lease_id']; ?>">
+                        
+                        <td class="fw-semibold">
+                            <?= htmlspecialchars($l['listingName']); ?>
+                        </td>
+
+                        <td>₱<?= number_format($l['price']); ?>.00</td>
+
+                        <td><?= date("F j, Y", strtotime($l['start_date'])); ?></td>
+
+                        <td><?= date("F j, Y", strtotime($l['end_date'])); ?></td>
+
+                        <td>
+                            <?php
+                            if ($l['tenant_response'] === 'rejected') {
+                                echo '<span class="badge bg-danger">You Rejected</span>';
+                            } else {
+                                switch ($l['lease_status']) {
+                                    case 'pending':
+                                        echo '<span class="badge bg-warning text-dark">Waiting for Your Approval</span>';
+                                        break;
+                                    case 'active':
+                                        echo '<span class="badge bg-success">Active</span>';
+                                        break;
+                                    case 'terminated':
+                                        echo '<span class="badge bg-danger">Terminated</span>';
+                                        break;
+                                    default:
+                                        echo '<span class="badge bg-secondary">Unknown</span>';
+                                }
+                            }
+                            ?>
+                        </td>
+
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+
+                                <?php if ($l['lease_status'] === 'pending' && $l['tenant_response'] !== 'rejected'): ?>
+
+                                    <a href="<?= htmlspecialchars($l['pdf_path']); ?>" target="_blank"
+                                        class="btn btn-primary btn-sm">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </a>
+
+                                    <form action="tenant-accept.php" method="POST">
+                                        <input type="hidden" name="lease_id" value="<?= $l['lease_id']; ?>">
+                                        <button class="btn btn-success btn-sm">
+                                            <i class="bi bi-check2-circle"></i>
+                                        </button>
+                                    </form>
+
+                                    <form action="tenant-reject.php" method="POST"
+                                        onsubmit="return confirm('Reject this lease agreement?');">
+                                        <input type="hidden" name="lease_id" value="<?= $l['lease_id']; ?>">
+                                        <button class="btn btn-danger btn-sm">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
+
+                                <?php elseif ($l['lease_status'] === 'active'): ?>
+
+                                    <a href="<?= htmlspecialchars($l['pdf_path']); ?>" target="_blank"
+                                        class="btn btn-outline-primary btn-sm">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </a>
+
+                                    <button class="btn btn-warning btn-sm renew-btn"
+                                        data-lease="<?= $l['lease_id']; ?>">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </button>
+
+                                    <button class="btn btn-danger btn-sm terminate-btn"
+                                        data-lease="<?= $l['lease_id']; ?>">
+                                        <i class="bi bi-x-square"></i>
+                                    </button>
+
+                                <?php elseif ($l['tenant_response'] === 'rejected'): ?>
+
+                                    <button class="btn btn-danger btn-sm remove-btn"
+                                        data-lease="<?= $l['lease_id']; ?>">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+
+                                <?php else: ?>
+                                    <span class="text-muted">No action</span>
+                                <?php endif; ?>
+
+                            </div>
+                        </td>
+
+                    </tr>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <tr>
+                    <td colspan="6" class="text-center text-muted">
+                        No rentals available
+                    </td>
+                </tr>
+            <?php endif; ?>
+        </tbody>
+    </table>
+
+</div>
 
                         <!-- Complaints Status Card -->
-<div class="mt-4">
+           <div class="mt-4">
     <div class="complaint-card">
-        <div class="complaint-header">
-            <h3 class="section-title">Complaints Status</h3>
+        <div class="complaint-header d-flex justify-content-between align-items-center">
+            <h3 class="section-title">
+                <i class="bi bi-tools" style="color: #8d0b41; font-size: 1.5rem; margin-right: 8px;"></i>
+                Maintenance Request
+            </h3>
             <a href="maintenance-create.php" class="complaint-btn">
                 File New Complaint
             </a>
@@ -624,27 +870,14 @@ h4, h5 {
                                     <p>
                                         <strong>Status:</strong>
                                         <span class="complaint-status">
-                                            <?php
-                                            $statusClass = match ($complaintStatus) {
-                                                'pending' => 'text-warning',
-                                                'in_progress' => 'text-primary',
-                                                'resolved' => 'text-success',
-                                                'rejected' => 'text-danger',
-                                                default => 'text-muted'
-                                            };
-                                            ?>
-                                            <span class="<?= $statusClass; ?>">
-                                                <?= ucfirst(str_replace('_', ' ', htmlspecialchars($complaintStatus))); ?>
-                                            </span>
+                                        <?= getMaintenanceStatus($complaintStatus, $latestRequest['created_at'] ?? null); ?>
                                         </span>
                                     </p>
                                 </div>
                             </div>
                         </div>
-
-
-    </div>
-
+         </div>
+    
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
