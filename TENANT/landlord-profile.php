@@ -6,7 +6,7 @@ include '../session_auth.php';
 $tenant_id = $_SESSION['tenant_id'];
 
 // Get landlord ID from URL
-$landlordId = $_GET['id'] ?? null;
+$landlordId = $_GET['landlord_id'] ?? null;
 
 if (!$landlordId || !is_numeric($landlordId)) {
     die("Invalid landlord ID.");

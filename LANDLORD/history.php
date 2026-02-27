@@ -12,6 +12,7 @@ $query = "SELECT
             t.profilePic,
             l.listingName as property_name, 
             ls.rent as amount, 
+            ls.pdf_path,
             MAX(p.paid_date) AS last_payment_date
           FROM leasetbl ls
           JOIN tenanttbl t ON ls.tenant_id = t.ID
@@ -101,9 +102,10 @@ function getStatusBadge($status)
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <!-- BOOTSTRAP -->
     <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
-    <title>Active Tenants & Payments</title>
+    <title>Rental Management</title>
 </head>
 
 <style>
@@ -212,6 +214,45 @@ function getStatusBadge($status)
         color: #a0aec0;
     }
 
+    .btn-theme {
+    background-color: #8d0b41;
+    border-color: #8d0b41;
+    color: #fff;
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+.btn-theme:hover {
+    background-color: #6a0831;
+    border-color: #6a0831;
+    color: #fff;
+}
+    
+    .lease-btn {
+        border: 1px solid #0d6efd;   
+        color: #0d6efd;          
+        background-color: transparent; 
+        transition: all 0.3s ease;
+    }
+
+    .lease-btn:hover {
+        background-color: #0d6efd;  
+        border-color: #0d6efd;   
+        color: #fff;               
+    }                      
+
+    .remove-complaint-btn {
+        border: 1px solid #FF0000;   
+        color: #FF0000;          
+        background-color: transparent; 
+        transition: all 0.3s ease;
+        }
+
+        .remove-complaint-btn:hover {
+        background-color: #FF0000;  
+        border-color: #FF0000;   
+        color: #fff;               
+    }
     
 </style>
 
@@ -222,8 +263,8 @@ function getStatusBadge($status)
     <div class="payments-section">
         <div class="section-header">
             <h3 class="section-title">
-                <i class="bi bi-tools" style="color: #8d0b41; font-size: 1.5rem; margin-right: 8px;"></i>
-                Active Tenants & Payments
+                <i class="bi bi-person-vcard" style="color: #8d0b41; font-size: 2.5rem; margin-right: 8px;"></i>
+                Active Tenants & Payment Records
             </h3>
             <?php if (!empty($active_tenants)): ?>
                 <span class="action-btn-primary" style="padding: 5px 15px; border-radius: 20px; font-size: 14px;">
@@ -240,6 +281,7 @@ function getStatusBadge($status)
                             <th>Profile</th>
                             <th>Tenant Name</th>
                             <th>Property</th>
+                            <th>Lease</th>
                             <th>Rent Amount</th>
                             <th>Last Payment</th>
                         </tr>
@@ -267,6 +309,32 @@ function getStatusBadge($status)
                                     <span class="text-muted"><i class="fas fa-home me-1"></i>
                                         <?= htmlspecialchars($tenant['property_name']) ?></span>
                                 </td>
+                                <td>
+                                    <?php if (!empty($tenant['pdf_path'])): ?>
+                                        <a href="../uploads/<?= htmlspecialchars($tenant['pdf_path']) ?>" target="_blank"
+                                            class="btn btn-primary btn-sm rounded-pill lease-btn">
+                                            <i class="bi bi-file-earmark-pdf"></i> View Lease
+                                        </a>
+
+                                        <style>
+                                            .lease-btn {
+                                                border: 1px solid #0d6efd;   
+                                                color: #0d6efd;          
+                                                background-color: transparent; 
+                                                transition: all 0.3s ease;
+                                            }
+
+                                            .lease-btn:hover {
+                                                background-color: #0d6efd;  
+                                                border-color: #0d6efd;   
+                                                color: #fff;               
+                                            }
+                                        </style>
+                    
+                                    <?php else: ?>
+                                        <span class="text-muted">No Lease</span>
+                                    <?php endif; ?>
+                                </td>  
                                 <td>
                                     <span class="fw-bold"
                                         style="color: #2d3748;">₱<?= number_format($tenant['amount'] ?? 0, 2) ?></span>
@@ -326,7 +394,7 @@ function getStatusBadge($status)
     <div class="payments-section mt-5">
     <div class="section-header">
         <h3 class="section-title">
-            <i class="fas fa-tools"></i>
+            <i class="bi bi-tools"></i>
             Complaint / Maintenance Requests
         </h3>
         <?php if (!empty($complaints)): ?>
@@ -398,43 +466,53 @@ function getStatusBadge($status)
                                 </td>
                                 <td>
                                     <?php if ($status === 'completed'): ?>
+                                <!-- Remove only -->
+                                <button class="btn btn-sm rounded-pill remove-complaint-btn"
+                                    data-id="<?= $complaint['complaint_id'] ?>">
+                                            <i class="bi bi-trash3-fill"></i> Remove
+                                </button>
 
-    <!-- Remove only -->
-    <button class="btn btn-sm btn-outline-danger remove-complaint-btn"
-        data-id="<?= $complaint['complaint_id'] ?>">
-        <i class="fas fa-trash-alt me-1"></i> Remove <style>#8d0b41</style>
-    </button>
+                                <style>
+                                            .remove-complaint-btn {
+                                            border: 1px solid #FF0000;   
+                                            color: #FF0000;          
+                                            background-color: transparent; 
+                                            transition: all 0.3s ease;
+                                        }
 
-<?php elseif ($status === 'rejected'): ?>
+                                            .remove-complaint-btn:hover {
+                                            background-color: #FF0000;  
+                                            border-color: #FF0000;   
+                                            color: #fff;               
+                                        }
+                                    </style>
+        <?php elseif ($status === 'rejected'): ?>
 
-    <!-- Respond + Remove -->
-    <div class="d-flex gap-2">
-        <button class="btn btn-sm btn-outline-primary"
-            data-bs-toggle="modal" 
-            data-bs-target="#complaintModal"
-            data-id="<?= $complaint['complaint_id'] ?>" 
-            data-title="<?= htmlspecialchars($complaint['title']) ?>">
-            <i class="fas fa-reply me-1"></i> Respond
-        </button>
+                                <!-- Respond + Remove -->
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#complaintModal"
+                                    data-id="<?= $complaint['complaint_id'] ?>" 
+                                    data-title="<?= htmlspecialchars($complaint['title']) ?>">
+                                    <i class="bi bi-reply-all-fill"></i> Respond
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger remove-complaint-btn"
+                                    data-id="<?= $complaint['complaint_id'] ?>">
+                                    <i class="bi bi-trash3-fill"></i>
+                                </button>
+                            </div>
 
-        <button class="btn btn-sm btn-outline-danger remove-complaint-btn"
-            data-id="<?= $complaint['complaint_id'] ?>">
-            <i class="fas fa-trash-alt"></i>
-        </button>
-    </div>
-
-<?php else: ?>
-
-    <!-- pending + in progress -->
-    <button class="btn btn-sm btn-primary shadow-sm"
-        data-bs-toggle="modal" 
-        data-bs-target="#complaintModal"
-        data-id="<?= $complaint['complaint_id'] ?>" 
-        data-title="<?= htmlspecialchars($complaint['title']) ?>">
-        <i class="fas fa-reply me-1"></i> Respond
-    </button>
-
-<?php endif; ?>
+                        <?php else: ?>
+                            <!-- pending + in progress -->
+                            <button class="btn btn-sm btn-primary shadow-sm"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#complaintModal"
+                                data-id="<?= $complaint['complaint_id'] ?>" 
+                                data-title="<?= htmlspecialchars($complaint['title']) ?>">
+                                <i class="bi bi-reply-all-fill"></i> Respond
+                            </button>
+                        <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -464,11 +542,11 @@ function getStatusBadge($status)
                     <div class="mb-3">
                         <label for="status" class="form-label">Status</label>
                         <select class="form-select" name="status" id="status" required>
-    <option value="pending">Pending</option>
-    <option value="in progress">Scheduled</option> <!-- Friendly label -->
-    <option value="completed">Completed</option>
-    <option value="rejected">Rejected</option>
-</select>
+                        <option value="pending">Pending</option>
+                        <option value="in progress">Scheduled</option> 
+                        <option value="completed">Completed</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
                     </div>
                     <div class="mb-3">
                         <label for="response" class="form-label">Message / Action to Tenant</label>
@@ -502,8 +580,8 @@ function getStatusBadge($status)
     </script>
 
     <script>
-var complaintModal = document.getElementById('complaintModal');
-complaintModal.addEventListener('show.bs.modal', function (event) {
+    var complaintModal = document.getElementById('complaintModal');
+    complaintModal.addEventListener('show.bs.modal', function (event) {
     var button = event.relatedTarget;
     var complaintId = button.getAttribute('data-id');
     var title = button.getAttribute('data-title');

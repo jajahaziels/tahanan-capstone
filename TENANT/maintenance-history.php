@@ -94,14 +94,123 @@ $statusOptions = [
         .rentals-table tbody tr:hover { transform: scale(1.005); background-color: #fffafb; }
         .rentals-table td { padding: 16px; border-top: 1px solid #edf2f7; border-bottom: 1px solid #edf2f7; vertical-align: middle; }
         .badge { font-weight: 500; }
+
+        <style>
+    body { 
+        font-family: 'Montserrat', sans-serif; 
+        background: #f5f6f8; 
+    }
+
+    .rentals-section { 
+        background: #fff; 
+        border-radius: 16px; 
+        padding: 30px; 
+        box-shadow: 0 8px 24px rgba(0,0,0,.06); 
+        margin: 60px auto; 
+        max-width: 1050px; 
+    }
+
+    .rentals-header { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        margin-bottom: 25px; 
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .rentals-title { 
+        font-size: 1.8rem; 
+        font-weight: 700; 
+        color: #2d3748; 
+        margin: 0;
+    }
+
+    .rentals-table { 
+        width: 100%; 
+        border-collapse: separate; 
+        border-spacing: 0 10px; 
+    }
+
+    .rentals-table thead th { 
+        background-color: #f8fafc; 
+        color: #718096; 
+        text-transform: uppercase; 
+        font-size: 0.75rem; 
+        letter-spacing: 0.05em; 
+        border: none; 
+        padding: 18px; 
+    }
+
+    .rentals-table tbody tr { 
+        background-color: #ffffff; 
+        box-shadow: 0 3px 8px rgba(0,0,0,0.03); 
+        transition: all 0.2s ease; 
+    }
+
+    .rentals-table tbody tr:hover { 
+        transform: translateY(-2px); 
+        background-color: #fffafb; 
+    }
+
+    .rentals-table td { 
+        padding: 18px; 
+        border-top: 1px solid #edf2f7; 
+        border-bottom: 1px solid #edf2f7; 
+        vertical-align: middle; 
+    }
+
+
+    .back-btn {
+        border: 2px solid #8d0b41;
+        color: #8d0b41;
+        background: transparent;
+        border-radius: 50px;
+        padding: 6px 18px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+    .back-btn:hover {
+        background: #8d0b41;
+        color: #fff;
+    }
+
+    .badge { 
+        font-weight: 500; 
+        padding: 6px 10px;
+    }
+
+    .rentals-section { 
+    background: #fff; 
+    border-radius: 16px; 
+    padding: 30px; 
+    box-shadow: 0 8px 24px rgba(0,0,0,.06); 
+    margin: 100px auto;  
+    max-width: 1300px;  
+}
+</style>
     </style>
 </head>
 <body>
+    <?php include '../Components/tenant-header.php'; ?>
+    <div style="height: 40px;"></div>
 
 <div class="rentals-section">
     <div class="rentals-header">
-        <i class="bi bi-tools" style="font-size:1.5rem; color:#8d0b41;"></i>
-        <h3 class="rentals-title">Maintenance History</h3>
+        <div class="header-left">
+            <i class="bi bi-tools" style="font-size:1.6rem; color:#8d0b41;"></i>
+            <h3 class="rentals-title">Maintenance History</h3>
+        </div>
+
+        <a href="tenant-rental.php" class="back-btn">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
     </div>
 
     <table class="rentals-table table">
@@ -110,14 +219,16 @@ $statusOptions = [
                 <th>Title</th>
                 <th>Category</th>
                 <th>Priority</th>
+                <th>Landlord Response</th>
                 <th>Status</th>
                 <th>Date Filed</th>
+                <th>Schedule Date</th>
             </tr>
         </thead>
         <tbody>
             <?php if (empty($maintenanceRequests)): ?>
                 <tr>
-                    <td colspan="5" class="text-center text-muted">No maintenance history</td>
+                    <td colspan="7" class="text-center text-muted">No maintenance history</td>
                 </tr>
             <?php else: ?>
                 <?php foreach ($maintenanceRequests as $req): ?>
@@ -125,8 +236,26 @@ $statusOptions = [
                         <td><?= htmlspecialchars($req['title']); ?></td>
                         <td><?= htmlspecialchars($req['category']); ?></td>
                         <td><?= getPriorityBadge($req['priority']); ?></td>
+        
+                        <!-- Landlord Response -->
+                        <td>
+                            <?= !empty($req['landlord_response'])
+                                ? htmlspecialchars($req['landlord_response'])
+                                : '<span class="text-muted">No response yet</span>'; ?>
+                        </td>
+        
+                        <!-- Status -->
                         <td><?= getMaintenanceStatus($req['status'], $req['created_at']); ?></td>
+        
+                        <!-- Date Filed -->
                         <td><?= date("F d, Y", strtotime($req['created_at'])); ?></td>
+        
+                        <!-- Schedule Date -->
+                        <td>
+                            <?= !empty($req['schedule_date'])
+                                ? date("F d, Y", strtotime($req['schedule_date']))
+                                : '<span class="text-muted">Not scheduled</span>'; ?>
+                        </td>
                     </tr>
                 <?php endforeach; ?>
             <?php endif; ?>

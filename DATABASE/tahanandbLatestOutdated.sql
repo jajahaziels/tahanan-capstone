@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 26, 2026 at 07:50 AM
+-- Generation Time: Feb 09, 2026 at 04:31 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -199,7 +199,7 @@ CREATE TABLE `landlordtbl` (
 --
 
 INSERT INTO `landlordtbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `phoneNum`, `verificationId`, `birthday`, `street`, `barangay`, `city`, `province`, `zipCode`, `country`, `gender`, `profilePic`, `status`, `created_at`, `verification_status`, `ID_image`, `proof_of_ownership`) VALUES
-(1, 'Jahaziel', 'Jahaziel', 'Sison', 'Bautista', 'jajasison07@gmail.com', '$2y$10$yeBWZM7FROJnfP6aYivI1.nrDbtaSR5MqSf3molFn6Y1aADSfmiia', '09932273303', NULL, '2004-08-07', 'Sta. Ana', 'Pacita 1', 'San Pedro', 'Laguna', 4023, NULL, 'Female', '1772027827_profile_ll1.png', 'active', '2025-11-08 00:52:24', 'verified', 'uploads/ids/1762563197_stock-vector-driver-license-with-male-photo-identification-or-id-card-template-vector-illustration-1227173818.jpg', NULL),
+(1, 'Jahazie', 'Jahaziel', 'Sison', 'Bautista', 'jajasison07@gmail.com', '$2y$10$yeBWZM7FROJnfP6aYivI1.nrDbtaSR5MqSf3molFn6Y1aADSfmiia', '09932273303', NULL, '2004-08-07', 'Sta. Ana', 'Pacita 1', 'San Pedro', 'Laguna', 4023, NULL, 'Female', '1770645240_profile_ll1.png', 'active', '2025-11-08 00:52:24', 'verified', 'uploads/ids/1762563197_stock-vector-driver-license-with-male-photo-identification-or-id-card-template-vector-illustration-1227173818.jpg', NULL),
 (2, NULL, 'Jahaziel', 'Sison', NULL, 'sisonja07@gmail.com', '$2y$10$dpmGGPjcN/vcspW5JlidduQYELQkPmS867OpbiUnlLB4baTHRUvBC', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2026-02-09 14:13:32', 'not_submitted', NULL, NULL);
 
 -- --------------------------------------------------------
@@ -282,11 +282,11 @@ CREATE TABLE `listingtbl` (
 INSERT INTO `listingtbl` (`ID`, `listingName`, `price`, `listingDesc`, `images`, `address`, `barangay`, `rooms`, `listingDate`, `category`, `landlord_id`, `latitude`, `longitude`, `availability`) VALUES
 (2, 'Sunny Studio Apartment', 12000, 'Description\r\nArguably the best accommodation in Santa Rosa Laguna. Stay with us and be part of our family. We provide more than the basics. We have free Wi-Fi, a lounge area, a kitchen and a big backyard for you to hang out with and get to know your fellow boarders. We accept male and female tenants.\r\n\r\nP1, 950/month per head all-in\r\nGood for 8-people\r\n*RATES ARE SUBJECT TO CHANGE WITHOUT PRIOR NOTICE*\r\nSpacious room with own cabinet and tables. Toilet separate from bath\r\n\r\nWe are located along the Old National Highway, walkable from Balibago Complex and 1 ride to most offices.\r\n\r\nAmenities:\r\n24 hour security\r\nCCTV cameras\r\nFire alarm system\r\nPrivate toilet & bath per room\r\nToilet separate from shower\r\nCooking area\r\nLaundry cages', '[\"1769830724_697d79445232b_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJhMTQ1LTVlMGItNzEyOC04ZjQ3LWI1ZWE2MDA3NjQwMC8wMTliYTE0Ny1hMTZlLTcxNGMtOGVhNS0zODkyMTdjN2Q4YjAuanBnIiwiYnJhbmQiOiJsYW11Z.webp\",\"1769830724_697d794454cd5_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJhMTQ1LTVlMGItNzEyOC04ZjQ3LWI1ZWE2MDA3NjQwMC8wMTliYTE0Ny1hMmFlLTcyNTgtYjAxNi0xOGJjNGYwNDhkMGIuanBnIiwiYnJhbmQiOiJsYW11Z.webp\",\"1769830724_697d794456724_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJhMTQ1LTVlMGItNzEyOC04ZjQ3LWI1ZWE2MDA3NjQwMC8wMTliYTE0Ny1hMzgzLTcyM2YtOThlMi1jZWM5MGFhZTIwMDAuanBnIiwiYnJhbmQiOiJsYW11Z.webp\"]', '123 Rizal St., San Pedro, Laguna', 'San Antonio', 3, '2025-11-08', 'Apartment complex', 1, 14.3450160, 121.0178471, 'available'),
 (4, 'STUDION TYPE APARTMENT', 1500, 'House type: Apartment\r\nOffer type: For Rent\r\nUsable area: 25 sqm\r\n21 Mar 2025 - Published by Casita Santa Rosa\r\n₱ 1,950/month\r\nDescription\r\nMale Bed space for Rent at Sta. Rosa, Laguna\r\nEnjoy a clean environment, spacious room, and a comfortable set-up for only P1,950 a month inclusive of water and electricity.\r\n\r\n\r\nRate includes:\r\n- Free Wi-Fi\r\n- 24/7 security guard\r\n- cctv Protected\r\n- With\r\n-Furnished -Bed with mattress, built-in cabinet with lock, study desk with chairs, wall fans. Spacious room for eight people\r\nRoom has its own separate toilet and bathroom\r\n-Fire Detection & Alarm System\r\n-Lounge with LCD cable TV\r\n-Pantry with stove & microwave free of used\r\n-Laundry cage and Parking space at the back\r\n\r\nFor more information, you can text or call View Phone Whatsapp / WhatsApp.\r\n\r\nAddress:\r\nPurok #6, 1669 National Highway\r\nDila, Sta. Rosa Laguna\r\nAlong highway, Near Complex Balibago', '[\"1769874773_697e25559e2bd_617003593_1309577377576796_5793339414094449268_n.jpg\",\"1769874773_697e25559f5d5_619661220_1309577387576795_8602374495345039408_n.jpg\",\"1769874773_697e2555a07c7_619694282_1309577434243457_5342415326550166753_n.jpg\",\"1769874773_697e2555a1cdf_620008726_1309577430910124_4106903204621638308_n.jpg\",\"1769874773_697e2555a2b6f_621606639_1309577540910113_3689565198174649248_n.jpg\",\"1769874773_697e2555a381c_623365942_1309577364243464_1553094445443937069_n.jpg\",\"1769874773_697e2555a4580_623503654_1309577357576798_6462543165614109993_n.jpg\"]', 'Blk 6 Lot 8, P. Burgos Street, gsis 1, S.P.L', 'Poblacion', 4, '2025-11-08', 'Low-rise apartment', 1, 14.3496102, 121.0407162, 'available'),
-(5, 'Serene Villa', 20, '4 bedroom, 3 bathroom, large terrace. nice neighborhood. Renting to family. Located in Holiday Park subdivision, San Pedro Laguna. Contact me for an appointment to view the property\r\n₱20000 monthly rent', '[\"1772012383_699ec35f3cdf0_590269974_837360282358204_5073854959907903242_n.jpg\",\"1772012383_699ec35f3e362_590412492_818810960979420_6540923996156771945_n.jpg\",\"1772012383_699ec35f407e2_590523233_1178219937748229_699258887216974005_n.jpg\",\"1772012383_699ec35f41ded_590953653_2107270670043159_7098658162033819033_n.jpg\",\"1772012383_699ec35f43d64_592133209_696054726908885_5177470230404901730_n.jpg\",\"1772012383_699ec35f45747_592931562_4329288787304560_2389146709542792609_n.jpg\",\"1772012383_699ec35f46b05_592952375_1924518878134274_7257499523061647961_n.jpg\"]', '12 Palm Grove, San Pedro, Laguna', 'Langgam', 4, '2025-11-08', 'Apartment complex', 1, 14.3584866, 121.0443687, 'available'),
-(7, 'Cozy Loft Condo', 20000, 'Perfect for young professionals, with amenities.', '[\"1762565795_690e9ea325202_2.jpg\",\"1762565795_690e9ea32835d_3.jpg\",\"1762565795_690e9ea32c3c8_4.jpg\"]', '9 Horizon St., San Pedro, Laguna', 'Poblacion', 4, '2025-11-08', 'High-rise apartment', 1, 14.3617548, 121.0560799, 'available'),
+(5, 'Serene Villa', 15000, 'Private villa with garden and pool.', '[\"1762565688_690e9e38088d2_11.jpg\",\"1762565688_690e9e380eb7a_12.jpg\",\"1762565688_690e9e3815073_13.jpg\"]', '12 Palm Grove, San Pedro, Laguna', 'Maharlika', 4, '2025-11-08', 'Apartment complex', 1, 14.3584866, 121.0443687, 'available'),
+(7, 'Cozy Loft Condo', 20000, 'Perfect for young professionals, with amenities.', '[\"1762565795_690e9ea325202_2.jpg\",\"1762565795_690e9ea32835d_3.jpg\",\"1762565795_690e9ea32c3c8_4.jpg\"]', '9 Horizon St., San Pedro, Laguna', 'Nueva', 4, '2025-11-08', 'High-rise apartment', 1, 14.3617548, 121.0560799, 'available'),
 (8, 'Laguna Hills Townhouse', 34000, 'Townhouse with modern interiors and parking.', '[\"1762566235_690ea05bb74ab_1.jpg\",\"1762566235_690ea05bbd78f_2.jpg\",\"1762566235_690ea05bc1c06_3.jpg\"]', '33 Del Pilar St., San Pedro, Laguna', 'Fatima', 5, '2025-11-08', 'Condominium', 1, 14.3556710, 121.0537624, 'available'),
 (9, 'Gardenview Condo', 32000, 'Condo with garden view and gym access.', '[\"1762566350_690ea0ceeb5ca_3.jpg\",\"1762566350_690ea0ceef840_4.jpg\",\"1762566350_690ea0cef317e_5.jpg\"]', '10 Banay-Banay Rd., San Pedro, Laguna', 'Poblacion', 3, '2025-11-08', 'Condominium', 1, 14.3641522, 121.0592556, 'available'),
-(10, 'APARTMENT27', 8500, 'Description\r\n✔ Ideal for Investors\r\nThis furnished 1-bedroom unit at The San Pedro presents an excellent investment opportunity in a high-demand CBD location. Its proximity to major corporate offices, Pacita 1, and commercial hubs ensures strong rental demand from executives, expatriates, and young professionals. Being fully furnished, the unit is ready for immediate leasing, reducing downtime and setup costs. The Asten is known for steady rental yields, high occupancy rates, and long-term capital appreciation, making it a smart addition to any property portfolio.\r\n\r\n✔ Perfect for End-Users\r\nFor homeowners, this unit offers comfortable, move-in-ready city living in one of Makati’s most strategic addresses. The functional layout, modern furnishings, and access to premium amenities provide a convenient and secure lifestyle. With daily essentials, offices, dining, and lifestyle destinations just minutes away, residents enjoy a balanced work-life experience in the heart of the city.\r\n\r\nWhether you’re looking for a reliable income-generating property or a modern urban home, this furnished 1-bedroom condo at The Asten Makati delivers value, convenience, and long-term potential.\r\n\r\n\r\nurnishings & Inclusions\r\n\r\nSofa set\r\n\r\nDining table and chairs\r\n\r\nBed with mattress\r\n\r\nWardrobe / storage cabinets\r\n\r\nAir-conditioning units\r\n\r\nRefrigerator\r\n\r\nCooktop / range hood\r\n\r\nMicrowave / basic kitchen appliances\r\n\r\nCurtains / window treatments\r\n\r\nLighting fixtures\r\n\r\nBuilding Features & Amenities\r\n\r\nSwimming pool\r\n\r\nFitness gym\r\n\r\nLandscaped garden\r\n\r\nFunction rooms\r\n\r\nLounge areas\r\n\r\n24/7 security and CCTV\r\n\r\nConcierge / reception area\r\n\r\nElevators\r\n\r\nProfessional property management\r\n\r\nAccessibility & Nearby Landmarks\r\n\r\nAyala Center & Greenbelt\r\n\r\nMakati Medical Center\r\n\r\nMajor corporate offices\r\n\r\nRestaurants, cafes, and retail areas\r\n\r\nEasy access to major roads and public transport\r\nDetails\r\nGarage\r\nEquipped kitchen\r\nAlarm\r\nAir conditioning\r\nIntegral kitchen\r\nFully furnished\r\nCommunity characteristics\r\nSecurity\r\nSwimming pool\r\nGarden\r\nAccess for people with disabilities\r\n24 hours security\r\nGym\r\nLift\r\nConcierge\r\nJogging path', '[\"1772012038_699ec206a1ee0_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzL2FkMDhkMDc1LWZhZjYtNDIwMS04MzE3LWM0MTM5NTJjMzU2MS8yYmVjNjc2Yy0zZjg3LTQ5ZDAtOTFlOC0zM2MyZDI5ZDRhZmEuanBnIiwiYnJhbmQiO.webp\",\"1772012038_699ec206a24ea_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wY2ZmLTcyODUtOWM0ZS0wYjFiYWEzNzQwYmMuanBnIiwiY.webp\",\"1772012038_699ec206a2ae1_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wYjk0LTcyZjgtYTVjOC1hZjUxNmIwMWQyMGEuanBnIiwiY.webp\",\"1772012038_699ec206a30e4_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wYmU5LTcxYTMtYjEwYy1mZDg3NzllNTQzYzIuanBnIiwiY.webp\",\"1772012038_699ec206a3637_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wYTI5LTcyMDctYThkZS1lY2U1ZGY1NTg4ODguanBnIiwiY.webp\",\"1772012038_699ec206a3b62_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0xZTU0LTcxZTEtYjA2Ny1lOWY4Njk3YzFjYmEuanBnIiwiY.webp\"]', 'Blk 6 Lot 8, P. Burgos Street, Pacita 1, S.P.L', 'Pacita 1', 1, '2025-11-08', 'Low-rise apartment', 1, 14.3437149, 121.0577178, 'available'),
+(10, 'APARTMENT27', 4500, 'EXAMPLE', '[\"1762570786_690eb2221b2f7_1.jpg\",\"1762570786_690eb22222349_2.jpg\",\"1762570786_690eb2222910f_3.jpg\"]', 'Blk 6 Lot 8, P. Burgos Street, Pacita 1, S.P.L', 'Pacita 1', 1, '2025-11-08', 'Low-rise apartment', 1, 14.3437149, 121.0577178, 'available'),
 (11, 'STUDIO TYPE APARTMENT', 40000, 'House type: Apartment\r\nOffer type: For Rent\r\nCar parks: 2\r\nContract duration: 1 Years\r\nUsable area: 250 sqm\r\nProperty Floor: 2\r\n6 Jan 2026 - Published by DPI Properties\r\n₱ 40,000/month\r\nDescription\r\nFOR RENT: Furnished 2 storey house and lot at Concorde Village Parañaque.\r\n\r\nLot area: 260sqm\r\nFloor area: 250sqm\r\n\r\n- 6 Bedrooms\r\n- 1 Office room\r\n- Washing machine included\r\n- Air conditioned all rooms\r\n- Dining table and chairs included\r\n- Rooms with cabinets\r\n- Water heater\r\n- Wifi included\r\n\r\nRental rate: ₱40,000/month\r\n2 months advance, 2 months security deposit.\r\n\r\nDirect tenants only.\r\nFor inquiries call: View Phone Whatsapp Viber DPI PROPERTIES\r\nDetails\r\nGarage\r\nAir conditioning\r\nAlarm\r\nElectricity\r\nFully fenced\r\nEntertainment room\r\nInternet\r\nBalcony\r\nBuilt-in wardrobe\r\nCellar\r\nWifi\r\nView more\r\nCommunity characteristics\r\nSecurity\r\nGrill\r\nGreen area\r\n24 hours security\r\nGarden\r\nGuardhouse\r\nBasketball court', '[\"1769875585_697e2881da010_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zY2EyLTcyZWUtYjRmOS05MDkzNTA0OGRkNjAuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881dacb7_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zY2U0LTcxNzAtYmE3Yi1kZTI3ZGI3NTJlNGQuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881db828_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYmE0LTczODktYTkyZi02NWExYjk0ODk1YWIuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881de246_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYmYzLTcxNmEtOTM3My1jOWRiZTFiZDExOWIuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881deba7_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYTZlLTcxODItOWEzMi1kY2UyZmFiMTNjNGUuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881df47c_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYzJjLTcwYmYtYmE0ZC1iMTMxMjYyNmZlNTQuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881dfd81_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYzYzLTcwNWItYjM1MC1lYzQwN2NlMjlmN2QuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881e0765_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zZDA5LTcwOGMtOWY4OS1iZjQwYTRhMWRhNzAuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881e1472_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zZTQ0LTczYTktODQxYy0xNGExYWRmMjNjYzEuanBnIiwiYnJhbmQiOiJsYW.webp\"]', '123 Rizal St., San Pedro, Laguna', 'Pacita 2', 4, '2026-01-31', 'Single-family home', 1, 14.3670574, 121.0606474, 'available');
 
 -- --------------------------------------------------------
@@ -320,20 +320,12 @@ CREATE TABLE `maintenance_requeststbl` (
   `status` enum('Pending','Approved','In Progress','Completed','Rejected') DEFAULT 'Pending',
   `requested_date` date DEFAULT curdate(),
   `scheduled_date` date DEFAULT NULL,
-  `landlord_response` text DEFAULT NULL,
   `completed_date` date DEFAULT NULL,
   `landlord_remarks` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `photo_path` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `maintenance_requeststbl`
---
-
-INSERT INTO `maintenance_requeststbl` (`id`, `lease_id`, `tenant_id`, `landlord_id`, `title`, `description`, `category`, `priority`, `status`, `requested_date`, `scheduled_date`, `landlord_response`, `completed_date`, `landlord_remarks`, `created_at`, `updated_at`, `photo_path`) VALUES
-(10, 169, 6, 1, 'Leaking faucet', 'Broken', 'Plumbing', 'High', 'Completed', '2026-02-26', NULL, '', '2026-02-26', NULL, '2026-02-26 06:18:15', '2026-02-26 06:19:07', '../uploads/maintenance/maintenance_1772086695_699fe5a712d68.jpg');
 
 -- --------------------------------------------------------
 
@@ -564,7 +556,7 @@ CREATE TABLE `tenanttbl` (
 
 INSERT INTO `tenanttbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `verificationId`, `birthday`, `gender`, `profilePic`, `created_at`, `status`, `phoneNum`) VALUES
 (1, 'Jaja', 'Jahaziel', 'Sison', 'Bautusta', 'jahaziel.sison@cdsp.edu.ph', '$2y$10$PaxpUKQNdWKjJJXnBWfK1OonMOtoguy1iNaouAototdAtrxtXmqhK', NULL, '2004-08-07', 'Female', '1770343112_profile_551246401_1344915943899367_5892129137320406716_n.jpg', '2025-11-08 00:54:25', 'active', 2147483647),
-(6, 'jo-sison', 'Joyce Diane', 'Sison', '', 'sisonjoycediane29@gmail.com', '$2y$10$fVJN2t6HgmeL8IqaWd.EseNSj08OMBHTvBrZIpl4hw92RourjB1AO', NULL, '2000-02-01', 'Female', '1772086838_profile_ll3.png', '2026-02-09 12:11:25', 'active', 99322789);
+(6, '', 'Joyce Diane', 'Sison', NULL, 'sisonjoycediane29@gmail.com', '$2y$10$fVJN2t6HgmeL8IqaWd.EseNSj08OMBHTvBrZIpl4hw92RourjB1AO', NULL, NULL, NULL, NULL, '2026-02-09 12:11:25', 'active', NULL);
 
 -- --------------------------------------------------------
 
@@ -770,13 +762,13 @@ ALTER TABLE `cancel_requesttbl`
 -- AUTO_INCREMENT for table `conversations`
 --
 ALTER TABLE `conversations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `conversation_members`
 --
 ALTER TABLE `conversation_members`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `extension_requesttbl`
@@ -794,7 +786,7 @@ ALTER TABLE `landlordtbl`
 -- AUTO_INCREMENT for table `leasetbl`
 --
 ALTER TABLE `leasetbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=171;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=170;
 
 --
 -- AUTO_INCREMENT for table `listingtbl`
@@ -812,7 +804,7 @@ ALTER TABLE `maintenance_attachmentstbl`
 -- AUTO_INCREMENT for table `maintenance_requeststbl`
 --
 ALTER TABLE `maintenance_requeststbl`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -836,7 +828,7 @@ ALTER TABLE `renttbl`
 -- AUTO_INCREMENT for table `requesttbl`
 --
 ALTER TABLE `requesttbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
 
 --
 -- AUTO_INCREMENT for table `tenanttbl`

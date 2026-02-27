@@ -107,7 +107,7 @@ foreach ($maintenanceRequests as $req) {
 }
 
 /* =========================
-   FETCH ALL LEASES (TABLE)
+   FETCH ALL LEASES WITH LANDLORD INFO
 ========================= */
 $sql = "
 SELECT
@@ -118,9 +118,14 @@ SELECT
     le.pdf_path,
     le.tenant_response,
     ls.listingName,
-    ls.price
+    ls.price,
+    l.ID AS landlord_id,
+    l.firstName AS landlord_firstName,
+    l.lastName AS landlord_lastName,
+    l.profilePic AS landlord_profilePic
 FROM leasetbl le
 JOIN listingtbl ls ON le.listing_id = ls.ID
+JOIN landlordtbl l ON ls.landlord_id = l.ID
 WHERE le.tenant_id = ?
 ORDER BY le.ID DESC
 ";
@@ -202,7 +207,74 @@ if (!empty($maintenanceRequests)) {
         p, span, a, button, input, textarea, label, div {
             font-family: "Montserrat", sans-serif;
         }
+        
+        
+        /* ============================= */
+/* UNIFIED SECTION TITLES */
+/* ============================= */
 
+.section-title {
+    font-family: "Montserrat", sans-serif;
+    font-size: 1.6rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    color: #25343F;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: #8d0b41;
+} 
+
+/* ============================= */
+/* GLOBAL BUTTON STANDARD */
+/* ============================= */
+
+button,
+.btn,
+.card-btn,
+.complaint-btn {
+    font-family: "Montserrat", sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+/* Primary Maroon Button */
+.btn-primary-custom {
+    background: #8d0b41;
+    color: #ffffff;
+    border: none;
+    border-radius: 25px;
+    padding: 8px 20px;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.btn-primary-custom:hover {
+    background: #6f0833;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(141, 11, 65, 0.3);
+}
+
+/* Outline Button */
+.btn-outline-custom {
+    border: 1px solid #8d0b41;
+    color: #8d0b41;
+    background: transparent;
+    border-radius: 25px;
+    padding: 6px 18px;
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-custom:hover {
+    background: #8d0b41;
+    color: #ffffff;
+}
         body {
             background: #f5f6f8;
             font-size: 14px;
@@ -239,17 +311,61 @@ if (!empty($maintenanceRequests)) {
             border-radius: 14px 0 0 14px;
         }
 
-        .card-rent::before {
-            background: linear-gradient(to bottom, #56ab2f, #a8e063);
-        }
+        /* Keep individual card gradients */
+.card-rent::before {
+    background: linear-gradient(to bottom, #56ab2f, #a8e063);
+}
 
-        .card-lease::before {
-            background: linear-gradient(to bottom, #f7971e, #ffd200);
-        }
+.card-lease::before {
+    background: linear-gradient(to bottom, #f7971e, #ffd200);
+}
 
-        .card-maintenance::before {
-            background: linear-gradient(to bottom, #f00000, #dc281e);
-        }
+.card-maintenance::before {
+    background: linear-gradient(to bottom, #f00000, #dc281e);
+}
+
+/* Unified card styles */
+.dashboard-card {
+    border-radius: 14px;
+    padding: 22px;
+    min-height: 300px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
+    position: relative;
+    background: #ffffff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* smooth hover */
+    overflow: hidden; /* ensure ::before stays inside card */
+}
+
+/* Hover effect for all cards */
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.12);
+}
+
+/* Keep gradient bars visible (don’t hide ::before) */
+.card-rent::before,
+.card-lease::before,
+.card-maintenance::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    border-radius: 14px 0 0 14px;
+    z-index: 0;
+}
+
+/* Make sure card content is above gradient */
+.dashboard-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Optional: text colors */
+.card-rent, .card-lease, .card-maintenance {
+    color: #25343F;
+}
 
         .card-rent {
             background: #EAEFEF;
@@ -322,19 +438,17 @@ if (!empty($maintenanceRequests)) {
             border-radius: 50%;
         }
 
-/* ============================= */
-/* IMPROVED COMPLAINT STATUS CARD */
-/* ============================= */
 
-.complaint-card {
-    background: #ffffff;
-    border-radius: 14px;
-    padding: 24px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
-    margin-top: 30px;
-    transition: all 0.3s ease;
-}
+
+        .complaint-card {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 24px;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, .06);
+            margin-top: 30px;
+            transition: all 0.3s ease;
+        }
 
 .complaint-card:hover {
     transform: translateY(-2px);
@@ -602,6 +716,8 @@ h4, h5 {
     margin-bottom: 20px;
 }
 
+
+
     </style>
 </head>
 
@@ -627,7 +743,7 @@ h4, h5 {
                     <p><strong>Due Date:</strong> <?= $dueDate ?></p>
                     <p><strong>Expected Amount Due:</strong> ₱<?= $expectedAmount ?></p>
                     <p><strong>Total Rent Payment:</strong> ₱<?= $totalPaid ?></p>
-                    <button class="card-btn" style="color:#000;">View History</button>
+                    <button class="btn-outline-custom">View History</button>
                 <?php endif; ?>
             </div>
 
@@ -638,13 +754,13 @@ h4, h5 {
                     <?= isset($lease['end_date']) ? date("F Y", strtotime($lease['end_date'])) : '-' ?>
                 </p>
                 <?php if (!empty($lease['pdf_path'])): ?>
-                    <a href="<?= htmlspecialchars($lease['pdf_path']) ?>" class="card-btn" target="_blank"
-                        style="color: #000;">View Contract</a>
+                    <a href="<?= htmlspecialchars($lease['pdf_path']) ?>"  class="btn-outline-custom">
+                        View Contract</a>
                 <?php else: ?>
                     <span class="card-btn" style="color: #999; cursor: not-allowed;">No Contract</span>
                 <?php endif; ?>
                 <?php foreach ($leases as $l): ?>
-                    <button class="card-btn ms-2"
+                    <button class="btn-outline-custom"
                         onclick="window.location.href='tenant-apartment-details.php?lease_id=<?= $l['lease_id'] ?>'">View
                         Apartment Details</button>
                 <?php endforeach; ?>
@@ -675,13 +791,15 @@ h4, h5 {
   </div>
 </div>
 
-            <!-- Maintenance -->
+            <!-- Maintenance Requests -->
             <div class="dashboard-card card-maintenance">
+    <h5>
                 Maintenance Requests
         <?php if ($notificationCount > 0): ?>
             <span class="badge bg-danger"><?= $notificationCount ?></span>
         <?php endif; ?>
     </h5>
+            
 
     <?php if (empty($maintenanceRequests)): ?>
         <p class="text-muted">No maintenance requests yet</p>
@@ -697,15 +815,13 @@ h4, h5 {
         </p>
     <?php endif; ?>
 
-    <button class="card-btn"
-        onclick="window.location.href='maintenance-create.php'"
-        style="color:#000;">
+    <button class="btn-outline-custom"
+        onclick="window.location.href='maintenance-create.php'">
         Create New
     </button>
 
-    <button class="card-btn"
-            onclick="window.location.href='maintenance-history.php'"
-            style="background:#ddd;color:#000;">
+    <button class="btn-outline-custom"
+            onclick="window.location.href='maintenance-history.php'">
             Maintenance History
         </button>
     </div>
@@ -716,14 +832,16 @@ h4, h5 {
 <div class="rentals-section">
 
     <div class="rentals-header">
-        <h3 class="rentals-title">
-            <i class="bi bi-house-door"></i> My Rentals
+        <h3 class="section-title">
+            <i class="bi bi-house-check" style="color: #8d0b41; font-size: 1.9rem; margin-right: 9px; margin-top: 4px;"></i> My Rentals
         </h3>
     </div>
 
     <table class="rentals-table">
         <thead>
             <tr>
+                <th>Profile</th>
+                <th>Landlord Name</th>
                 <th>Apartment</th>
                 <th>Price</th>
                 <th>Start Date</th>
@@ -735,25 +853,47 @@ h4, h5 {
 
         <tbody>
             <?php if ($leases): ?>
-                <?php foreach ($leases as $l): ?>
-                    <tr data-lease="<?= $l['lease_id']; ?>">
+                <?php foreach ($leases as $landlord): ?>
+                    <tr data-lease="<?= $landlord['lease_id']; ?>">
+
+                    <td>
+                        <?php if (!empty($landlord['landlord_profilePic'])): ?>
+                            <a href="landlord-profile.php?landlord_id=<?= $landlord['landlord_id'] ?>">
+                                <img src="../uploads/<?= htmlspecialchars($landlord['landlord_profilePic']) ?>"
+                                    alt="<?= htmlspecialchars($landlord['landlord_firstName'] . ' ' . $landlord['landlord_lastName']); ?>"
+                                    class="rounded-circle" width="40" height="40" style="object-fit: cover; border: 2px solid #8d0b41;">
+                            </a>
+                        <?php else: ?>
+                            <?php
+                            $initials = strtoupper(substr($landlord['landlord_firstName'], 0, 1) . substr($landlord['landlord_lastName'], 0, 1));
+                            ?>
+                            <div class="profile-avatar-sm"
+                                style="width:40px; height:40px; border-radius:50%; background:#ccc; display:flex; align-items:center; justify-content:center; font-weight:bold; color:#fff;">
+                                <?= $initials ?>
+                            </div>
+                        <?php endif; ?>
+                    </td>
+                    
+                    <td class="fw-bold text-dark">
+                        <?= htmlspecialchars($landlord['landlord_firstName'] . ' ' . $landlord['landlord_lastName']); ?>
+                    </td>
                         
                         <td class="fw-semibold">
-                            <?= htmlspecialchars($l['listingName']); ?>
+                            <?= htmlspecialchars($landlord['listingName']); ?>
                         </td>
-
-                        <td>₱<?= number_format($l['price']); ?>.00</td>
-
-                        <td><?= date("F j, Y", strtotime($l['start_date'])); ?></td>
-
-                        <td><?= date("F j, Y", strtotime($l['end_date'])); ?></td>
+                        
+                        <td>₱<?= number_format($landlord['price'], 2); ?></td>
+                        
+                        <td><?= date("F j, Y", strtotime($landlord['start_date'])); ?></td>
+                        
+                        <td><?= date("F j, Y", strtotime($landlord['end_date'])); ?></td>
 
                         <td>
                             <?php
-                            if ($l['tenant_response'] === 'rejected') {
+                            if ($landlord['tenant_response'] === 'rejected') {
                                 echo '<span class="badge bg-danger">You Rejected</span>';
                             } else {
-                                switch ($l['lease_status']) {
+                                switch ($landlord['lease_status']) {
                                     case 'pending':
                                         echo '<span class="badge bg-warning text-dark">Waiting for Your Approval</span>';
                                         break;
@@ -773,15 +913,15 @@ h4, h5 {
                         <td>
                             <div class="d-flex align-items-center gap-2">
 
-                                <?php if ($l['lease_status'] === 'pending' && $l['tenant_response'] !== 'rejected'): ?>
+                                <?php if ($landlord['lease_status'] === 'pending' && $landlord['tenant_response'] !== 'rejected'): ?>
 
-                                    <a href="<?= htmlspecialchars($l['pdf_path']); ?>" target="_blank"
+                                    <a href="<?= htmlspecialchars($landlord['pdf_path']); ?>" target="_blank"
                                         class="btn btn-primary btn-sm">
                                         <i class="bi bi-file-earmark-pdf"></i>
                                     </a>
 
                                     <form action="tenant-accept.php" method="POST">
-                                        <input type="hidden" name="lease_id" value="<?= $l['lease_id']; ?>">
+                                        <input type="hidden" name="lease_id" value="<?= $landlord['lease_id']; ?>">
                                         <button class="btn btn-success btn-sm">
                                             <i class="bi bi-check2-circle"></i>
                                         </button>
@@ -789,33 +929,33 @@ h4, h5 {
 
                                     <form action="tenant-reject.php" method="POST"
                                         onsubmit="return confirm('Reject this lease agreement?');">
-                                        <input type="hidden" name="lease_id" value="<?= $l['lease_id']; ?>">
+                                        <input type="hidden" name="lease_id" value="<?= $landlord['lease_id']; ?>">
                                         <button class="btn btn-danger btn-sm">
                                             <i class="bi bi-x-circle"></i>
                                         </button>
                                     </form>
 
-                                <?php elseif ($l['lease_status'] === 'active'): ?>
+                                <?php elseif ($landlord['lease_status'] === 'active'): ?>
 
-                                    <a href="<?= htmlspecialchars($l['pdf_path']); ?>" target="_blank"
+                                    <a href="<?= htmlspecialchars($landlord['pdf_path']); ?>" target="_blank"
                                         class="btn btn-outline-primary btn-sm">
                                         <i class="bi bi-file-earmark-pdf"></i>
                                     </a>
 
                                     <button class="btn btn-warning btn-sm renew-btn"
-                                        data-lease="<?= $l['lease_id']; ?>">
+                                        data-lease="<?= $landlord['lease_id']; ?>">
                                         <i class="bi bi-arrow-repeat"></i>
                                     </button>
 
                                     <button class="btn btn-danger btn-sm terminate-btn"
-                                        data-lease="<?= $l['lease_id']; ?>">
+                                        data-lease="<?= $landlord['lease_id']; ?>">
                                         <i class="bi bi-x-square"></i>
                                     </button>
 
-                                <?php elseif ($l['tenant_response'] === 'rejected'): ?>
+                                <?php elseif ($landlord['tenant_response'] === 'rejected'): ?>
 
                                     <button class="btn btn-danger btn-sm remove-btn"
-                                        data-lease="<?= $l['lease_id']; ?>">
+                                        data-lease="<?= $landlord['lease_id']; ?>">
                                         <i class="bi bi-trash"></i>
                                     </button>
 
@@ -830,7 +970,7 @@ h4, h5 {
                 <?php endforeach; ?>
             <?php else: ?>
                 <tr>
-                    <td colspan="6" class="text-center text-muted">
+                    <td colspan="8" class="text-center text-muted">
                         No rentals available
                     </td>
                 </tr>
@@ -848,9 +988,10 @@ h4, h5 {
                 <i class="bi bi-tools" style="color: #8d0b41; font-size: 1.5rem; margin-right: 8px;"></i>
                 Maintenance Request
             </h3>
-            <a href="maintenance-create.php" class="complaint-btn">
+            <a class="btn-primary-custom" href="maintenance-create.php">
                 File New Complaint
             </a>
+              
         </div>
 
         <div class="complaint-body">

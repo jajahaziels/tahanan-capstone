@@ -27,6 +27,7 @@
             <ul class="nav-links">
                 <li><a href="landlord-properties.php" class="<?= $current_page == 'landlord-properties.php' ? 'active' : '' ?>">Properties</a></li>
                 <li><a href="landlord-map.php" class="<?= $current_page == 'landlord-map.php' ? 'active' : '' ?>">Map</a></li>
+                <li><a href="history.php" class="<?= $current_page == 'history.php' ? 'active' : '' ?>">Rentals</a></li>
                 <li><a href="landlord-message.php" class="<?= $current_page == 'landlord-message.php' ? 'active' : '' ?>">Messages</a></li>
                 <li><a href="support.php" class="<?= $current_page == 'support.php' ? 'active' : '' ?>">Support</a></li>
             </ul>
