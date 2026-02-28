@@ -71,11 +71,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $start_date = $_POST['start_date'];
     $end_date = $_POST['end_date'];
+    $rent_due_day = (int) $_POST['rent_due_day'];
     $rent = (float) $_POST['rent'];
     $deposit = (float) $_POST['deposit'];
 
-    if ($end_date <= $start_date) {
-        die("Invalid contract dates.");
+    if (strtotime($end_date) <= strtotime($start_date)) {
+        die("End date must be later than start date.");
     }
 
     /* =========================
@@ -95,18 +96,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $insert = $conn->prepare("
     INSERT INTO leasetbl
     (listing_id, tenant_id, landlord_id,
-     start_date, end_date, rent, deposit,
-     terms, status, pdf_path)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    start_date, end_date, rent_due_day, rent, deposit,
+    terms, status, pdf_path)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 ");
 
     $insert->bind_param(
-        "iiissddsss",
+        "iiissddssss",
         $listing_id,
         $request['tenant_id'],
         $landlord_id,
         $start_date,
         $end_date,
+        $rent_due_day,
         $rent,
         $deposit,
         $terms_json,
@@ -159,9 +161,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     pdfRow($pdf, "Property:", $request['listingName']);
     pdfRow($pdf, "Tenant:", "{$request['tenant_first']} {$request['tenant_last']}");
     pdfRow($pdf, "Landlord:", "{$request['landlord_first']} {$request['landlord_last']}");
+    pdfRow($pdf, "Rent Due Day:", "Day $rent_due_day of every month");
     pdfRow($pdf, "Rent:", "PHP " . number_format($rent, 2));
     pdfRow($pdf, "Deposit:", "PHP " . number_format($deposit, 2));
-    pdfRow($pdf, "Contract Period:", "$start_date to $end_date");
+    $contractStart = date("F j, Y", strtotime($start_date));
+    $contractEnd = date("F j, Y", strtotime($end_date));
+
+    pdfRow($pdf, "Contract Period:", "$contractStart - $contractEnd");
 
     $pdf->Ln(10);
 
@@ -258,6 +264,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <title>Create Lease Agreement</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- BOOTSTRAP -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <style>
         body {
@@ -387,18 +399,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             opacity: 0.9;
             transform: translateY(-1px);
         }
-    </style>
 
-    <script>
-        function addCustomField() {
-            const div = document.getElementById("customArea");
-            const input = document.createElement("input");
-            input.type = "text";
-            input.name = "custom_terms[]";
-            input.placeholder = "Enter landlord agreement";
-            div.appendChild(input);
+        select {
+            width: 105%;
+            padding: 14px 16px;
+            margin-top: 8px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 15px;
+            transition: 0.2s;
+            background: white;
         }
-    </script>
+
+        select:focus {
+            border-color: #8d0b41;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(141,11,65,0.15);
+        }
+    </style>
 </head>
 
 <body>
@@ -423,17 +441,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="section">
             <div class="section-title">Lease Details</div>
 
-            <label>Start Date</label>
-            <input type="date" name="start_date" required>
+                <label>Start Date</label>
+                    <input type="date" 
+                        name="start_date" 
+                        id="start_date" 
+                        required 
+                        onchange="calculateDuration()">
 
-            <label>End of Contract</label>
-            <input type="date" name="end_date" required>
+                <label>End Date</label>
+                    <input type="date" 
+                        name="end_date" 
+                        id="end_date" 
+                        required 
+                        onchange="calculateDuration()">
 
-            <label>Monthly Rent</label>
-            <input type="number" name="rent" value="<?= htmlspecialchars($request['price']) ?>" required>
+                <label>Contract Duration (Months)</label>
+                    <input type="text" id="duration" readonly>
 
-            <label>Security Deposit</label>
-            <input type="number" name="deposit" required>
+                <label>Monthly Rent (₱)</label>
+                    <input type="number" name="rent" value="<?= htmlspecialchars($request['price']) ?>" required>
+        
+                <label>Rent Due Day (e.g. 5th of every month)</label>
+                    <input type="number" name="rent_due_day" min="1" max="31" required>
+        
+                <label>Mode of Payment</label>
+                    <select name="payment_mode" required>
+                        <option value="">Select Payment Method</option>
+                        <option value="GCash">GCash</option>
+                        <option value="Bank Transfer">Bank Transfer</option>
+                        <option value="Cash">Cash</option>
+                        <option value="OTHER">Other (Specify in Custom Agreements)</option>
+                    </select>
+                    
+                <label>Security Deposit</label>
+                    <input type="number" name="deposit" required>
         </div>
 
         <!-- TERMS -->
@@ -441,28 +482,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="section-title">Terms & Agreements</div>
 
             <div class="term-row">
-                <input type="checkbox" name="terms[]" value="Tenant pays 1 month advance rent and 1 month security deposit." checked>
+                <input type="checkbox" name="terms[]" value="Tenant pays 1 month advance rent and 1 month security deposit.">
                 <span class="term-text">Tenant pays 1 month advance rent and 1 month security deposit.</span>
             </div>
 
             <div class="term-row">
-                <input type="checkbox" name="terms[]" value="Security deposit refundable upon move-out minus damages." checked>
+                <input type="checkbox" name="terms[]" value="Security deposit refundable upon move-out minus damages.">
                 <span class="term-text">Security deposit refundable upon move-out minus damages.</span>
             </div>
 
             <div class="term-row">
-                <input type="checkbox" name="terms[]" value="Rent must be paid on or before the due date." checked>
+                <input type="checkbox" name="terms[]" value="Rent must be paid on or before the due date.">
                 <span class="term-text">Rent must be paid on or before the due date.</span>
             </div>
 
             <div class="term-row">
-                <input type="checkbox" name="terms[]" value="No subleasing without landlord approval." checked>
+                <input type="checkbox" name="terms[]" value="No subleasing without landlord approval.">
                 <span class="term-text">No subleasing without landlord approval.</span>
             </div>
 
             <div class="term-row">
-                <input type="checkbox" name="terms[]" value="No pets allowed." checked>
-                <span class="term-text">No pets allowed.</span>
+                <input type="checkbox" name="terms[]" value="30-day written notice required before move-out.">
+                <span class="term-text">30-day written notice required before move-out.</span>
+            </div>
+
+            <div class="term-row">
+                <input type="checkbox" name="terms[]" value="Minor repairs under ₱1,000 shouldered by tenant.">
+                <span class="term-text">Minor repairs under ₱1,000 shouldered by tenant.</span>
             </div>
         </div>
 
@@ -488,6 +534,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </form>
 
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const today = new Date().toISOString().split('T')[0];
+
+    document.getElementById("start_date").setAttribute("min", today);
+    document.getElementById("end_date").setAttribute("min", today);
+});
+
+function calculateDuration() {
+    const start = document.getElementById("start_date").value;
+    const end = document.getElementById("end_date").value;
+
+    if (!start || !end) return;
+
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+
+    if (endDate <= startDate) {
+        document.getElementById("duration").value = "";
+        alert("End date must be later than start date");
+        return;
+    }
+
+    const months =
+        (endDate.getFullYear() - startDate.getFullYear()) * 12 +
+        (endDate.getMonth() - startDate.getMonth());
+
+    document.getElementById("duration").value = months + " month(s)";
+}
+
+function addCustomField() {
+    const div = document.getElementById("customArea");
+    const input = document.createElement("input");
+
+    input.type = "text";
+    input.name = "custom_terms[]";
+    input.placeholder = "Enter landlord agreement";
+
+    div.appendChild(input);
+}
+</script>
 
 </body>
 </html>

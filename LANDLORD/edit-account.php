@@ -344,7 +344,7 @@ small.text-muted {
     color: #8d0b41;
     padding: 6px 15px;
     border-radius: 20px;
-    font-size: 1px;
+    font-size: 14px;
 }
 
 .btn-remove-modern:hover {
