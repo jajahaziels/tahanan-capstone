@@ -220,13 +220,13 @@ function getStatusBadge($status)
     color: #fff;
     border-radius: 20px;
     font-size: 0.8rem;
-}
+    }
 
-.btn-theme:hover {
+    .btn-theme:hover {
     background-color: #6a0831;
     border-color: #6a0831;
     color: #fff;
-}
+    }
     
     .lease-btn {
         border: 1px solid #0d6efd;   
@@ -248,7 +248,7 @@ function getStatusBadge($status)
         transition: all 0.3s ease;
         }
 
-        .remove-complaint-btn:hover {
+    .remove-complaint-btn:hover {
         background-color: #FF0000;  
         border-color: #FF0000;   
         color: #fff;               
@@ -432,7 +432,7 @@ function getStatusBadge($status)
                             $requested_date = $complaint['requested_date'] ? date("M j, Y", strtotime($complaint['requested_date'])) : '-';
                             $scheduled_date = $complaint['scheduled_date'] ? date("M j, Y", strtotime($complaint['scheduled_date'])) : '-';
                             $completed_date = $complaint['completed_date'] ? date("M j, Y", strtotime($complaint['completed_date'])) : '-';
-                            ?>
+        ?>
                             <tr>
                                 <td>
                                     <?php if (!empty($complaint['profilePic'])): ?>

@@ -367,7 +367,7 @@ if ($result['rent_count'] > 0) {
                         <!-- Actions -->
                         <div class="d-flex">
                             <button class="small-button"
-                                onclick="window.location.href='landlord-profile.php?id=<?= $property['landlord_id']; ?>'">
+                                onclick="window.location.href='landlord-profile.php?landlord_id=<?= $property['landlord_id']; ?>'">
                                 <i class="fa-solid fa-user"></i>
                             </button>
                             <button class="small-button mx-3"

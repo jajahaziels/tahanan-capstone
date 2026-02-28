@@ -111,6 +111,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['removePhoto'])) {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
     integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" 
+    integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" 
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
 <link rel="stylesheet" href="../css/bootstrap.min.css">
 <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
 
@@ -126,6 +129,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['removePhoto'])) {
             font-family: 'Inter', sans-serif;
             background-color: #f9f9f9;
         }
+
 
         .landlord-page {
             margin-top: 140px !important;
@@ -148,136 +152,227 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['removePhoto'])) {
             margin-bottom: 25px;
         }
 
-        .profile-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 30px;
-        }
+        /* PROFILE SECTION - SAME AS LANDLORD */
 
-        .profile-img {
-            width: 140px;
-            height: 140px;
-            background-color: #d9d9d9;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            position: relative;
-            cursor: pointer;
-            overflow: hidden;
-            border: 2px solid var(--main-color);
-            transition: all 0.3s ease;
-        }
+/* PROFILE CONTAINER */
+/* HEADINGS */
+h2, h4, h5 {
+    font-weight: 600;
+    color: var(--main-color);
+}
 
-        .profile-img img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
+/* PROFILE IMAGE */
+.profile-img {
+    width: 140px;
+    height: 140px;
+    background-color: #d9d9d9;
+    border-radius: 50%;
+    border: 3px solid #8d0b41;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
 
-        .profile-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.3);
-            opacity: 0;
-            transition: 0.3s;
-        }
+.profile-img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(108, 99, 255, 0.15);
+}
 
-        .profile-img:hover .profile-overlay {
-            opacity: 1;
-        }
+.profile-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
 
-        .profile-overlay i {
-            color: #fff;
-            font-size: 24px;
-        }
+/* INPUT FIELDS */
+input.form-control, select.form-control {
+    border-radius: 10px;
+    padding: 12px 15px;
+    border: 1px solid #ccc;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    background-color: #fafafa;
+}
 
-        .upload-input {
-            display: none;
-        }
+input.form-control:focus, select.form-control:focus {
+    border-color: var(--main-color);
+    box-shadow: 0 4px 12px rgba(141, 11, 65, 0.15);
+    outline: none;
+}
 
-        input.form-control,
-        select.form-control {
-            border-radius: 10px;
-            padding: 12px 15px;
-            border: 1px solid #ccc;
-            background-color: #fafafa;
-            font-size: 14px;
-            transition: all 0.3s ease;
-        }
+.upload-input {
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+}
 
-        input.form-control:focus,
-        select.form-control:focus {
-            border-color: var(--main-color);
-            box-shadow: 0 4px 12px rgba(141, 11, 65, 0.15);
-            outline: none;
-        }
+/* LABELS */
+label.form-label {
+    font-weight: 500;
+    margin-bottom: 6px;
+}
 
-        label.form-label {
-            font-weight: 500;
-            margin-bottom: 6px;
-        }
+/* BUTTONS */
+.main-button {
+    background: linear-gradient(135deg, #8d0b41, #a3154f); 
+    color: #fff;
+    border: none;
+    padding: 10px 25px;
+    border-radius: 50px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(141, 11, 65, 0.25);
+}
 
-        .main-button {
-            background: linear-gradient(135deg, #8d0b41, #a3154f);
-            color: #fff;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 6px 20px rgba(141, 11, 65, 0.25);
-        }
+.main-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(141, 11, 65, 0.35);
+}
 
-        .main-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(141, 11, 65, 0.35);
-        }
+.main-button:active {
+    transform: scale(0.97);
+}
 
-        .main-button:active {
-            transform: scale(0.97);
-        }
+.btn-remove-modern {
+    background: linear-gradient(135deg, #8d0b41, #a3154f);
+    color: white;
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-size: 13px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 12px;
+}
 
-        .btn-remove-modern {
-            background: linear-gradient(135deg, #8d0b41, #a3154f);
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 30px;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
+.btn-remove-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(141, 11, 65, 0.35);
+}
 
-        .btn-remove-modern:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(141, 11, 65, 0.35);
-        }
+.btn-remove-modern:active {
+    transform: scale(0.96);
+}
 
-        @media (max-width: 768px) {
-            .edit {
-                padding: 20px;
-            }
+h4, h5 {
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
 
-            .profile-img {
-                width: 120px;
-                height: 120px;
-            }
-        }
+small.text-muted {
+    display: block;
+    margin-top: 3px;
+    font-size: 12px;
+    color: #999;
+}
+
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .edit {
+        padding: 20px;
+    }
+    .profile-img {
+        width: 120px;
+        height: 120px;
+    }
+}
+
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.profile-img {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: #f4f4f4;
+    cursor: pointer;
+    overflow: hidden;
+    border: 2px solid #8d0b41;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.profile-placeholder {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #8d0b41;
+    font-size: 14px;
+    text-align: center;
+}
+
+.upload-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.btn-remove-modern {
+    background: transparent;
+    border: 1px solid #8d0b41;
+    color: #8d0b41;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.btn-remove-modern:hover {
+    background: #8d0b41;
+    color: #fff;
+}
+
+.add-photo-icon {
+    position: relative;
+    font-size: 29px;
+    color: #8d0b41;
+}
+.overlay-plus {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    font-size: 12px;
+}
     </style>
 </head>
 
@@ -299,18 +394,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['removePhoto'])) {
 
             <div class="edit">
                 <form method="POST" enctype="multipart/form-data">
-                    <div class="profile-container">
+
+                    <!--- Profile image -->
+                    <div class="profile-container text-center mb-4">
                         <label class="profile-img" for="upload">
                             <img id="preview"
                                 src="<?= !empty($user['profilePic']) ? '../uploads/' . htmlspecialchars($user['profilePic']) : '' ?>"
-                                style="<?= !empty($user['profilePic']) ? 'display:block;' : 'display:none;' ?>">
-                            <div class="profile-overlay"><i class="fa fa-camera"></i></div>
-                            <input type="file" id="upload" name="profilePic" class="upload-input" accept="image/*">
+                                class="profile-preview" style="<?= !empty($user['profilePic']) ? 'display:block;' : 'display:none;' ?>">
+                    
+                            <div class="profile-placeholder" style="<?= !empty($user['profilePic']) ? 'display:none;' : 'display:flex;' ?>">
+                                <div class="add-photo-icon">
+                                    <i class="fa-solid fa-image"></i>
+                                    <i class="fa-solid fa-circle-plus overlay-plus"></i>
+                                </div>
+                                <div id="profile-text">Add Photo</div>
+                                
+                            </div>
+
+                        <input type="file" id="upload" name="profilePic" class="upload-input" accept="image/*">
                         </label>
 
                         <?php if (!empty($user['profilePic'])): ?>
                             <button type="button" id="remove-photo" class="btn-remove-modern mt-3">
-                                <i class="fa fa-trash"></i> Remove 
+                                <i class="fa fa-trash"></i> Remove Photo
                             </button>
                         <?php endif; ?>
                     </div>
@@ -350,7 +456,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['removePhoto'])) {
                                     <div class="col">
                                         <label class="form-label">Date of Birth</label>
                                     <?php
-                                        // Calculate max allowed DOB: today - 19 years
+                                        // 19 years ago from today rules
                                         $today = new DateTime();
                                         $today->modify('-19 years');
                                         $maxDOB = $today->format('Y-m-d');
@@ -387,25 +493,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['removePhoto'])) {
 
     <script>
         const uploadInput = document.getElementById('upload');
-        const preview = document.getElementById('preview');
-        const removeBtn = document.getElementById('remove-photo');
+const preview = document.getElementById('preview');
+const profileText = document.getElementById('profile-text');
+const removeBtn = document.getElementById('remove-photo');
 
-        if (uploadInput) {
-            uploadInput.addEventListener('change', (event) => {
-                const file = event.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        preview.src = e.target.result;
-                        preview.style.display = 'block';
-                        if (removeBtn) removeBtn.style.display = 'inline-flex';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
+uploadInput.addEventListener('change', (event) => {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            profileText.style.display = 'none';
+            removeBtn.style.display = 'inline-flex';
+        };
+        reader.readAsDataURL(file);
+    }
+});
 
-        if (removeBtn) {
+if (removeBtn) {
             removeBtn.addEventListener('click', () => {
                 preview.src = '';
                 preview.style.display = 'none';
@@ -422,7 +528,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['removePhoto'])) {
                 }
             });
         }
-    </script>
+</script>
 
     <script src="../js/bootstrap.bundle.min.js"></script>
 </body>

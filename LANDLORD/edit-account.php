@@ -289,6 +289,80 @@ small.text-muted {
         height: 120px;
     }
 }
+
+.profile-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-img {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: #f4f4f4;
+    cursor: pointer;
+    overflow: hidden;
+    border: 2px solid #8d0b41;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.profile-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.profile-placeholder {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #8d0b41;
+    font-size: 14px;
+    text-align: center;
+}
+
+.upload-input {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.btn-remove-modern {
+    background: transparent;
+    border: 1px solid #8d0b41;
+    color: #8d0b41;
+    padding: 6px 15px;
+    border-radius: 20px;
+    font-size: 1px;
+}
+
+.btn-remove-modern:hover {
+    background: #8d0b41;
+    color: #fff;
+}
+
+.add-photo-icon {
+    position: relative;
+    font-size: 29px;
+    color: #8d0b41;
+}
+.overlay-plus {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    font-size: 12px;
+}
     </style>
 </head>
 
@@ -296,181 +370,181 @@ small.text-muted {
     <?php include '../Components/landlord-header.php'; ?>
 
     <div class="landlord-page">
-        <div class="container m-auto">
-            <h2 class="mb-5">EDIT ACCOUNT</h2>
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <?php if (isset($error_message)): ?>
-                        <div class="alert alert-danger"><?= $error_message ?></div>
-                    <?php endif; ?>
-                    <div class="row gy-4 justify-content-center edit">
-                        <div class="col-lg-12">
-                            <form class="mt-4" method="POST" enctype="multipart/form-data">
-                                <div class="row mb-3">
-                                    <div class="col d-flex justify-content-center align-items-center flex-column profile-container">
-                                        <div class="profile-img-wrapper" style="position: relative; width: 140px; height: 140px; border:2px solid var(--main-color); border-radius:50%; overflow:hidden; cursor:pointer;">
-                                        
-                                        <!-- Image Preview -->
-                                            <img id="preview"
-                                                src="<?= !empty($user['profilePic']) ? '../uploads/' . htmlspecialchars($user['profilePic']) : '' ?>"
-                                                alt="Profile Picture"
-                                                style="width:100%; height:100%; object-fit:cover; display: <?= !empty($user['profilePic']) ? 'block' : 'none' ?>; border-radius:50%;">
-                                        
-                                        <!-- Placeholder Text -->
-                                            <span id="profile-text"
-                                                style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-weight:bold; color:#555; <?= !empty($user['profilePic']) ? 'display:none;' : 'display:block;' ?>">
-                                                Add Photo
-                                            </span>
+    <div class="container m-auto">
+        <h2>Edit Account</h2>
 
-                                        <!-- Hidden File Input -->
-                                            <input type="file" id="upload" name="profilePic" accept="image/*"
-                                                style="position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;">
-                                        </div>
-
-                                        <!-- Remove Button -->
-                                            <button type="button" id="remove-photo" class="btn-remove-modern mt-2"
-                                                style="<?= !empty($user['profilePic']) ? 'display:inline-flex;' : 'display:none;' ?>">
-                                                <i class="fa-solid fa-trash"></i> Remove Photo
-                                            </button>
-                                        </div>
-
-                                        <div class="col">
-                                        <label class="form-label">Firstname</label>
-                                        <input type="text" name="firstName" class="form-control"
-                                            value="<?= htmlspecialchars($user['firstName'] ?? '') ?>" required>
-
-                                        <label class="form-label">Lastname</label>
-                                        <input type="text" name="lastName" class="form-control"
-                                            value="<?= htmlspecialchars($user['lastName'] ?? '') ?>" required>
-
-                                        <label class="form-label">Middle Name</label>
-                                        <input type="text" name="middleName" class="form-control"
-                                            value="<?= htmlspecialchars($user['middleName'] ?? '') ?>">
-                                    </div>
+        <?php if (isset($_SESSION['success_message'])): ?>
+                <div class="alert alert-success">
+                    <?= $_SESSION['success_message'];
+                    unset($_SESSION['success_message']); ?>
+                </div>
+            <?php endif; ?>
+    
+            <?php if (isset($error_message)): ?>
+                <div class="alert alert-danger"><?= $error_message ?></div>
+            <?php endif; ?>
+    
+            <div class="edit">
+                <form method="POST" enctype="multipart/form-data">
+    
+                    <!-- ================= PROFILE IMAGE ================= -->
+                    <div class="profile-container text-center mb-4">
+                        <label class="profile-img" for="upload">
+                            <img id="preview"
+                                src="<?= !empty($user['profilePic']) ? '../uploads/' . htmlspecialchars($user['profilePic']) : '' ?>"
+                                class="profile-preview"
+                                style="<?= !empty($user['profilePic']) ? 'display:block;' : 'display:none;' ?>">
+    
+                            <div class="profile-placeholder"
+                                style="<?= !empty($user['profilePic']) ? 'display:none;' : 'display:flex;' ?>">
+                                <div class="add-photo-icon">
+                                    <i class="fa-solid fa-image"></i>
+                                    <i class="fa-solid fa-circle-plus overlay-plus"></i>
                                 </div>
-
-                                <div class="row mb-3">
-                                    <div class="col">
-                                        <label class="form-label">Email</label>
-                                        <input type="email" name="email" class="form-control"
-                                            value="<?= htmlspecialchars($user['email'] ?? '') ?>" required>
-                                    </div>
-
-                                <div class="col-md-6">
-                                        <label class="form-label">Username</label>
-                                        <input type="text" name="username" class="form-control"
-                                    value="<?= htmlspecialchars($user['username'] ?? '') ?>">
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3">
-                                    <div class="col">
-                                        <label class="form-label">Street</label>
-                                        <input type="text" name="street" class="form-control"
-                                            value="<?= htmlspecialchars($user['street'] ?? '') ?>">
-                                    </div>
-                                    <div class="col">
-                                        <label class="form-label">Barangay</label>
-                                        <input type="text" name="barangay" class="form-control"
-                                            value="<?= htmlspecialchars($user['barangay'] ?? '') ?>">
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3">
-                                    <div class="col">
-                                        <label class="form-label">City</label>
-                                        <input type="text" name="city" class="form-control"
-                                            value="<?= htmlspecialchars($user['city'] ?? '') ?>">
-                                    </div>
-                                    <div class="col">
-                                        <label class="form-label">Province</label>
-                                        <input type="text" name="province" class="form-control"
-                                            value="<?= htmlspecialchars($user['province'] ?? '') ?>">
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3">
-                                    <div class="col">
-                                        <label class="form-label">Zip Code</label>
-                                        <input type="text" name="zipCode" class="form-control"
-                                            value="<?= htmlspecialchars($user['zipCode'] ?? '') ?>">
-                                    </div>
-                                    <div class="col">
-                                        <label class="form-label">Contact Number</label>
-                                        <input type="text" name="phoneNum" class="form-control"
-                                            value="<?= htmlspecialchars($user['phoneNum'] ?? '') ?>">
-                                    </div>
-                                </div>
-
-                                <div class="row mb-3">
-                                    <div class="col">
-                                        <label class="form-label">Date of Birth</label>
-                                    <?php
-                                        // Calculate max allowed DOB: today - 19 years
-                                        $today = new DateTime();
-                                        $today->modify('-21 years');
-                                        $maxDOB = $today->format('Y-m-d');
-                                    ?>
-                                        <input type="date" name="birthday" class="form-control" value="<?= htmlspecialchars($user['birthday'] ?? '') ?>"
-                                            max="<?= $maxDOB ?>" required>
-                                        <small class="text-muted">You must be at least 21 years old.</small>
-                                    </div>
-                                </div>
-                                    <div class="col">
-                                        <label class="form-label">Gender</label>
-                                        <select name="gender" class="form-control" required>
-                                            <option value="" disabled selected>Select your Gender</option>
-                                            <option value="Female" <?= ($user['gender'] ?? '') == 'Female' ? 'selected' : '' ?>>♀
-                                                Female</option>
-                                            <option value="Male" <?= ($user['gender'] ?? '') == 'Male' ? 'selected' : '' ?>>♂ Male
-                                            </option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <h4>Identity Verification</h4>
-                                <div class="mb-3">
-                                    <label class="form-label">Upload Valid Government ID</label>
-                                    <input type="file" class="form-control" name="govID" accept="image/*,.pdf">
-                                    <?php if (!empty($user['verificationId'])): ?>
-                                        <small class="text-muted">Current: <?= htmlspecialchars($user['verificationId']) ?></small>
-                                    <?php endif; ?>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Upload Selfie Holding the ID</label>
-                                    <input type="file" class="form-control" name="selfieID" accept="image/*,.pdf">
-                                    <?php if (!empty($user['ID_image'])): ?>
-                                        <small class="text-muted">Current: <?= htmlspecialchars($user['ID_image']) ?></small>
-                                    <?php endif; ?>
-                                </div>
-
-                                <h5 class="mt-4">Property Ownership or Authorization</h5>
-                                <div class="mb-3">
-                                    <label class="form-label">Upload Proof of Ownership</label>
-                                    <input type="file" class="form-control" name="govID" accept="image/*,.pdf">
-                                    <?php if (!empty($user['verificationId'])): ?>
-                                        <small class="text-muted">Current: <?= htmlspecialchars($user['verificationId']) ?></small>
-                                    <?php endif; ?>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label">Authorization Letter + Owner’s ID copy</label>
-                                    <input type="file" class="form-control" name="selfieID" accept="image/*,.pdf" multiple>
-                                    <?php if (!empty($user['ID_image'])): ?>
-                                        <small class="text-muted">Current: <?= htmlspecialchars($user['ID_image']) ?></small>
-                                    <?php endif; ?>
-                                </div>
-
-                                <div class="d-flex justify-content-start gap-2 mt-4">
-                                    <button type="submit" class="main-button">Save</button>
-                                    <button type="button" class="main-button"
-                                        onclick="location.href='account.php'">Cancel</button>
-                                </div>
-                            </form>
+                                <div id="profile-text">Add Photo</div>
+                            </div>
+    
+                            <input type="file" id="upload" name="profilePic" class="upload-input" accept="image/*">
+                        </label>
+    
+                        <?php if (!empty($user['profilePic'])): ?>
+                            <button type="button" id="remove-photo" class="btn-remove-modern mt-3">
+                                <i class="fa fa-trash"></i> Remove Photo
+                            </button>
+                        <?php endif; ?>
+                    </div>
+    
+                    <!-- ================= PERSONAL INFO ================= -->
+                    <h4 class="mb-3">Personal Information</h4>
+    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">First Name</label>
+                            <input type="text" name="firstName" class="form-control"
+                                value="<?= htmlspecialchars($user['firstName'] ?? '') ?>" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Last Name</label>
+                            <input type="text" name="lastName" class="form-control"
+                                value="<?= htmlspecialchars($user['lastName'] ?? '') ?>" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Middle Name</label>
+                            <input type="text" name="middleName" class="form-control"
+                                value="<?= htmlspecialchars($user['middleName'] ?? '') ?>">
                         </div>
                     </div>
-                </div>
+    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Email</label>
+                            <input type="email" name="email" class="form-control"
+                                value="<?= htmlspecialchars($user['email'] ?? '') ?>" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Username</label>
+                            <input type="text" name="username" class="form-control"
+                                value="<?= htmlspecialchars($user['username'] ?? '') ?>">
+                        </div>
+                    </div>
+    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <?php
+                            $today = new DateTime();
+                            $today->modify('-21 years');
+                            $maxDOB = $today->format('Y-m-d');
+                            ?>
+                            <label class="form-label">Date of Birth</label>
+                            <input type="date" name="birthday" class="form-control"
+                                value="<?= htmlspecialchars($user['birthday'] ?? '') ?>" max="<?= $maxDOB ?>" required>
+                            <small class="text-muted">You must be at least 21 years old.</small>
+                        </div>
+    
+                        <div class="col-md-4">
+                            <label class="form-label">Gender</label>
+                            <select name="gender" class="form-control" required>
+                                <option value="" disabled>Select your Gender</option>
+                                <option value="Female" <?= ($user['gender'] ?? '') == 'Female' ? 'selected' : '' ?>>♀ Female
+                                </option>
+                                <option value="Male" <?= ($user['gender'] ?? '') == 'Male' ? 'selected' : '' ?>>♂ Male</option>
+                            </select>
+                        </div>
+    
+                        <div class="col-md-4">
+                            <label class="form-label">Contact Number</label>
+                            <input type="text" name="phoneNum" class="form-control"
+                                value="<?= htmlspecialchars($user['phoneNum'] ?? '') ?>">
+                        </div>
+                    </div>
+    
+                    <!-- ================= ADDRESS ================= -->
+                    <h4 class="mt-4 mb-3">Address</h4>
+    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Street</label>
+                            <input type="text" name="street" class="form-control"
+                                value="<?= htmlspecialchars($user['street'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Barangay</label>
+                            <input type="text" name="barangay" class="form-control"
+                                value="<?= htmlspecialchars($user['barangay'] ?? '') ?>">
+                        </div>
+                    </div>
+    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label class="form-label">City</label>
+                            <input type="text" name="city" class="form-control"
+                                value="<?= htmlspecialchars($user['city'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Province</label>
+                            <input type="text" name="province" class="form-control"
+                                value="<?= htmlspecialchars($user['province'] ?? '') ?>">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Zip Code</label>
+                            <input type="text" name="zipCode" class="form-control"
+                                value="<?= htmlspecialchars($user['zipCode'] ?? '') ?>">
+                        </div>
+                    </div>
+    
+                    <!-- ================= IDENTITY VERIFICATION ================= -->
+                    <h4 class="mt-4 mb-3">Identity Verification</h4>
+    
+                    <div class="mb-3">
+                        <label class="form-label">Upload Government ID</label>
+                        <input type="file" class="form-control" name="govID" accept="image/*,.pdf">
+                    </div>
+    
+                    <div class="mb-3">
+                        <label class="form-label">Upload Selfie Holding ID</label>
+                        <input type="file" class="form-control" name="selfieID" accept="image/*">
+                    </div>
+    
+                    <!-- ================= PROPERTY OWNERSHIP ================= -->
+                    <h4 class="mt-4 mb-3">Property Ownership / Authorization</h4>
+    
+                    <div class="mb-3">
+                        <label class="form-label">Proof of Ownership</label>
+                        <input type="file" class="form-control" name="proofOwnership" accept="image/*,.pdf">
+                    </div>
+    
+                    <div class="mb-3">
+                        <label class="form-label">Authorization Letter + Owner’s ID</label>
+                        <input type="file" class="form-control" name="authorizationDocs[]" accept="image/*,.pdf" multiple>
+                    </div>
+    
+                    <!-- ================= BUTTONS ================= -->
+                    <div class="d-flex justify-content-start gap-3 mt-4">
+                        <button type="submit" class="main-button">Save</button>
+                        <button type="button" class="main-button" onclick="location.href='account.php'">Cancel</button>
+                    </div>
+    
+                </form>
             </div>
         </div>
     </div>
@@ -495,23 +569,23 @@ uploadInput.addEventListener('change', (event) => {
     }
 });
 
-removeBtn.addEventListener('click', () => {
-    preview.src = '';
-    preview.style.display = 'none';
-    profileText.style.display = 'block';
-    removeBtn.style.display = 'none';
-    uploadInput.value = '';
+if (removeBtn) {
+            removeBtn.addEventListener('click', () => {
+                preview.src = '';
+                preview.style.display = 'none';
+                removeBtn.style.display = 'none';
+                uploadInput.value = '';
 
-    // Add hidden input to tell PHP to remove photo
-    if (!document.getElementById('removePhotoInput')) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'removePhoto';
-        input.id = 'removePhotoInput';
-        input.value = '1';
-        document.querySelector('form').appendChild(input);
-    }
-});
+                if (!document.getElementById('removePhotoInput')) {
+                    const input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'removePhoto';
+                    input.id = 'removePhotoInput';
+                    input.value = '1';
+                    document.querySelector('form').appendChild(input);
+                }
+            });
+        }
 </script>
 
     <script src="../js/script.js" defer></script>
