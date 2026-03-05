@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
     $roleMap = [
         'landlordtbl' => ['redirect' => '/TAHANAN/LANDLORD/landlord-properties.php', 'db_role' => 'landlord'],
         'tenanttbl' => ['redirect' => '/TAHANAN/TENANT/tenant.php', 'db_role' => 'tenant'],
-        'admintbl' => ['redirect' => '/TAHANAN/ADMIN/homepage.php', 'db_role' => 'admin']
+        'admintbl' => ['redirect' => '/TAHANAN/ADMIN/dashboard.php', 'db_role' => 'admin']
     ];
 
     $found = false;

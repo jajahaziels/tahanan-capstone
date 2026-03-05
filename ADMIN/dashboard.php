@@ -31,42 +31,372 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Tahanan</title>
-  <link rel="stylesheet" href="homepage.css?v=<?= time(); ?>">
-  <link rel="stylesheet" href="sidebar.css?v=<?= time(); ?>">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', sans-serif;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --body-color: #0f1419;
+      --sidebar-color: #1a1d29;
+      --sidebar-hover: #252938;
+      --primary-color: rgb(141, 11, 65);
+      --primary-hover: rgb(115, 9, 53);
+      --text-color: #e4e6eb;
+      --text-muted: #8b92a7;
+      --border-color: #2d3142;
+      --card-bg: #1a1d29;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--body-color);
+      overflow-x: hidden;
+    }
+
+    /* ========== SIDEBAR STYLES ========== */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 260px;
+      background: var(--sidebar-color);
+      padding: 0;
+      transition: var(--transition);
+      z-index: 1000;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar.collapsed { width: 75px; }
+
+    .sidebar header {
+      padding: 20px 16px;
+      border-bottom: 1px solid var(--border-color);
+      background: linear-gradient(135deg, #1e2230 0%, #1a1d29 100%);
+    }
+
+    .sidebar .image-text {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar .image-text img {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 2px solid var(--primary-color);
+    }
+
+    .sidebar .header-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      opacity: 1;
+      transition: var(--transition);
+    }
+
+    .sidebar.collapsed .header-text {
+      opacity: 0;
+      width: 0;
+      overflow: hidden;
+    }
+
+    .header-text .name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-color);
+      white-space: nowrap;
+    }
+
+    .header-text .role {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .sidebar header .toggle {
+      position: absolute;
+      top: 26px;
+      right: -14px;
+      height: 28px;
+      width: 28px;
+      background: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 2px 8px rgba(141, 11, 65, 0.4);
+    }
+
+    .sidebar header .toggle:hover {
+      background: var(--primary-hover);
+      transform: scale(1.1);
+    }
+
+    .sidebar.collapsed header .toggle {
+      transform: rotate(180deg);
+    }
+
+    .sidebar .menu-bar {
+      height: calc(100% - 82px);
+      display: flex;
+      flex-direction: column;
+      padding: 16px 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sidebar .menu-bar::-webkit-scrollbar { width: 4px; }
+    .sidebar .menu-bar::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 10px;
+    }
+
+    .sidebar .menu { padding: 0 12px; }
+    .sidebar .menu-links { padding: 0; margin: 0; }
+    .sidebar li { list-style: none; margin: 4px 0; }
+
+    .sidebar li a {
+      display: flex;
+      align-items: center;
+      height: 48px;
+      padding: 0 14px;
+      text-decoration: none;
+      border-radius: 10px;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .sidebar li a::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 3px;
+      background: var(--primary-color);
+      transform: scaleY(0);
+      transition: transform 0.2s;
+    }
+
+    .sidebar li a:hover { background: var(--sidebar-hover); }
+    .sidebar li a:hover::before { transform: scaleY(1); }
+
+    .sidebar li a.active {
+      background: linear-gradient(90deg, rgba(141, 11, 65, 0.15) 0%, rgba(141, 11, 65, 0.05) 100%);
+    }
+
+    .sidebar li a.active::before { transform: scaleY(1); }
+
+    .sidebar li .icon {
+      min-width: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      font-size: 20px;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+
+    .sidebar.collapsed li .icon {
+      justify-content: center;
+      min-width: 100%;
+    }
+
+    .sidebar li a:hover .icon,
+    .sidebar li a.active .icon {
+      color: var(--primary-color);
+    }
+
+    .sidebar .text {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-color);
+      white-space: nowrap;
+      opacity: 1;
+      transition: var(--transition);
+    }
+
+    .sidebar.collapsed .text {
+      opacity: 0;
+      width: 0;
+    }
+
+    .menu-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 20px 14px 8px;
+      transition: var(--transition);
+    }
+
+    .sidebar.collapsed .menu-section-title {
+      opacity: 0;
+      height: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .sidebar .bottom-content {
+      margin-top: auto;
+      padding: 16px 12px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--sidebar-hover);
+      border-radius: 10px;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .user-info .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--primary-color);
+    }
+
+    .user-info .user-details {
+      flex: 1;
+      opacity: 1;
+      transition: var(--transition);
+    }
+
+    .sidebar.collapsed .user-info .user-details {
+      opacity: 0;
+      width: 0;
+      overflow: hidden;
+    }
+
+    .user-info .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-color);
+      display: block;
+      line-height: 1.3;
+    }
+
+    .user-info .user-status {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .sidebar .badge {
+      position: absolute;
+      right: 14px;
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .sidebar.collapsed .badge {
+      right: 8px;
+      top: 8px;
+    }
+
+    .sidebar.collapsed li a:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 70px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--sidebar-color);
+      color: var(--text-color);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1001;
+    }
+
+    /* ========== MAIN CONTENT ========== */
+    .content {
+      margin-left: 260px;
+      padding: 30px;
+      transition: var(--transition);
+      min-height: 100vh;
+    }
+
+    .sidebar.collapsed ~ .content {
+      margin-left: 75px;
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* ========== DASHBOARD GRID ========== */
     .dashboard-grid {
       display: grid;
       grid-template-columns: repeat(12, 1fr);
       gap: 20px;
-      margin-bottom: 30px;
     }
 
-    /* Stats Grid - Full Width */
+    /* ========== STATS GRID ========== */
     .stats-grid {
       grid-column: 1 / -1;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 20px;
       margin-bottom: 30px;
     }
 
     .stat-card {
-      background: white;
+      background: var(--card-bg);
       border-radius: 12px;
-      padding: 25px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
       display: flex;
       align-items: center;
       gap: 20px;
       transition: all 0.3s;
       position: relative;
       overflow: hidden;
+      border: 1px solid var(--border-color);
     }
 
     .stat-card::before {
@@ -81,7 +411,8 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
 
     .stat-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      border-color: var(--card-color);
     }
 
     .stat-card i {
@@ -100,29 +431,33 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
     .stat-info h3 {
       font-size: 32px;
       font-weight: 700;
-      color: #333;
+      color: #ffffff;
       margin: 0 0 5px 0;
     }
 
     .stat-info p {
       font-size: 14px;
-      color: #666;
+      color: var(--text-muted);
       margin: 0;
     }
 
-    /* Quick Actions */
+    /* ========== QUICK ACTIONS ========== */
     .quick-actions {
       grid-column: 1 / 7;
-      background: white;
+      background: var(--card-bg);
       border-radius: 12px;
       padding: 25px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color);
     }
 
     .quick-actions h2 {
       margin: 0 0 20px 0;
-      color: #333;
+      color: #ffffff;
       font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .action-buttons {
@@ -133,54 +468,58 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
 
     .action-btn {
       padding: 15px;
-      border: 2px solid #e0e0e0;
+      border: 2px solid var(--border-color);
       border-radius: 10px;
-      background: #f8f9fa;
+      background: var(--sidebar-hover);
       cursor: pointer;
       transition: all 0.3s;
       text-decoration: none;
-      color: #333;
+      color: var(--text-color);
       display: flex;
       align-items: center;
       gap: 12px;
     }
 
     .action-btn:hover {
-      border-color: #667eea;
-      background: #f0f0ff;
+      border-color: var(--primary-color);
+      background: rgba(141, 11, 65, 0.1);
       transform: translateX(5px);
     }
 
     .action-btn i {
       font-size: 28px;
-      color: #667eea;
+      color: var(--primary-color);
     }
 
     .action-btn-content h3 {
       margin: 0 0 5px 0;
       font-size: 15px;
-      color: #333;
+      color: #ffffff;
     }
 
     .action-btn-content p {
       margin: 0;
       font-size: 12px;
-      color: #666;
+      color: var(--text-muted);
     }
 
-    /* Verification Status */
+    /* ========== VERIFICATION STATUS ========== */
     .verification-status {
       grid-column: 7 / 13;
-      background: white;
+      background: var(--card-bg);
       border-radius: 12px;
       padding: 25px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color);
     }
 
     .verification-status h2 {
       margin: 0 0 20px 0;
-      color: #333;
+      color: #ffffff;
       font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .verification-chart {
@@ -198,7 +537,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       background: conic-gradient(
         #43e97b 0deg <?= ($verified_landlords / max($total_landlords, 1) * 360) ?>deg,
         #feca57 <?= ($verified_landlords / max($total_landlords, 1) * 360) ?>deg <?= (($verified_landlords + $pending_verification) / max($total_landlords, 1) * 360) ?>deg,
-        #f8f9fa <?= (($verified_landlords + $pending_verification) / max($total_landlords, 1) * 360) ?>deg
+        var(--border-color) <?= (($verified_landlords + $pending_verification) / max($total_landlords, 1) * 360) ?>deg
       );
       display: flex;
       align-items: center;
@@ -210,7 +549,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       content: '';
       width: 120px;
       height: 120px;
-      background: white;
+      background: var(--card-bg);
       border-radius: 50%;
       position: absolute;
     }
@@ -224,13 +563,13 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
     .progress-text h3 {
       font-size: 36px;
       margin: 0;
-      color: #333;
+      color: #ffffff;
     }
 
     .progress-text p {
       font-size: 12px;
       margin: 0;
-      color: #666;
+      color: var(--text-muted);
     }
 
     .verification-legend {
@@ -245,6 +584,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       align-items: center;
       gap: 8px;
       font-size: 14px;
+      color: var(--text-color);
     }
 
     .legend-color {
@@ -253,18 +593,19 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       border-radius: 4px;
     }
 
-    /* Recent Activity */
+    /* ========== RECENT ACTIVITY ========== */
     .recent-activity {
       grid-column: 1 / 9;
-      background: white;
+      background: var(--card-bg);
       border-radius: 12px;
       padding: 25px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color);
     }
 
     .recent-activity h2 {
       margin: 0 0 20px 0;
-      color: #333;
+      color: #ffffff;
       font-size: 20px;
       display: flex;
       align-items: center;
@@ -275,7 +616,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       display: flex;
       gap: 10px;
       margin-bottom: 20px;
-      border-bottom: 2px solid #f0f0f0;
+      border-bottom: 2px solid var(--border-color);
     }
 
     .activity-tab {
@@ -284,15 +625,15 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       background: transparent;
       border-bottom: 2px solid transparent;
       cursor: pointer;
-      color: #666;
+      color: var(--text-muted);
       font-size: 14px;
       font-weight: 500;
       transition: all 0.3s;
     }
 
     .activity-tab.active {
-      color: #667eea;
-      border-bottom-color: #667eea;
+      color: var(--primary-color);
+      border-bottom-color: var(--primary-color);
     }
 
     .activity-list {
@@ -300,51 +641,61 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       overflow-y: auto;
     }
 
+    .activity-list::-webkit-scrollbar { width: 6px; }
+    .activity-list::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 10px;
+    }
+
     .activity-item {
       padding: 15px;
-      border-left: 3px solid #667eea;
-      background: #f8f9fa;
+      border-left: 3px solid var(--primary-color);
+      background: var(--sidebar-hover);
       margin-bottom: 10px;
       border-radius: 8px;
       transition: all 0.3s;
     }
 
     .activity-item:hover {
-      background: #e9ecef;
+      background: var(--border-color);
       transform: translateX(5px);
     }
 
     .activity-item h4 {
       margin: 0 0 5px 0;
       font-size: 14px;
-      color: #333;
+      color: #ffffff;
     }
 
     .activity-item p {
       margin: 0;
       font-size: 12px;
-      color: #666;
+      color: var(--text-muted);
     }
 
     .activity-time {
       font-size: 11px;
-      color: #999;
+      color: #6c757d;
       margin-top: 5px;
     }
 
-    /* System Health */
+    /* ========== SYSTEM HEALTH ========== */
     .system-health {
       grid-column: 9 / 13;
-      background: white;
+      background: var(--card-bg);
       border-radius: 12px;
       padding: 25px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 1px solid var(--border-color);
     }
 
     .system-health h2 {
       margin: 0 0 20px 0;
-      color: #333;
+      color: #ffffff;
       font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
     .health-item {
@@ -352,7 +703,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       justify-content: space-between;
       align-items: center;
       padding: 15px 0;
-      border-bottom: 1px solid #f0f0f0;
+      border-bottom: 1px solid var(--border-color);
     }
 
     .health-item:last-child {
@@ -361,7 +712,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
 
     .health-label {
       font-size: 14px;
-      color: #666;
+      color: var(--text-muted);
     }
 
     .health-status {
@@ -384,6 +735,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
     .status-warning { color: #feca57; }
     .status-warning .status-dot { background: #feca57; }
 
+    /* ========== RESPONSIVE ========== */
     @media (max-width: 1200px) {
       .quick-actions,
       .verification-status,
@@ -394,6 +746,22 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
     }
 
     @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
+
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .content {
+        margin-left: 0;
+      }
+
+      .sidebar.collapsed ~ .content {
+        margin-left: 0;
+      }
+
       .action-buttons {
         grid-template-columns: 1fr;
       }
@@ -403,78 +771,89 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
 
 <body>
 
-  <!-- sidebar -->
+  <!-- SIDEBAR -->
   <nav class="sidebar">
     <header>
       <div class="image-text">
         <span class="image">
-          <img src="logo.png" alt="logo">
+          <img src="https://via.placeholder.com/42" alt="Tahanan">
         </span>
-
-        <div class="text header-text">
+        <div class="header-text">
           <span class="name">Tahanan</span>
+          <span class="role">Admin Panel</span>
         </div>
-
       </div>
-
-      <i class='bx bx-chevron-right toggle'></i> 
+      <i class='bx bx-chevron-right toggle'></i>
     </header>
 
     <div class="menu-bar">
       <div class="menu">
+        <div class="menu-section-title">Main</div>
         <ul class="menu-links">
-          <li class="nav-link">
-            <a href="homepage.php">
-              <i class='bx bx-home icon'></i> 
-              <span class="text nav-text">Home</span>
+          <li>
+            <a href="dashboard.php" class="active" data-tooltip="Home">
+              <i class='bx bx-home icon'></i>
+              <span class="text">Home</span>
             </a>
           </li>
-          <li class="nav-link">
-            <a href="accounts.php">
-              <i class='bx bx-user icon'></i>  
-              <span class="text nav-text">Accounts</span>
+          <li>
+            <a href="accounts.php" data-tooltip="Accounts">
+              <i class='bx bx-user icon'></i>
+              <span class="text">Accounts</span>
             </a>
           </li>
-          <li class="nav-link">
-            <a href="report.php">
-              <i class='bx bx-alert-circle icon'></i>  
-              <span class="text nav-text">Reports</span>
+        </ul>
+
+        <div class="menu-section-title">Management</div>
+        <ul class="menu-links">
+          <li>
+            <a href="reports.php" data-tooltip="Reports">
+              <i class='bx bx-bar-chart-alt-2 icon'></i>
+              <span class="text">Reports</span>
             </a>
           </li>
-          <li class="nav-link">
-            <a href="listing.php">
-              <i class='bx bx-list-ul icon'></i>   
-              <span class="text nav-text">Listing</span>
+          <li>
+            <a href="listing.php" data-tooltip="Listing">
+              <i class='bx bx-building-house icon'></i>
+              <span class="text">Listing</span>
             </a>
           </li>
-          <li class="nav-link">
-            <a href="verify.php">
-              <i class='bx bx-check-circle icon'></i>  
-              <span class="text nav-text">Verify Landlord</span>
+          <li>
+            <a href="verify-landlord.php" data-tooltip="Verify Landlord">
+              <i class='bx bx-shield-check icon'></i>
+              <span class="text">Verify Landlord</span>
+              <?php if($pending_verification > 0): ?>
+                <span class="badge"><?= $pending_verification ?></span>
+              <?php endif; ?>
             </a>
           </li>
         </ul>
       </div>
 
       <div class="bottom-content">
-        <li class="">
-            <a href="logout.php">
-              <i class='bx bx-log-out icon'></i>   
-              <span class="text nav-text">Logout</span>
+        <div class="user-info">
+          <img src="https://via.placeholder.com/36" alt="Admin" class="user-avatar">
+          <div class="user-details">
+            <span class="user-name"><?= htmlspecialchars($admin_name) ?></span>
+            <span class="user-status">Online</span>
+          </div>
+        </div>
+
+        <ul class="menu-links">
+          <li>
+            <a href="../logout.php" data-tooltip="Logout">
+              <i class='bx bx-log-out icon'></i>
+              <span class="text">Logout</span>
             </a>
           </li>
-          <li class="admin-info" style="padding: 10px; margin-top: 10px; border-top: 1px solid #ddd;">
-            <small class="text nav-text" style="opacity: 0.7;">
-              Logged in as:<br>
-              <strong><?= htmlspecialchars($admin_name) ?></strong>
-            </small>
-          </li>
+        </ul>
       </div>
     </div>
   </nav>
-  <!-- sidebar -->
 
+  <!-- MAIN CONTENT -->
   <main class="content">
+    <!-- Page Header -->
     <header class="page-header">
       <h1>👋 Welcome back, <?= htmlspecialchars(explode(' ', $admin_name)[0]) ?>!</h1>
       <p>Here's what's happening with your platform today • <?= date('l, F j, Y') ?></p>
@@ -536,14 +915,14 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       <section class="quick-actions">
         <h2><i class='bx bx-zap'></i> Quick Actions</h2>
         <div class="action-buttons">
-          <a href="verify.php" class="action-btn">
+          <a href="verify-landlord.php" class="action-btn">
             <i class='bx bx-check-shield'></i>
             <div class="action-btn-content">
               <h3>Verify Landlords</h3>
               <p><?= $pending_verification ?> pending requests</p>
             </div>
           </a>
-          <a href="admin.php" class="action-btn">
+          <a href="accounts.php" class="action-btn">
             <i class='bx bx-user-plus'></i>
             <div class="action-btn-content">
               <h3>Manage Users</h3>
@@ -557,7 +936,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
               <p><?= $total_posts ?> total properties</p>
             </div>
           </a>
-          <a href="report.php" class="action-btn">
+          <a href="reports.php" class="action-btn">
             <i class='bx bx-error-circle'></i>
             <div class="action-btn-content">
               <h3>Check Reports</h3>
@@ -610,7 +989,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
               </div>
             <?php endwhile; ?>
           <?php else: ?>
-            <p style="text-align: center; color: #999; padding: 40px;">No recent listings</p>
+            <p style="text-align: center; color: var(--text-muted); padding: 40px;">No recent listings</p>
           <?php endif; ?>
         </div>
 
@@ -625,7 +1004,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
               </div>
             <?php endwhile; ?>
           <?php else: ?>
-            <p style="text-align: center; color: #999; padding: 40px;">No recent landlords</p>
+            <p style="text-align: center; color: var(--text-muted); padding: 40px;">No recent landlords</p>
           <?php endif; ?>
         </div>
 
@@ -640,7 +1019,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
               </div>
             <?php endwhile; ?>
           <?php else: ?>
-            <p style="text-align: center; color: #999; padding: 40px;">No recent tenants</p>
+            <p style="text-align: center; color: var(--text-muted); padding: 40px;">No recent tenants</p>
           <?php endif; ?>
         </div>
       </section>
@@ -680,27 +1059,42 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
     </div>
   </main>
 
-<script src="sidebar.js"></script>
-<script>
-  function showActivity(type) {
-    // Hide all activities
-    document.querySelectorAll('.activity-list').forEach(list => {
-      list.style.display = 'none';
+  <script>
+    // Sidebar toggle
+    const sidebar = document.querySelector('.sidebar');
+    const toggle = document.querySelector('.toggle');
+
+    if (localStorage.getItem('sidebarState') === 'collapsed') {
+      sidebar.classList.add('collapsed');
+    }
+
+    toggle.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      localStorage.setItem(
+        'sidebarState',
+        sidebar.classList.contains('collapsed') ? 'collapsed' : 'expanded'
+      );
     });
-    
-    // Remove active class from all tabs
-    document.querySelectorAll('.activity-tab').forEach(tab => {
-      tab.classList.remove('active');
-    });
-    
-    // Show selected activity
-    document.getElementById(type + '-activity').style.display = 'block';
-    
-    // Add active class to clicked tab
-    event.target.classList.add('active');
-  }
-</script>
+
+    // Activity tabs
+    function showActivity(type) {
+      // Hide all activities
+      document.querySelectorAll('.activity-list').forEach(list => {
+        list.style.display = 'none';
+      });
+      
+      // Remove active class from all tabs
+      document.querySelectorAll('.activity-tab').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      
+      // Show selected activity
+      document.getElementById(type + '-activity').style.display = 'block';
+      
+      // Add active class to clicked tab
+      event.target.classList.add('active');
+    }
+  </script>
 
 </body>
-  
 </html>

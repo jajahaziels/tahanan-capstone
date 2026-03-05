@@ -15,13 +15,13 @@ $rejection_reason = isset($_POST['rejection_reason']) ? trim($_POST['rejection_r
 
 // Validate inputs
 if (!$landlord_id || !in_array($action, ['verified', 'rejected'])) {
-    header("Location: verify.php?error=invalid");
+    header("Location: verify-landlord.php?error=invalid");
     exit();
 }
 
 // If rejecting, require a rejection reason
 if ($action === 'rejected' && empty($rejection_reason)) {
-    header("Location: verify.php?error=no_reason");
+    header("Location: verify-landlord.php?error=no_reason");
     exit();
 }
 
@@ -62,7 +62,7 @@ try {
         logAdminAction($conn, $_SESSION['username'], 'verified', $landlord_id);
         
         $conn->commit();
-        header("Location: verify.php?success=verified");
+        header("Location: verify-landlord.php?success=verified");
         exit();
         
     } elseif ($action === 'rejected') {
@@ -85,14 +85,14 @@ try {
         logAdminAction($conn, $_SESSION['username'], 'rejected', $landlord_id, $rejection_reason);
         
         $conn->commit();
-        header("Location: verify.php?success=rejected");
+        header("Location: verify-landlord.php?success=rejected");
         exit();
     }
     
 } catch (Exception $e) {
     $conn->rollback();
     error_log("Verification error: " . $e->getMessage());
-    header("Location: verify.php?error=database");
+    header("Location: verify-landlord.php?error=database");
     exit();
 }
 
@@ -122,9 +122,6 @@ function logAdminAction($conn, $admin_username, $action, $landlord_id, $notes = 
 
 // Optional: Email notification functions
 function sendApprovalEmail($email, $name) {
-    // Implement email sending logic here
-    // Example using PHP mail() or a service like SendGrid, Mailgun, etc.
-    
     $subject = "Your Landlord Verification Has Been Approved!";
     $message = "
     <html>
@@ -171,8 +168,6 @@ function sendApprovalEmail($email, $name) {
 }
 
 function sendRejectionEmail($email, $name, $reason) {
-    // Implement email sending logic here
-    
     $subject = "Action Required: Landlord Verification Update";
     $message = "
     <html>

@@ -5,6 +5,9 @@ require_once '../connection.php';
 // Get admin info
 $admin_name = $_SESSION['username'];
 
+// Get pending verification count for badge
+$pending_verification = $conn->query("SELECT COUNT(*) as count FROM landlordtbl WHERE verification_status='pending'")->fetch_assoc()['count'];
+
 // Fetch pending landlord verification requests with all documents
 $verify_query = "SELECT ID, firstName, lastName, email, username, phoneNum, 
                  valid_id, proof_of_ownership, landlord_insurance, 
@@ -27,356 +30,410 @@ $stats = $stats_result->fetch_assoc();
 
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Verify Landlords - Admin Dashboard</title>
-  <link rel="stylesheet" href="verify.css">
-  <link rel="stylesheet" href="sidebar.css">
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  
   <style>
-    /* Statistics Cards */
+    @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
+    * {
+      margin: 0;
+      padding: 0;
+      font-family: 'Montserrat', sans-serif;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --body-color: #0f1419;
+      --sidebar-color: #1a1d29;
+      --sidebar-hover: #252938;
+      --primary-color: rgb(141, 11, 65);
+      --primary-hover: rgb(115, 9, 53);
+      --text-color: #e4e6eb;
+      --text-muted: #8b92a7;
+      --border-color: #2d3142;
+      --card-bg: #1a1d29;
+      --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    body {
+      min-height: 100vh;
+      background: var(--body-color);
+      overflow-x: hidden;
+    }
+
+    /* ========== SIDEBAR STYLES (Same as other pages) ========== */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 260px;
+      background: var(--sidebar-color);
+      padding: 0;
+      transition: var(--transition);
+      z-index: 1000;
+      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .sidebar.collapsed { width: 75px; }
+
+    .sidebar header {
+      padding: 20px 16px;
+      border-bottom: 1px solid var(--border-color);
+      background: linear-gradient(135deg, #1e2230 0%, #1a1d29 100%);
+    }
+
+    .sidebar .image-text {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar .image-text img {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      object-fit: cover;
+      border: 2px solid var(--primary-color);
+    }
+
+    .sidebar .header-text {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      opacity: 1;
+      transition: var(--transition);
+    }
+
+    .sidebar.collapsed .header-text {
+      opacity: 0;
+      width: 0;
+      overflow: hidden;
+    }
+
+    .header-text .name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-color);
+      white-space: nowrap;
+    }
+
+    .header-text .role {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .sidebar header .toggle {
+      position: absolute;
+      top: 26px;
+      right: -14px;
+      height: 28px;
+      width: 28px;
+      background: var(--primary-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 2px 8px rgba(141, 11, 65, 0.4);
+    }
+
+    .sidebar header .toggle:hover {
+      background: var(--primary-hover);
+      transform: scale(1.1);
+    }
+
+    .sidebar.collapsed header .toggle {
+      transform: rotate(180deg);
+    }
+
+    .sidebar .menu-bar {
+      height: calc(100% - 82px);
+      display: flex;
+      flex-direction: column;
+      padding: 16px 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sidebar .menu-bar::-webkit-scrollbar { width: 4px; }
+    .sidebar .menu-bar::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 10px;
+    }
+
+    .sidebar .menu { padding: 0 12px; }
+    .sidebar .menu-links { padding: 0; margin: 0; }
+    .sidebar li { list-style: none; margin: 4px 0; }
+
+    .sidebar li a {
+      display: flex;
+      align-items: center;
+      height: 48px;
+      padding: 0 14px;
+      text-decoration: none;
+      border-radius: 10px;
+      transition: var(--transition);
+      position: relative;
+    }
+
+    .sidebar li a::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      width: 3px;
+      background: var(--primary-color);
+      transform: scaleY(0);
+      transition: transform 0.2s;
+    }
+
+    .sidebar li a:hover { background: var(--sidebar-hover); }
+    .sidebar li a:hover::before { transform: scaleY(1); }
+
+    .sidebar li a.active {
+      background: linear-gradient(90deg, rgba(141, 11, 65, 0.15) 0%, rgba(141, 11, 65, 0.05) 100%);
+    }
+
+    .sidebar li a.active::before { transform: scaleY(1); }
+
+    .sidebar li .icon {
+      min-width: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      font-size: 20px;
+      color: var(--text-muted);
+      transition: var(--transition);
+    }
+
+    .sidebar.collapsed li .icon {
+      justify-content: center;
+      min-width: 100%;
+    }
+
+    .sidebar li a:hover .icon,
+    .sidebar li a.active .icon {
+      color: var(--primary-color);
+    }
+
+    .sidebar .text {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-color);
+      white-space: nowrap;
+      opacity: 1;
+      transition: var(--transition);
+    }
+
+    .sidebar.collapsed .text {
+      opacity: 0;
+      width: 0;
+    }
+
+    .menu-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      padding: 20px 14px 8px;
+      transition: var(--transition);
+    }
+
+    .sidebar.collapsed .menu-section-title {
+      opacity: 0;
+      height: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .sidebar .bottom-content {
+      margin-top: auto;
+      padding: 16px 12px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      background: var(--sidebar-hover);
+      border-radius: 10px;
+      transition: var(--transition);
+      cursor: pointer;
+    }
+
+    .user-info .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--primary-color);
+    }
+
+    .user-info .user-details {
+      flex: 1;
+      opacity: 1;
+      transition: var(--transition);
+    }
+
+    .sidebar.collapsed .user-info .user-details {
+      opacity: 0;
+      width: 0;
+      overflow: hidden;
+    }
+
+    .user-info .user-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-color);
+      display: block;
+      line-height: 1.3;
+    }
+
+    .user-info .user-status {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .sidebar .badge {
+      position: absolute;
+      right: 14px;
+      background: #ef4444;
+      color: white;
+      font-size: 10px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .sidebar.collapsed .badge {
+      right: 8px;
+      top: 8px;
+    }
+
+    .sidebar.collapsed li a:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 70px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--sidebar-color);
+      color: var(--text-color);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      white-space: nowrap;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      z-index: 1001;
+    }
+
+    /* ========== MAIN CONTENT ========== */
+    .content {
+      margin-left: 260px;
+      padding: 30px;
+      transition: var(--transition);
+      min-height: 100vh;
+    }
+
+    .sidebar.collapsed ~ .content {
+      margin-left: 75px;
+    }
+
+    .page-header {
+      margin-bottom: 30px;
+    }
+
+    .page-header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .page-header p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* ========== STATS CARDS ========== */
     .stats-container {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 20px;
       margin-bottom: 30px;
     }
 
     .stat-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: var(--card-bg);
       color: white;
-      padding: 25px;
-      border-radius: 15px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transition: transform 0.3s;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transition: all 0.3s;
+      border: 1px solid var(--border-color);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--stat-color);
     }
 
     .stat-card:hover {
       transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      border-color: var(--stat-color);
     }
 
-    .stat-card.pending {
-      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    }
-
-    .stat-card.verified {
-      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    }
-
-    .stat-card.rejected {
-      background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-    }
+    .stat-card.pending { --stat-color: #feca57; }
+    .stat-card.verified { --stat-color: #43e97b; }
+    .stat-card.rejected { --stat-color: #fa709a; }
 
     .stat-card h3 {
       font-size: 36px;
-      margin: 0 0 5px 0;
+      margin: 0 0 8px 0;
       font-weight: 700;
+      color: #ffffff;
     }
 
     .stat-card p {
       margin: 0;
-      opacity: 0.95;
+      opacity: 0.9;
       font-size: 14px;
-    }
-
-    /* Incomplete Document Warning */
-    .incomplete-warning {
-      background: #fff3cd;
-      border: 1px solid #ffc107;
-      color: #856404;
-      padding: 10px 12px;
-      border-radius: 8px;
+      color: var(--text-muted);
       display: flex;
       align-items: center;
-      gap: 8px;
-      font-size: 13px;
+      gap: 6px;
     }
 
-    .incomplete-warning i {
+    .stat-card p i {
       font-size: 18px;
-      flex-shrink: 0;
+      color: var(--stat-color);
     }
 
-    /* Verification Card - Two Column Layout */
-    .verify-card {
-      background: white;
-      border-radius: 15px;
-      padding: 30px;
-      margin-bottom: 25px;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-      transition: all 0.3s;
-      border-left: 5px solid #58929c;
-    }
-
-    .verify-card:hover {
-      box-shadow: 0 6px 20px rgba(0,0,0,0.12);
-    }
-
-    .card-layout {
-      display: grid;
-      grid-template-columns: 350px 1fr;
-      gap: 30px;
-    }
-
-    @media (max-width: 1024px) {
-      .card-layout {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Left Section - Landlord Info */
-    .landlord-section {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .landlord-header-compact {
-      display: flex;
-      align-items: flex-start;
-      gap: 15px;
-      padding-bottom: 15px;
-      border-bottom: 2px solid #f0f0f0;
-    }
-
-    .profile-pic {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 3px solid #58929c;
-      flex-shrink: 0;
-    }
-
-    .landlord-info {
-      flex: 1;
-    }
-
-    .landlord-info h3 {
-      margin: 0 0 8px 0;
-      color: #333;
-      font-size: 20px;
-    }
-
-    .info-item {
-      margin: 5px 0;
-      color: #666;
-      font-size: 13px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .info-item i {
-      color: #58929c;
-      font-size: 14px;
-    }
-
-    /* Right Section - Documents & Actions */
-    .documents-actions-section {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .documents-header-compact {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .doc-badge {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 600;
-      color: #333;
-      font-size: 15px;
-    }
-
-    .document-count {
-      background: #58929c;
-      color: white;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-    }
-
-    /* Documents Grid - Compact */
-    .documents-grid-compact {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-    }
-
-    @media (max-width: 768px) {
-      .documents-grid-compact {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    .document-item-compact {
-      background: white;
-      border: 2px solid #e0e0e0;
-      border-radius: 10px;
-      padding: 10px;
-      text-align: center;
-      transition: all 0.3s;
-      cursor: pointer;
-      min-height: 180px;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .document-item-compact:hover {
-      border-color: #58929c;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      transform: translateY(-3px);
-    }
-
-    .document-item-compact.missing {
-      border-color: #ffc107;
-      background: #fff9e6;
-      opacity: 0.7;
-      cursor: default;
-    }
-
-    .document-item-compact.missing:hover {
-      transform: none;
-    }
-
-    .document-item-compact img {
-      width: 100%;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 6px;
-      margin-bottom: 8px;
-    }
-
-    .doc-icon-small {
-      font-size: 40px;
-      color: #58929c;
-      margin: 20px 0;
-    }
-
-    .doc-icon-small.missing-icon {
-      color: #ffc107;
-    }
-
-    .doc-label-compact {
-      font-size: 11px;
-      font-weight: 600;
-      color: #333;
-      margin-top: auto;
-      line-height: 1.3;
-      padding: 5px 0;
-    }
-
-    .view-btn-compact {
-      display: inline-block;
-      padding: 5px 10px;
-      background: #58929c;
-      color: white;
-      border-radius: 5px;
-      text-decoration: none;
-      font-size: 10px;
-      margin-top: 8px;
-      transition: all 0.3s;
-    }
-
-    .view-btn-compact:hover {
-      background: #466f78;
-      color: white;
-    }
-
-    /* Action Buttons */
-    .actions-container {
-      display: flex;
-      gap: 12px;
-      margin-top: 20px;
-    }
-
-    .btn {
-      padding: 12px 28px;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 14px;
-      transition: all 0.3s;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .btn.approve {
-      background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-      color: white;
-    }
-
-    .btn.approve:hover {
-      background: linear-gradient(135deg, #218838 0%, #1aa179 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
-    }
-
-    .btn.reject {
-      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-      color: white;
-    }
-
-    .btn.reject:hover {
-      background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(220, 53, 69, 0.4);
-    }
-
-    /* Rejection Form */
-    .rejection-form {
-      display: none;
-      margin-top: 20px;
-      padding: 20px;
-      background: #fff3cd;
-      border-radius: 10px;
-      border-left: 4px solid #ffc107;
-    }
-
-    .rejection-form.active {
-      display: block;
-      animation: slideDown 0.3s ease;
-    }
-
-    @keyframes slideDown {
-      from {
-        opacity: 0;
-        transform: translateY(-10px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .rejection-form textarea {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid #ffc107;
-      border-radius: 8px;
-      margin: 10px 0;
-      font-family: inherit;
-      resize: vertical;
-      min-height: 100px;
-    }
-
-    .rejection-form textarea:focus {
-      outline: none;
-      border-color: #e0a800;
-    }
-
-    /* Success/Error Messages */
+    /* ========== MESSAGES ========== */
     .message-box {
       padding: 18px 24px;
       border-radius: 12px;
@@ -400,49 +457,372 @@ $stats = $stats_result->fetch_assoc();
     }
 
     .message-box.success {
-      background: #d4edda;
-      color: #155724;
-      border-left: 4px solid #28a745;
+      background: rgba(67, 233, 123, 0.15);
+      color: #43e97b;
+      border-left: 4px solid #43e97b;
     }
 
     .message-box.error {
-      background: #f8d7da;
-      color: #721c24;
-      border-left: 4px solid #dc3545;
+      background: rgba(250, 112, 154, 0.15);
+      color: #fa709a;
+      border-left: 4px solid #fa709a;
     }
 
     .message-box i {
       font-size: 24px;
     }
 
-    /* Empty State */
+    /* ========== VERIFICATION CARDS ========== */
+    .verify-list {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .verify-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transition: all 0.3s;
+      border: 1px solid var(--border-color);
+      border-left: 5px solid var(--primary-color);
+    }
+
+    .verify-card:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      border-left-color: var(--primary-color);
+    }
+
+    .card-layout {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 30px;
+    }
+
+    @media (max-width: 1024px) {
+      .card-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* LEFT SECTION */
+    .landlord-section {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .landlord-header-compact {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--border-color);
+    }
+
+    .profile-pic {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid var(--primary-color);
+      flex-shrink: 0;
+    }
+
+    .landlord-info {
+      flex: 1;
+    }
+
+    .landlord-info h3 {
+      margin: 0 0 8px 0;
+      color: #ffffff;
+      font-size: 20px;
+    }
+
+    .info-item {
+      margin: 5px 0;
+      color: var(--text-muted);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-item i {
+      color: var(--primary-color);
+      font-size: 14px;
+    }
+
+    /* INCOMPLETE WARNING */
+    .incomplete-warning {
+      background: rgba(254, 202, 87, 0.15);
+      border: 1px solid #feca57;
+      color: #feca57;
+      padding: 12px 14px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .incomplete-warning i {
+      font-size: 20px;
+      flex-shrink: 0;
+    }
+
+    /* RIGHT SECTION */
+    .documents-actions-section {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .documents-header-compact {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .doc-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      color: #ffffff;
+      font-size: 15px;
+    }
+
+    .document-count {
+      background: var(--primary-color);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    /* DOCUMENTS GRID */
+    .documents-grid-compact {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .documents-grid-compact {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .document-item-compact {
+      background: var(--sidebar-hover);
+      border: 2px solid var(--border-color);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      transition: all 0.3s;
+      cursor: pointer;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .document-item-compact:hover {
+      border-color: var(--primary-color);
+      box-shadow: 0 4px 12px rgba(141, 11, 65, 0.3);
+      transform: translateY(-3px);
+    }
+
+    .document-item-compact.missing {
+      border-color: #feca57;
+      background: rgba(254, 202, 87, 0.1);
+      opacity: 0.7;
+      cursor: default;
+    }
+
+    .document-item-compact.missing:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    .document-item-compact img {
+      width: 100%;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .doc-icon-small {
+      font-size: 40px;
+      color: var(--primary-color);
+      margin: 20px 0;
+    }
+
+    .doc-icon-small.missing-icon {
+      color: #feca57;
+    }
+
+    .doc-label-compact {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-color);
+      margin-top: auto;
+      line-height: 1.3;
+      padding: 5px 0;
+    }
+
+    .view-btn-compact {
+      display: inline-block;
+      padding: 5px 10px;
+      background: var(--primary-color);
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+      font-size: 10px;
+      margin-top: 8px;
+      transition: all 0.3s;
+    }
+
+    .view-btn-compact:hover {
+      background: var(--primary-hover);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    /* ACTION BUTTONS */
+    .actions-container {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn.approve {
+      background: #43e97b;
+      color: #0f1419;
+    }
+
+    .btn.approve:hover {
+      background: #38d16b;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(67, 233, 123, 0.4);
+    }
+
+    .btn.reject {
+      background: #fa709a;
+      color: white;
+    }
+
+    .btn.reject:hover {
+      background: #f85c8a;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(250, 112, 154, 0.4);
+    }
+
+    /* REJECTION FORM */
+    .rejection-form {
+      display: none;
+      margin-top: 20px;
+      padding: 20px;
+      background: rgba(254, 202, 87, 0.1);
+      border-radius: 10px;
+      border-left: 4px solid #feca57;
+    }
+
+    .rejection-form.active {
+      display: block;
+      animation: slideDown 0.3s ease;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .rejection-form h4 {
+      color: #feca57;
+      margin-bottom: 10px;
+    }
+
+    .rejection-form p {
+      color: var(--text-muted);
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    .rejection-form textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #feca57;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 100px;
+      background: var(--sidebar-hover);
+      color: var(--text-color);
+    }
+
+    .rejection-form textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(141, 11, 65, 0.2);
+    }
+
+    .rejection-form textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* EMPTY STATE */
     .empty-state {
       text-align: center;
       padding: 80px 20px;
-      background: white;
+      background: var(--card-bg);
       border-radius: 15px;
+      border: 1px solid var(--border-color);
     }
 
     .empty-state i {
       font-size: 80px;
       opacity: 0.2;
-      color: #28a745;
+      color: #43e97b;
     }
 
     .empty-state h3 {
       margin-top: 20px;
-      color: #666;
+      color: #ffffff;
     }
 
     .empty-state p {
-      color: #999;
+      color: var(--text-muted);
     }
 
-    /* Modal */
+    /* MODAL */
     .modal {
       display: none;
       position: fixed;
-      z-index: 1000;
+      z-index: 2000;
       left: 0;
       top: 0;
       width: 100%;
@@ -477,7 +857,7 @@ $stats = $stats_result->fetch_assoc();
     }
 
     .close-modal:hover {
-      color: #ff6b6b;
+      color: var(--primary-color);
       transform: rotate(90deg);
     }
 
@@ -488,85 +868,119 @@ $stats = $stats_result->fetch_assoc();
       font-size: 16px;
     }
 
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+      }
 
+      .sidebar.active {
+        transform: translateX(0);
+      }
+
+      .content {
+        margin-left: 0;
+      }
+
+      .sidebar.collapsed ~ .content {
+        margin-left: 0;
+      }
+
+      .actions-container {
+        flex-direction: column;
+      }
+    }
   </style>
 </head>
 
 <body>
+
   <!-- SIDEBAR -->
   <nav class="sidebar">
     <header>
       <div class="image-text">
         <span class="image">
-          <img src="logo.png" alt="logo">
+          <img src="https://via.placeholder.com/42" alt="Tahanan">
         </span>
-
-        <div class="text header-text">
+        <div class="header-text">
           <span class="name">Tahanan</span>
+          <span class="role">Admin Panel</span>
         </div>
       </div>
-
       <i class='bx bx-chevron-right toggle'></i>
     </header>
 
     <div class="menu-bar">
       <div class="menu">
+        <div class="menu-section-title">Main</div>
         <ul class="menu-links">
-          <li class="nav-link">
-            <a href="homepage.php">
+          <li>
+            <a href="dashboard.php" data-tooltip="Home">
               <i class='bx bx-home icon'></i>
-              <span class="text nav-text">Home</span>
+              <span class="text">Home</span>
             </a>
           </li>
-          <li class="nav-link">
-            <a href="accounts.php">
+          <li>
+            <a href="accounts.php" data-tooltip="Accounts">
               <i class='bx bx-user icon'></i>
-              <span class="text nav-text">Accounts</span>
+              <span class="text">Accounts</span>
             </a>
           </li>
-          <li class="nav-link">
-            <a href="report.php">
-              <i class='bx bx-alert-circle icon'></i>
-              <span class="text nav-text">Reports</span>
+        </ul>
+
+        <div class="menu-section-title">Management</div>
+        <ul class="menu-links">
+          <li>
+            <a href="reports.php" data-tooltip="Reports">
+              <i class='bx bx-bar-chart-alt-2 icon'></i>
+              <span class="text">Reports</span>
             </a>
           </li>
-          <li class="nav-link">
-            <a href="listing.php">
-              <i class='bx bx-list-ul icon'></i>
-              <span class="text nav-text">Listing</span>
+          <li>
+            <a href="listing.php" data-tooltip="Listing">
+              <i class='bx bx-building-house icon'></i>
+              <span class="text">Listing</span>
             </a>
           </li>
-          <li class="nav-link">
-            <a href="verify.php">
-              <i class='bx bx-check-circle icon'></i>
-              <span class="text nav-text">Verify Landlord</span>
+          <li>
+            <a href="verify-landlord.php" class="active" data-tooltip="Verify Landlord">
+              <i class='bx bx-shield-check icon'></i>
+              <span class="text">Verify Landlord</span>
+              <?php if($pending_verification > 0): ?>
+                <span class="badge"><?= $pending_verification ?></span>
+              <?php endif; ?>
             </a>
           </li>
         </ul>
       </div>
 
       <div class="bottom-content">
-        <li class="">
-          <a href="logout.php">
-            <i class='bx bx-log-out icon'></i>
-            <span class="text nav-text">Logout</span>
-          </a>
-        </li>
-        <li class="admin-info" style="padding: 10px; margin-top: 10px; border-top: 1px solid #ddd;">
-          <small class="text nav-text" style="opacity: 0.7;">
-            Logged in as:<br>
-            <strong><?= htmlspecialchars($admin_name) ?></strong>
-          </small>
-        </li>
+        <div class="user-info">
+          <img src="https://via.placeholder.com/36" alt="Admin" class="user-avatar">
+          <div class="user-details">
+            <span class="user-name"><?= htmlspecialchars($admin_name) ?></span>
+            <span class="user-status">Online</span>
+          </div>
+        </div>
+
+        <ul class="menu-links">
+          <li>
+            <a href="../logout.php" data-tooltip="Logout">
+              <i class='bx bx-log-out icon'></i>
+              <span class="text">Logout</span>
+            </a>
+          </li>
+        </ul>
       </div>
     </div>
   </nav>
 
   <!-- MAIN CONTENT -->
   <main class="content">
+    <!-- Page Header -->
     <header class="page-header">
-      <h1><i class='bx bx-shield-check'></i> Enhanced Landlord Verification</h1>
-      <p>Review comprehensive documentation and approve or reject landlord applications</p>
+      <h1><i class='bx bx-shield-check'></i> Landlord Verification</h1>
+      <p>Review documentation and approve or reject landlord applications</p>
     </header>
 
     <!-- Statistics Cards -->
@@ -632,7 +1046,7 @@ $stats = $stats_result->fetch_assoc();
               <!-- Left Section: Landlord Info -->
               <div class="landlord-section">
                 <div class="landlord-header-compact">
-                  <img src="<?= !empty($landlord['profile_pic']) ? htmlspecialchars($landlord['profile_pic']) : '../img/sams.png' ?>" 
+                  <img src="<?= !empty($landlord['profile_pic']) ? htmlspecialchars($landlord['profile_pic']) : 'https://via.placeholder.com/80' ?>" 
                        alt="Landlord" class="profile-pic">
                   
                   <div class="landlord-info">
@@ -693,7 +1107,7 @@ $stats = $stats_result->fetch_assoc();
                         </div>
                       <?php elseif ($isImage): ?>
                         <img src="<?= htmlspecialchars($fullPath) ?>" alt="<?= $doc['name'] ?>"
-                             onerror="this.src='../img/no-image.jpg';">
+                             onerror="this.src='https://via.placeholder.com/100';">
                       <?php else: ?>
                         <div class="doc-icon-small">
                           <i class='bx bx-file-blank'></i>
@@ -725,12 +1139,8 @@ $stats = $stats_result->fetch_assoc();
 
             <!-- Rejection Form (Full Width Below) -->
             <div class="rejection-form" id="reject-form-<?= $landlord['ID'] ?>">
-              <h4 style="margin: 0 0 10px 0; color: #856404;">
-                <i class='bx bx-error'></i> Provide Rejection Reason
-              </h4>
-              <p style="margin: 0 0 10px 0; font-size: 13px; color: #856404;">
-                This message will be shown to the landlord. Be specific about what needs to be corrected.
-              </p>
+              <h4><i class='bx bx-error'></i> Provide Rejection Reason</h4>
+              <p>This message will be shown to the landlord. Be specific about what needs to be corrected.</p>
               <form method="POST" action="verify_action.php" onsubmit="return confirmRejection(<?= $landlord['ID'] ?>)">
                 <input type="hidden" name="id" value="<?= $landlord['ID'] ?>">
                 <input type="hidden" name="action" value="rejected">
@@ -755,7 +1165,7 @@ $stats = $stats_result->fetch_assoc();
           <i class='bx bx-check-double'></i>
           <h3>All Caught Up!</h3>
           <p>No pending verification requests at the moment.</p>
-          <p style="margin-top: 10px; font-size: 14px; color: #999;">
+          <p style="margin-top: 10px; font-size: 14px;">
             You have reviewed all landlord applications.
           </p>
         </div>
@@ -770,8 +1180,24 @@ $stats = $stats_result->fetch_assoc();
     <div class="modal-caption" id="modalCaption"></div>
   </div>
 
-  <script src="sidebar.js"></script>
   <script>
+    // Sidebar toggle
+    const sidebar = document.querySelector('.sidebar');
+    const toggle = document.querySelector('.toggle');
+
+    if (localStorage.getItem('sidebarState') === 'collapsed') {
+      sidebar.classList.add('collapsed');
+    }
+
+    toggle.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+      localStorage.setItem(
+        'sidebarState',
+        sidebar.classList.contains('collapsed') ? 'collapsed' : 'expanded'
+      );
+    });
+
+    // Verify landlord function
     function verifyLandlord(landlordId, action, name) {
       const message = action === 'verified' 
         ? `approve ${name}'s verification and allow them to create property listings` 
@@ -782,11 +1208,11 @@ $stats = $stats_result->fetch_assoc();
       }
     }
 
+    // Toggle rejection form
     function toggleRejectForm(landlordId) {
       const form = document.getElementById('reject-form-' + landlordId);
       form.classList.toggle('active');
       
-      // Focus on textarea when opening
       if (form.classList.contains('active')) {
         setTimeout(() => {
           const textarea = document.getElementById('rejection-reason-' + landlordId);
@@ -795,6 +1221,7 @@ $stats = $stats_result->fetch_assoc();
       }
     }
 
+    // Confirm rejection
     function confirmRejection(landlordId) {
       const textarea = document.getElementById('rejection-reason-' + landlordId);
       const reason = textarea.value.trim();
@@ -808,6 +1235,7 @@ $stats = $stats_result->fetch_assoc();
       return confirm('Are you sure you want to reject this application? The landlord will need to resubmit their documents.');
     }
 
+    // Modal functions
     function openModal(imageSrc, caption) {
       const modal = document.getElementById('imageModal');
       const modalImg = document.getElementById('modalImage');
@@ -816,8 +1244,6 @@ $stats = $stats_result->fetch_assoc();
       modal.style.display = 'block';
       modalImg.src = imageSrc;
       modalCaption.textContent = caption;
-      
-      // Prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
     }
 
@@ -841,5 +1267,4 @@ $stats = $stats_result->fetch_assoc();
   </script>
 
 </body>
-
 </html>
