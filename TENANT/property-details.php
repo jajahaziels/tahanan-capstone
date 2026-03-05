@@ -41,7 +41,7 @@ $stmt->close();
 
 $images = json_decode($property['images'], true) ?? [];
 
-/* 🔍 Check tenant request status */
+/* Check tenant request status */
 $tenant_id = $_SESSION['tenant_id'] ?? 0;
 $requestStatus = null;
 
@@ -58,28 +58,32 @@ if ($tenant_id > 0) {
     $stmt->execute();
     $r = $stmt->get_result();
     if ($row = $r->fetch_assoc()) {
-        $requestStatus = $row['status']; // pending | approved | rejected
+        $requestStatus = $row['status']; 
     }
     $stmt->close();
 }
 
-// Check if tenant already has an active rent
-$checkSql = "
-    SELECT COUNT(*) AS rent_count
-    FROM renttbl
-    WHERE tenant_id = ?
-    AND status = 'active'
-";
+/*  Check if user already exists in tenanttbl */
+$existingTenant = false;
 
-$checkStmt = $conn->prepare($checkSql);
-$checkStmt->bind_param("i", $tenant_id);
-$checkStmt->execute();
-$result = $checkStmt->get_result()->fetch_assoc();
-$checkStmt->close();
+if ($tenant_id > 0) {
+    $tenantCheckSql = "
+        SELECT ID
+        FROM tenanttbl
+        WHERE ID = ?
+        LIMIT 1
+    ";
 
-if ($result['rent_count'] > 0) {
-    die("You already have an active apartment. You cannot apply for another one.");
-}
+    $stmt = $conn->prepare($tenantCheckSql);
+    $stmt->bind_param("i", $tenant_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $row = $result->fetch_assoc();
+    $hasActiveRent = $row ? true : false;
+
+    $stmt->close();
+    }
 ?>
 
 <!DOCTYPE html>
@@ -161,6 +165,37 @@ if ($result['rent_count'] > 0) {
             object-fit: cover !important;
             border-radius: 20px !important;
         }
+
+        .rent-warning-card {
+    background: #fff6f6;
+    border-left: 5px solid var(--main-color);
+    border-radius: 15px;
+    padding: 15px 18px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+}
+
+.warning-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--main-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    margin-right: 12px;
+}
+
+.warning-text h6 {
+    font-weight: 600;
+    color: var(--main-color);
+}
+
+.warning-text p {
+    font-size: 0.9rem;
+    color: #555;
+}
     </style>
 </head>
      
@@ -245,12 +280,37 @@ if ($result['rent_count'] > 0) {
                         </button>
                     </div>
 
+                    <!-- Active Rent Warning -->
+                    <?php if ($hasActiveRent): ?>
+                        <div class="rent-warning-card mt-3">
+                            <div class="d-flex align-items-center">
+                                <div class="warning-icon">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                </div>
+                    
+                                <div class="warning-text">
+                                    <h6 class="mb-1">Active Lease Detected</h6>
+                                    <p class="mb-1">
+                                        You already have an active apartment. You cannot apply for another property until your current lease
+                                        ends.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
                     <!-- Property Info -->
-                    <p class="mb-0"><?= htmlspecialchars($property['barangay'] ?? ''); ?>, San Pedro, Laguna</p>
+                    <p class="mb-0 mt-4"> <?= htmlspecialchars($property['barangay'] ?? ''); ?>, San Pedro, Laguna</p>
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0 mt-0"><?= htmlspecialchars($property['listingName']); ?></h4>
+
                         <!-- Apply Button (triggers modal) -->
-                        <?php if ($requestStatus === 'pending'): ?>
+                        <?php if ($hasActiveRent): ?>
+                            <button class="main-button mx-5" disabled>
+                                Already Renting
+                            </button>
+                        
+                        <?php elseif ($requestStatus === 'pending'): ?>
                         
                             <button class="main-button mx-5" disabled>
                                 ⏳ Application Pending
@@ -309,33 +369,26 @@ if ($result['rent_count'] > 0) {
                         </div>
 
                         <div class="modal fade" id="reapplyModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-
-            <div class="modal-header">
-                <h5 class="modal-title">Apply Again?</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-
-            <div class="modal-body text-center">
-                You already had an <strong>approved</strong> request for this property.<br>
-                Do you want to apply again?
-            </div>
-
-            <div class="modal-footer justify-content-center">
-                <button type="button" class="main-button" data-bs-dismiss="modal">Cancel</button>
-
-                <form action="apply.php" method="POST">
-                    <input type="hidden" name="listing_id" value="<?= $property['listing_id']; ?>">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Apply Again?</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body text-center">
+                                        You already had an <strong>approved</strong> request for this property.<br>
+                                        Do you want to apply again?
+                                    </div>
+                                    <div class="modal-footer justify-content-center">
+                                            <button type="button" class="main-button" data-bs-dismiss="modal">Cancel</button>
+                                        <form action="apply.php" method="POST">
+                                            <input type="hidden" name="listing_id" value="<?= $property['listing_id']; ?>">
                                             <button type="submit" class="main-button">Yes, Apply Again</button>
                                         </form>
                                     </div>
-                        
                                 </div>
                             </div>
                         </div>
-
-
 
                     </div>
                     <h2 class="price">
@@ -455,7 +508,7 @@ function initMap() {
                 : `${distance.toFixed(2)} km`;
         }
 
-        /* 🏥 HOSPITALS */
+        /* HOSPITALS */
         service.nearbySearch({
             location: apartmentLocation,
             radius: 3000,
@@ -487,7 +540,7 @@ function initMap() {
             }
         });
 
-        /* 🚨 EVACUATION CENTERS */
+        /* EVACUATION CENTERS */
         service.nearbySearch({
             location: apartmentLocation,
             radius: 5000,

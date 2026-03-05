@@ -716,6 +716,45 @@ h4, h5 {
     margin-bottom: 20px;
 }
 
+.lease-empty-card{
+    max-width:500px;
+    width:100%;
+    border-top:5px solid #8d0b41;
+    transition: all 0.3s ease;
+}
+
+.lease-empty-card:hover{
+    transform: translateY(-3px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.1);
+}
+
+.empty-icon{
+    width:90px;
+    height:90px;
+    margin:auto;
+    border-radius:50%;
+    background:rgba(141,11,65,0.08);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.empty-icon i{
+    font-size:45px;
+    color:#8d0b41;
+}
+
+.find-apartment-btn {
+    transition: all 0.3s ease;
+}
+
+.find-apartment-btn:hover {
+    background: #6a0831;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+}
+
+
 
 
     </style>
@@ -724,13 +763,37 @@ h4, h5 {
 <body>
     <?php include '../Components/tenant-header.php'; ?>
 
-    <div class="container">
-        <?php if (isset($_GET['success'])): ?>
-            <div class="alert alert-success">
-                <i class="bi bi-check-circle"></i> Your maintenance request has been submitted successfully!
-            </div>
-        <?php endif; ?>
+    <?php if (!$lease): ?>
+    
+        <div class="container d-flex justify-content-center align-items-center" style="min-height:70vh;">
+            <div class="text-center p-5 bg-white rounded-4 shadow-sm lease-empty-card" style="border-top:5px solid #8d0b41; max-width:500px; width:100%;">
 
+                <div class="empty-icon mb-4">
+                    <i class="bi bi-house-x"></i>
+                </div>
+
+                <h3 class="fw-semibold mb-2">No Active Lease Yet</h3>
+
+                <p class="text-muted mb-4" style="background:#f8d7e4; color:#8d0b41; border:none;">
+                    You currently do not have an active lease agreement assigned to your account.
+                </p>
+
+                <!-- Find Apartment Button -->
+                <a href="tenant.php" class="btn mt-3 text-white find-apartment-btn" style="background:#8d0b41; border:none;">
+                    Find Apartment
+                </a>
+            </div>
+        </div>
+        
+    <?php else: ?>
+    
+        <!-- DASHBOARD CARDS -->
+        <div class="container">
+            <?php if (isset($_GET['success'])): ?>
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i> Your maintenance request has been submitted successfully!
+                </div>
+            <?php endif; ?>
         <div class="dashboard-cards">
 
             <!-- Rent Payment -->
@@ -765,6 +828,7 @@ h4, h5 {
                         Apartment Details</button>
                 <?php endforeach; ?>
             </div>
+    
 
             <!-- Remove Lease Modal -->
 <div class="modal fade" id="removeLeaseModal" tabindex="-1">
@@ -781,9 +845,12 @@ h4, h5 {
       </div>
       
       <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          Cancel
+        </button>
+
         <button type="button" id="confirmRemoveLease" class="btn btn-danger">
-            Yes, Remove
+          Remove Lease
         </button>
       </div>
 
@@ -1018,6 +1085,8 @@ h4, h5 {
                             </div>
                         </div>
          </div>
+
+        <?php endif; ?>
     
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script>

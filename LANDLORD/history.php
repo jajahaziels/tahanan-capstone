@@ -4,6 +4,34 @@ include '../session_auth.php';
 
 $landlord_id = $_SESSION['landlord_id'];
 
+// Check landlord verification status
+$verifyQuery = "SELECT verification_status, admin_rejection_reason FROM landlordtbl WHERE ID = ?";
+$verifyStmt = $conn->prepare($verifyQuery);
+$verifyStmt->bind_param("i", $landlord_id);
+$verifyStmt->execute();
+$resultVerify = $verifyStmt->get_result();
+$landlord = $resultVerify->fetch_assoc();
+
+if ($landlord['verification_status'] !== 'verified'):
+
+    if ($landlord['verification_status'] == 'pending') {
+        $title = "Verification in Progress";
+        $icon = "bi-hourglass-split";
+        $color = "#f0ad4e";
+        $message = "Your documents are currently under review by the administrator.";
+    } elseif ($landlord['verification_status'] == 'rejected') {
+        $title = "Verification Rejected";
+        $icon = "bi-x-circle-fill";
+        $color = "#dc3545";
+        $message = "Your verification was rejected. Please review the reason below and resubmit the required documents.";
+        $reason = $landlord['admin_rejection_reason'] ?? "No reason provided.";
+    } else {
+        $title = "Verification Required";
+        $icon = "bi-shield-lock-fill";
+        $color = "#8d0b41";
+        $message = "Your account must be verified before accessing landlord features.";
+    }
+
 // Fetch active tenants and their last payment info based on tahanandb schema
 $query = "SELECT 
             t.ID as tenant_id, 
@@ -86,8 +114,9 @@ function getStatusBadge($status)
         default => '<span class="badge bg-secondary">' . htmlspecialchars($status) . '</span>'
     };
 }
-
+endif;
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -253,318 +282,546 @@ function getStatusBadge($status)
         border-color: #FF0000;   
         color: #fff;               
     }
+
+    .verification-container{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:linear-gradient(135deg,#f8f9fa,#f1f1f1);
+}
+
+.verification-card{
+    border:none;
+    border-radius:20px;
+    max-width:520px;
+    width:100%;
+    padding:40px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.1);
+    background:white;
+}
+
+.verification-icon{
+    font-size:70px;
+    color:#8d0b41;
+}
+
+.verification-title{
+    font-weight:600;
+    margin-top:15px;
+    color:#8d0b41;
+}
+
+.verification-message{
+    color:#6c757d;
+    margin-top:10px;
+}
+
+.admin-reason{
+    background:#fff3cd;
+    border-radius:10px;
+    padding:15px;
+    margin-top:15px;
+    font-size:14px;
+}
+
+.dashboard-btn{
+    background:#8d0b41;
+    border:none;
+    padding:10px 25px;
+    border-radius:8px;
+    margin-top:20px;
+}
+
+.dashboard-btn:hover{
+    background:#6f0833;
+}
+
+
+.dashboard-btn{
+    background:#8d0b41;
+    border:none;
+    color:#fff;
+    transition: all 0.3s ease;
+}
+
+.dashboard-btn:hover{
+    background:#6e0833;
+    transform: translateY(-2px);
+    box-shadow:0 5px 12px rgba(0,0,0,0.2);
+}
+
+.back-btn {
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    background: #6a0831;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+}
+
+
+
     
 </style>
-
 <body>
-    <!-- HEADER -->
-    <?php include '../Components/landlord-header.php'; ?>
 
-    <div class="payments-section">
-        <div class="section-header">
-            <h3 class="section-title">
-                <i class="bi bi-person-vcard" style="color: #8d0b41; font-size: 2.5rem; margin-right: 8px;"></i>
-                Active Tenants & Payment Records
-            </h3>
-            <?php if (!empty($active_tenants)): ?>
-                <span class="action-btn-primary" style="padding: 5px 15px; border-radius: 20px; font-size: 14px;">
-                    <?= count($active_tenants) ?> Active
-                </span>
+<!-- HEADER -->
+<?php include '../Components/landlord-header.php'; ?>
+
+<?php if ($landlord['verification_status'] !== 'verified'): ?>
+
+    <div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="card shadow-lg p-5 text-center" style="border-radius:20px; max-width:520px; border-top:5px solid #8d0b41;">
+
+        <i class="bi <?= $icon ?>" style="font-size:70px;color:#8d0b41;"></i>
+    
+            <h3 class="mt-3" style="color:#8d0b41;"><?= $title ?></h3>
+    
+            <p class="text-muted"><?= $message ?></p>
+    
+            <?php if (isset($reason)): ?>
+                <div class="alert mt-3" style="background:#f8d7e4; color:#8d0b41; border:none;">
+                    <strong>Admin Reason:</strong><br>
+                    <?= htmlspecialchars($reason) ?>
+                </div>
             <?php endif; ?>
-        </div>
-
-        <?php if (!empty($active_tenants)): ?>
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Profile</th>
-                            <th>Tenant Name</th>
-                            <th>Property</th>
-                            <th>Lease</th>
-                            <th>Rent Amount</th>
-                            <th>Last Payment</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php foreach ($active_tenants as $tenant):
-                            $tenant_name = ucwords(strtolower($tenant['firstName'] . ' ' . $tenant['lastName']));
-                            $tenant_initial = strtoupper(substr($tenant['firstName'], 0, 1));
-                            $last_payment = $tenant['last_payment_date'] ? date("M j, Y", strtotime($tenant['last_payment_date'])) : 'No Payment';
-                            ?>
-                            <tr>
-                                <td>
-                                    <?php if (!empty($tenant['profilePic'])): ?>
-                                        <a href="tenant-profile.php?tenant_id=<?= $tenant['tenant_id'] ?>">
-                                            <img src="../uploads/<?= htmlspecialchars($tenant['profilePic']) ?>"
-                                                alt="<?= htmlspecialchars($tenant_name) ?>" class="rounded-circle" width="40" height="40"
-                                                style="object-fit: cover; border: 2px solid #8d0b41;">
-                                        </a>
-                                    <?php else: ?>
-                                        <div class="profile-avatar-sm"><?= $tenant_initial ?></div>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="fw-bold text-dark"><?= htmlspecialchars($tenant_name) ?></td>
-                                <td>
-                                    <span class="text-muted"><i class="fas fa-home me-1"></i>
-                                        <?= htmlspecialchars($tenant['property_name']) ?></span>
-                                </td>
-                                <td>
-                                    <?php if (!empty($tenant['pdf_path'])): ?>
-                                        <a href="../uploads/<?= htmlspecialchars($tenant['pdf_path']) ?>" target="_blank"
-                                            class="btn btn-primary btn-sm rounded-pill lease-btn">
-                                            <i class="bi bi-file-earmark-pdf"></i> View Lease
-                                        </a>
-
-                                        <style>
-                                            .lease-btn {
-                                                border: 1px solid #0d6efd;   
-                                                color: #0d6efd;          
-                                                background-color: transparent; 
-                                                transition: all 0.3s ease;
-                                            }
-
-                                            .lease-btn:hover {
-                                                background-color: #0d6efd;  
-                                                border-color: #0d6efd;   
-                                                color: #fff;               
-                                            }
-                                        </style>
-                    
-                                    <?php else: ?>
-                                        <span class="text-muted">No Lease</span>
-                                    <?php endif; ?>
-                                </td>  
-                                <td>
-                                    <span class="fw-bold"
-                                        style="color: #2d3748;">₱<?= number_format($tenant['amount'] ?? 0, 2) ?></span>
-                                </td>
-                                <td>
-                                    <button
-                                        class="btn btn-sm <?= $tenant['last_payment_date'] ? 'btn-success' : 'btn-danger' ?>"
-                                        style="border-radius: 20px; font-size: 0.8rem;" data-bs-toggle="modal"
-                                        data-bs-target="#paymentModal" data-tenant="<?= $tenant['tenant_id'] ?>"
-                                        data-name="<?= htmlspecialchars($tenant_name) ?>">
-                                        <?= $last_payment ?>
-                                    </button>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php else: ?>
-            <div class="empty-reviews">
-                <i class="fas fa-user-slash"></i>
-                <h3>No Active Tenants</h3>
-                <p>Once you approve applications, your active tenants and their rent status will appear here.</p>
-            </div>
-        <?php endif; ?>
-    </div>
-
-    <!-- Payment Modal -->
-    <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form id="paymentForm" method="post" action="record-payment.php">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Record Payment</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="hidden" name="tenant_id" id="tenant_id">
-                        <div class="mb-3">
-                            <label for="amount" class="form-label">Payment Amount</label>
-                            <input type="number" class="form-control" name="amount" id="amount" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="paid_date" class="form-label">Payment Date</label>
-                            <input type="date" class="form-control" name="paid_date" id="paid_date" required>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-primary">Save Payment</button>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    </div>
-                </form>
-            </div>
+    
+            <a href="landlord-verification.php" class="btn mt-3 text-white back-btn" style="background:#8d0b41; border:none;">
+                Verify Your Account
+            </a>
+    
         </div>
     </div>
+
+<?php else: ?>
+
+    <!-- ACTIVE TENANTS TABLE -->
+    <?php if (!empty($active_tenants)): ?>
+
+        <div class="table-responsive">
+        <table class="table align-middle">
+
+        <thead>
+        <tr>
+            <th>Profile</th>
+            <th>Tenant Name</th>
+            <th>Property</th>
+            <th>Lease</th>
+            <th>Rent Amount</th>
+            <th>Last Payment</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
+        <?php foreach ($active_tenants as $tenant):
+
+                    $tenant_name = ucwords(strtolower($tenant['firstName'] . ' ' . $tenant['lastName']));
+                    $tenant_initial = strtoupper(substr($tenant['firstName'] ?? '', 0, 1));
+                    $last_payment = $tenant['last_payment_date']
+                        ? date("M j, Y", strtotime($tenant['last_payment_date']))
+                        : 'No Payment';
+
+                    ?>
+
+            <tr>
+
+            <td>
+
+            <?php if (!empty($tenant['profilePic'])): ?>
+
+                <a href="tenant-profile.php?tenant_id=<?= $tenant['tenant_id'] ?>">
+
+                <img src="../uploads/<?= htmlspecialchars($tenant['profilePic']) ?>"
+                alt="<?= htmlspecialchars($tenant_name) ?>"
+                class="rounded-circle"
+                width="40"
+                height="40"
+                style="object-fit:cover;border:2px solid #8d0b41;">
+
+                </a>
+
+            <?php else: ?>
+
+                <div class="profile-avatar-sm"><?= $tenant_initial ?></div>
+
+            <?php endif; ?>
+
+            </td>
+
+            <td class="fw-bold text-dark">
+            <?= htmlspecialchars($tenant_name) ?>
+            </td>
+
+            <td>
+            <span class="text-muted">
+            <i class="fas fa-home me-1"></i>
+            <?= htmlspecialchars($tenant['property_name']) ?>
+            </span>
+            </td>
+
+            <td>
+
+            <?php if (!empty($tenant['pdf_path'])): ?>
+
+                <a href="../uploads/<?= htmlspecialchars($tenant['pdf_path']) ?>"
+                target="_blank"
+                class="btn btn-primary btn-sm rounded-pill lease-btn">
+
+                <i class="bi bi-file-earmark-pdf"></i> View Lease
+
+                </a>
+
+            <?php else: ?>
+
+                <span class="text-muted">No Lease</span>
+
+            <?php endif; ?>
+
+            </td>
+
+            <td>
+            <span class="fw-bold" style="color:#2d3748;">
+            ₱<?= number_format($tenant['amount'] ?? 0, 2) ?>
+            </span>
+            </td>
+
+            <td>
+
+            <button
+            class="btn btn-sm <?= $tenant['last_payment_date'] ? 'btn-success' : 'btn-danger' ?>"
+            style="border-radius:20px;font-size:0.8rem;"
+            data-bs-toggle="modal"
+            data-bs-target="#paymentModal"
+            data-tenant="<?= $tenant['tenant_id'] ?>"
+            data-name="<?= htmlspecialchars($tenant_name) ?>">
+
+            <?= $last_payment ?>
+
+            </button>
+
+            </td>
+
+            </tr>
+
+        <?php endforeach; ?>
+
+        </tbody>
+        </table>
+        </div>
+
+    <?php else: ?>
+
+        <div class="empty-reviews">
+        <i class="fas fa-user-slash"></i>
+        <h3>No Active Tenants</h3>
+        <p>Once you approve applications, your active tenants and their rent status will appear here.</p>
+        </div>
+
+    <?php endif; ?>
+
+
+    <!-- PAYMENT MODAL -->
+
+    <div class="modal fade" id="paymentModal" tabindex="-1">
+
+    <div class="modal-dialog">
+    <div class="modal-content">
+
+    <form method="post" action="record-payment.php">
+
+    <div class="modal-header">
+    <h5 class="modal-title">Record Payment</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+
+    <div class="modal-body">
+
+    <input type="hidden" name="tenant_id" id="tenant_id">
+
+    <div class="mb-3">
+    <label class="form-label">Payment Amount</label>
+    <input type="number" class="form-control" name="amount" required>
+    </div>
+
+    <div class="mb-3">
+    <label class="form-label">Payment Date</label>
+    <input type="date" class="form-control" name="paid_date" required>
+    </div>
+
+    </div>
+
+    <div class="modal-footer">
+    <button type="submit" class="btn btn-primary">Save Payment</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    </div>
+
+    </form>
+
+    </div>
+    </div>
+    </div>
+
+
+    <!-- COMPLAINT SECTION -->
 
     <div class="payments-section mt-5">
+
     <div class="section-header">
-        <h3 class="section-title">
-            <i class="bi bi-tools"></i>
-            Complaint / Maintenance Requests
-        </h3>
-        <?php if (!empty($complaints)): ?>
-                <span class="action-btn-primary" style="padding: 5px 15px; border-radius: 20px; font-size: 14px;">
-                    <?= count($complaints) ?> Requests
-                </span>
-            <?php endif; ?>
-        </div>
-    
-        <!-- Maintenance Request Table -->
-        <?php if (!empty($complaints)): ?>
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Profile</th>
-                            <th>Tenant Name</th>
-                            <th>Property</th>
-                            <th>Title</th>
-                            <th>Category</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                            <th>Requested Date</th>
-                            <th>Scheduled Date</th>
-                            <th>Completed Date</th>
-                            <th>Photo</th>
-                            <th>Action</th>
-                        </tr>
-                    <thead>
-                <tbody>
+
+    <h3 class="section-title">
+    <i class="bi bi-tools"></i>
+    Complaint / Maintenance Requests
+    </h3>
+
+    <?php if (!empty($complaints)): ?>
+        <span class="action-btn-primary" style="padding:5px 15px;border-radius:20px;font-size:14px;">
+        <?= count($complaints) ?> Requests
+        </span>
+    <?php endif; ?>
+
+    </div>
+
+
+    <?php if (!empty($complaints)): ?>
+
+        <div class="table-responsive">
+
+        <table class="table align-middle">
+
+        <thead>
+        <tr>
+        <th>Profile</th>
+        <th>Tenant Name</th>
+        <th>Property</th>
+        <th>Title</th>
+        <th>Category</th>
+        <th>Priority</th>
+        <th>Status</th>
+        <th>Requested</th>
+        <th>Scheduled</th>
+        <th>Completed</th>
+        <th>Photo</th>
+        <th>Action</th>
+        </tr>
+        </thead>
+
+        <tbody>
+
         <?php foreach ($complaints as $complaint):
-            $status = strtolower(trim($complaint['status']));
-            $tenant_name = ucwords(strtolower($complaint['firstName'] . ' ' . $complaint['lastName']));
-                            $tenant_initial = strtoupper(substr($complaint['firstName'], 0, 1));
-                            $requested_date = $complaint['requested_date'] ? date("M j, Y", strtotime($complaint['requested_date'])) : '-';
-                            $scheduled_date = $complaint['scheduled_date'] ? date("M j, Y", strtotime($complaint['scheduled_date'])) : '-';
-                            $completed_date = $complaint['completed_date'] ? date("M j, Y", strtotime($complaint['completed_date'])) : '-';
-        ?>
-                            <tr>
-                                <td>
-                                    <?php if (!empty($complaint['profilePic'])): ?>
-                                        <a href="tenant-profile.php?tenant_id=<?= $tenant['tenant_id'] ?>">
-                                            <img src="../uploads/<?= htmlspecialchars($tenant['profilePic']) ?>"
-                                                alt="<?= htmlspecialchars($tenant_name) ?>" class="rounded-circle" width="40" height="40"
-                                                style="object-fit: cover; border: 2px solid #8d0b41;">
-                                        </a>
-                                    <?php else: ?>
-                                        <div class="profile-avatar-sm"><?= $tenant_initial ?></div>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="fw-bold text-dark"><?= htmlspecialchars($tenant_name) ?></td>
-                                <td><span class="text-muted"><i
-                                            class="fas fa-home me-1"></i><?= htmlspecialchars($complaint['property_name']) ?></span></td>
-                                <td><?= htmlspecialchars($complaint['title']) ?></td>
-                                <td><?= htmlspecialchars($complaint['category']) ?></td>
-                                <td><?= getPriorityBadge($complaint['priority']) ?></td>
-                                <td><?= getStatusBadge($complaint['status']) ?></td>
-                                <td><?= $requested_date ?></td>
-                                <td><?= $scheduled_date ?></td>
-                                <td><?= $completed_date ?></td>
-                                <td>
-                                    <?php if (!empty($complaint['photo_path'])): ?>
-                                        <a href="../uploads/<?= htmlspecialchars($complaint['photo_path']) ?>" target="_blank">
-                                            <i class="fas fa-image"></i> View
-                                        </a>
-                                    <?php else: ?>
-                                        -
-                                    <?php endif; ?>
-                                </td>
-                                <td>
-                                    <?php if ($status === 'completed'): ?>
-                                <!-- Remove only -->
-                                <button class="btn btn-sm rounded-pill remove-complaint-btn"
-                                    data-id="<?= $complaint['complaint_id'] ?>">
-                                            <i class="bi bi-trash3-fill"></i> Remove
-                                </button>
 
-                                <style>
-                                            .remove-complaint-btn {
-                                            border: 1px solid #FF0000;   
-                                            color: #FF0000;          
-                                            background-color: transparent; 
-                                            transition: all 0.3s ease;
-                                        }
+                    $status = strtolower(trim($complaint['status']));
 
-                                            .remove-complaint-btn:hover {
-                                            background-color: #FF0000;  
-                                            border-color: #FF0000;   
-                                            color: #fff;               
-                                        }
-                                    </style>
-        <?php elseif ($status === 'rejected'): ?>
+                    $tenant_name = ucwords(strtolower($complaint['firstName'] . ' ' . $complaint['lastName']));
+                    $tenant_initial = strtoupper(substr($complaint['firstName'] ?? '', 0, 1));
 
-                                <!-- Respond + Remove -->
-                            <div class="d-flex gap-2">
-                                <button class="btn btn-sm btn-outline-primary"
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#complaintModal"
-                                    data-id="<?= $complaint['complaint_id'] ?>" 
-                                    data-title="<?= htmlspecialchars($complaint['title']) ?>">
-                                    <i class="bi bi-reply-all-fill"></i> Respond
-                                </button>
-                                <button class="btn btn-sm btn-outline-danger remove-complaint-btn"
-                                    data-id="<?= $complaint['complaint_id'] ?>">
-                                    <i class="bi bi-trash3-fill"></i>
-                                </button>
-                            </div>
+                    $requested_date = $complaint['requested_date']
+                        ? date("M j, Y", strtotime($complaint['requested_date']))
+                        : '-';
 
-                        <?php else: ?>
-                            <!-- pending + in progress -->
-                            <button class="btn btn-sm btn-primary shadow-sm"
-                                data-bs-toggle="modal" 
-                                data-bs-target="#complaintModal"
-                                data-id="<?= $complaint['complaint_id'] ?>" 
-                                data-title="<?= htmlspecialchars($complaint['title']) ?>">
-                                <i class="bi bi-reply-all-fill"></i> Respond
-                            </button>
-                        <?php endif; ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        <?php else: ?>
-            <div class="empty-reviews">
-                <i class="fas fa-exclamation-triangle"></i>
-                <h3>No Complaints / Requests</h3>
-                <p>Once tenants submit maintenance requests, they will appear here for your review and action.</p>
-            </div>
-        <?php endif; ?>
-    </div>
+                    $scheduled_date = $complaint['scheduled_date']
+                        ? date("M j, Y", strtotime($complaint['scheduled_date']))
+                        : '-';
 
-        <!-- Complaint Response Modal -->
-<div class="modal fade" id="complaintModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="complaintForm" method="post" action="maintenance-respond.php">
-                <div class="modal-header">
-                    <h5 class="modal-title">Respond to Complaint</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    $completed_date = $complaint['completed_date']
+                        ? date("M j, Y", strtotime($complaint['completed_date']))
+                        : '-';
+
+                    ?>
+
+            <tr>
+
+            <td>
+
+            <?php if (!empty($complaint['profilePic'])): ?>
+
+                <a href="tenant-profile.php?tenant_id=<?= $complaint['tenant_id'] ?>">
+
+                <img src="../uploads/<?= htmlspecialchars($complaint['profilePic']) ?>"
+                class="rounded-circle"
+                width="40"
+                height="40"
+                style="object-fit:cover;border:2px solid #8d0b41;">
+
+                </a>
+
+            <?php else: ?>
+
+                <div class="profile-avatar-sm"><?= $tenant_initial ?></div>
+
+            <?php endif; ?>
+
+            </td>
+
+            <td class="fw-bold text-dark">
+            <?= htmlspecialchars($tenant_name) ?>
+            </td>
+
+            <td>
+            <span class="text-muted">
+            <i class="fas fa-home me-1"></i>
+            <?= htmlspecialchars($complaint['property_name']) ?>
+            </span>
+            </td>
+
+            <td><?= htmlspecialchars($complaint['title']) ?></td>
+
+            <td><?= htmlspecialchars($complaint['category']) ?></td>
+
+            <td><?= getPriorityBadge($complaint['priority']) ?></td>
+
+            <td><?= getStatusBadge($complaint['status']) ?></td>
+
+            <td><?= $requested_date ?></td>
+
+            <td><?= $scheduled_date ?></td>
+
+            <td><?= $completed_date ?></td>
+
+            <td>
+
+            <?php if (!empty($complaint['photo_path'])): ?>
+
+                <a href="../uploads/<?= htmlspecialchars($complaint['photo_path']) ?>" target="_blank">
+                <i class="fas fa-image"></i> View
+                </a>
+
+            <?php else: ?>
+
+                -
+
+            <?php endif; ?>
+
+            </td>
+
+            <td>
+
+            <?php if ($status === 'completed'): ?>
+
+                <button class="btn btn-sm rounded-pill remove-complaint-btn"
+                data-id="<?= $complaint['complaint_id'] ?>">
+
+                <i class="bi bi-trash3-fill"></i> Remove
+
+                </button>
+
+            <?php elseif ($status === 'rejected'): ?>
+
+                <div class="d-flex gap-2">
+
+                <button class="btn btn-sm btn-outline-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#complaintModal"
+                data-id="<?= $complaint['complaint_id'] ?>">
+
+                <i class="bi bi-reply-all-fill"></i> Respond
+
+                </button>
+
+                <button class="btn btn-sm btn-outline-danger remove-complaint-btn"
+                data-id="<?= $complaint['complaint_id'] ?>">
+
+                <i class="bi bi-trash3-fill"></i>
+
+                </button>
+
                 </div>
-                <div class="modal-body">
-                    <input type="hidden" name="complaint_id" id="complaint_id">
-                    <div class="mb-3">
-                        <label for="status" class="form-label">Status</label>
-                        <select class="form-select" name="status" id="status" required>
-                        <option value="pending">Pending</option>
-                        <option value="in progress">Scheduled</option> 
-                        <option value="completed">Completed</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="response" class="form-label">Message / Action to Tenant</label>
-                        <textarea class="form-control" name="response" id="response" rows="3" placeholder="Write your message here..."></textarea>
-                    </div>
-                    <div class="mb-3">
-                        <label for="scheduled_date" class="form-label">Scheduled Date (if applicable)</label>
-                        <input type="date" class="form-control" name="scheduled_date" id="scheduled_date">
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary">Send Response</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                </div>
-            </form>
+
+            <?php else: ?>
+
+                <button class="btn btn-sm btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#complaintModal"
+                data-id="<?= $complaint['complaint_id'] ?>">
+
+                <i class="bi bi-reply-all-fill"></i> Respond
+
+                </button>
+
+            <?php endif; ?>
+
+            </td>
+
+            </tr>
+
+        <?php endforeach; ?>
+
+        </tbody>
+        </table>
         </div>
+
+    <?php else: ?>
+
+        <div class="empty-reviews">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>No Complaints / Requests</h3>
+        <p>Once tenants submit maintenance requests, they will appear here.</p>
+        </div>
+
+    <?php endif; ?>
+
     </div>
-</div>
+
+
+    <!-- COMPLAINT RESPONSE MODAL -->
+
+    <div class="modal fade" id="complaintModal">
+
+    <div class="modal-dialog">
+
+    <div class="modal-content">
+
+    <form method="post" action="maintenance-respond.php">
+
+    <div class="modal-header">
+    <h5 class="modal-title">Respond to Complaint</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+
+    <div class="modal-body">
+
+    <input type="hidden" name="complaint_id" id="complaint_id">
+
+    <div class="mb-3">
+    <label class="form-label">Status</label>
+    <select class="form-select" name="status" required>
+    <option value="pending">Pending</option>
+    <option value="in progress">Scheduled</option>
+    <option value="completed">Completed</option>
+    <option value="rejected">Rejected</option>
+    </select>
+    </div>
+
+    <div class="mb-3">
+    <label class="form-label">Message</label>
+    <textarea class="form-control" name="response" rows="3"></textarea>
+    </div>
+
+    <div class="mb-3">
+    <label class="form-label">Scheduled Date</label>
+    <input type="date" class="form-control" name="scheduled_date">
+    </div>
+
+    </div>
+
+    <div class="modal-footer">
+    <button type="submit" class="btn btn-primary">Send Response</button>
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+    </div>
+
+    </form>
+
+    </div>
+    </div>
+    </div>
+
+<?php endif; ?>
+
+</body>
+
 
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script>
