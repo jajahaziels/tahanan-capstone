@@ -63,27 +63,32 @@ if ($tenant_id > 0) {
     $stmt->close();
 }
 
-/*  Check if user already exists in tenanttbl */
-$existingTenant = false;
+/* Check if tenant already has rent */
+$hasActiveRent = false;
 
-if ($tenant_id > 0) {
-    $tenantCheckSql = "
-        SELECT ID
-        FROM tenanttbl
-        WHERE ID = ?
+if (!empty($_SESSION['tenant_id'])) {
+
+    $tenant_id = $_SESSION['tenant_id'];
+
+    $sqlCheckRent = "
+        SELECT ID 
+        FROM renttbl
+        WHERE tenant_id = ?
+        AND tenant_removed = 0
         LIMIT 1
     ";
 
-    $stmt = $conn->prepare($tenantCheckSql);
+    $stmt = $conn->prepare($sqlCheckRent);
     $stmt->bind_param("i", $tenant_id);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    $row = $result->fetch_assoc();
-    $hasActiveRent = $row ? true : false;
+    if ($result->num_rows > 0) {
+        $hasActiveRent = true;
+    }
 
     $stmt->close();
-    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -291,8 +296,8 @@ if ($tenant_id > 0) {
                                 <div class="warning-text">
                                     <h6 class="mb-1">Active Lease Detected</h6>
                                     <p class="mb-1">
-                                        You already have an active apartment. You cannot apply for another property until your current lease
-                                        ends.
+                                        You already have an active apartment. You cannot apply for another property
+                                        until your current lease ends.
                                     </p>
                                 </div>
                             </div>
@@ -304,8 +309,9 @@ if ($tenant_id > 0) {
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0 mt-0"><?= htmlspecialchars($property['listingName']); ?></h4>
 
-                        <!-- Apply Button (triggers modal) -->
+                        <!-- Apply Button -->
                         <?php if ($hasActiveRent): ?>
+                        
                             <button class="main-button mx-5" disabled>
                                 Already Renting
                             </button>
@@ -318,8 +324,8 @@ if ($tenant_id > 0) {
                         
                         <?php elseif ($requestStatus === 'approved'): ?>
                         
-                            <button class="main-button mx-5" data-bs-toggle="modal" data-bs-target="#reapplyModal">
-                                Apply Again
+                            <button class="main-button mx-5" disabled>
+                                ✅ Already Approved
                             </button>
                         
                         <?php else: ?>

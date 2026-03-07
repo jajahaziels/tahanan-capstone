@@ -805,14 +805,6 @@ if ($table_check && $table_check->num_rows > 0) {
                                     <i class="fas fa-share-alt"></i>
                                     Share Profile
                                 </button>
-                                <button class="action-btn action-btn-secondary" onclick="location.href='history.php'">
-                                    <i class="fas fa-building"></i>
-                                    Manage My Properties
-                                </button>
-                                <button class="action-btn action-btn-danger" onclick="confirmDelete()">
-                                    <i class="fas fa-trash-alt"></i>
-                                    Delete Account
-                                </button>
                             </div>
                         </div>
                     </div>

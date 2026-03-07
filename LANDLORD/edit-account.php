@@ -177,8 +177,7 @@ h2, h4, h5 {
     object-fit: cover;
     border-radius: 50%;
 }
-
-/* INPUT FIELDS */
+    
 input.form-control, select.form-control {
     border-radius: 10px;
     padding: 12px 15px;
@@ -204,13 +203,11 @@ input.form-control:focus, select.form-control:focus {
     cursor: pointer;
 }
 
-/* LABELS */
 label.form-label {
     font-weight: 500;
     margin-bottom: 6px;
 }
 
-/* BUTTONS */
 .main-button {
     background: linear-gradient(135deg, #8d0b41, #a3154f); 
     color: #fff;
@@ -233,7 +230,6 @@ label.form-label {
     transform: scale(0.97);
 }
 
-/* REMOVE BUTTON */
 .btn-remove-modern {
     background: linear-gradient(135deg, #8d0b41, #a3154f);
     color: white;
@@ -511,35 +507,9 @@ small.text-muted {
                                 value="<?= htmlspecialchars($user['zipCode'] ?? '') ?>">
                         </div>
                     </div>
-    
-                    <!-- ================= IDENTITY VERIFICATION ================= -->
-                    <h4 class="mt-4 mb-3">Identity Verification</h4>
-    
-                    <div class="mb-3">
-                        <label class="form-label">Upload Government ID</label>
-                        <input type="file" class="form-control" name="govID" accept="image/*,.pdf">
-                    </div>
-    
-                    <div class="mb-3">
-                        <label class="form-label">Upload Selfie Holding ID</label>
-                        <input type="file" class="form-control" name="selfieID" accept="image/*">
-                    </div>
-    
-                    <!-- ================= PROPERTY OWNERSHIP ================= -->
-                    <h4 class="mt-4 mb-3">Property Ownership / Authorization</h4>
-    
-                    <div class="mb-3">
-                        <label class="form-label">Proof of Ownership</label>
-                        <input type="file" class="form-control" name="proofOwnership" accept="image/*,.pdf">
-                    </div>
-    
-                    <div class="mb-3">
-                        <label class="form-label">Authorization Letter + Owner’s ID</label>
-                        <input type="file" class="form-control" name="authorizationDocs[]" accept="image/*,.pdf" multiple>
-                    </div>
-    
+
                     <!-- ================= BUTTONS ================= -->
-                    <div class="d-flex justify-content-start gap-3 mt-4">
+                    <div class="d-flex justify-content-start gap-4 mt-4">
                         <button type="submit" class="main-button">Save</button>
                         <button type="button" class="main-button" onclick="location.href='account.php'">Cancel</button>
                     </div>
