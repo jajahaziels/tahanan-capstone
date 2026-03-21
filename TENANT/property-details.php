@@ -319,13 +319,13 @@ if (!empty($_SESSION['tenant_id'])) {
                         <?php elseif ($requestStatus === 'pending'): ?>
                         
                             <button class="main-button mx-5" disabled>
-                                ⏳ Application Pending
+                                Application Pending
                             </button>
                         
                         <?php elseif ($requestStatus === 'approved'): ?>
                         
                             <button class="main-button mx-5" disabled>
-                                ✅ Already Approved
+                                Already Approved
                             </button>
                         
                         <?php else: ?>

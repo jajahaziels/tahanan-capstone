@@ -129,7 +129,8 @@ $conn->close();
     margin-top: 140px !important;
     font-family: 'Inter', sans-serif;
     color: #333;
-    background-color: #f9f9f9;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+    padding-bottom: 100px;
 }
 
 .edit {
@@ -359,6 +360,7 @@ small.text-muted {
     right: 0;
     font-size: 12px;
 }
+
     </style>
 </head>
 

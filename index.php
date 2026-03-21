@@ -29,8 +29,6 @@ $result = $conn->query($sql);
     <link rel="stylesheet" href="../TAHANAN/css/bootstrap.min.css">
     <!-- MAIN CSS -->
     <link rel="stylesheet" href="../TAHANAN/css/style.css?v=<?= time(); ?>">
-    <!-- LEAFLET -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <title>INDEX</title>
     <style>
         #map {
@@ -194,7 +192,7 @@ $result = $conn->query($sql);
             </div>
             <!-- END NG ROW -->
             <div class="d-flex justify-content-center align-items-center mt-4 button-animation">
-                <button class="main-button" onclick="location.href='properties.html'">View More</button>
+                <button class="main-button" onclick="location.href='LOGIN/login.php'">View More</button>
             </div>
         </div>
     </section>
@@ -429,6 +427,7 @@ $result = $conn->query($sql);
                 <!-- END NG ROW -->
             </div>
         </div>
+
         <div class="footer-bottom mt-4">
             <div class="container m-auto">
                 <div class="d-flex justify-content-center align-items-center pt-3">
@@ -438,39 +437,67 @@ $result = $conn->query($sql);
         </div>
     </footer>
 </body>
+
+<!-- GOOGLE MAPS -->
+<script>const listings = <?php echo json_encode($listings); ?>;</script>
+
+<script
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap"
+async defer>
+</script>
+
+<script>
+function initMap() {
+
+    const centerLocation = { lat: 14.3595, lng: 121.0473 };
+
+    const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 13,
+        center: centerLocation
+    });
+
+    if (!listings || listings.length === 0) {
+        console.log("No listings found.");
+        return;
+    }
+
+    listings.forEach(listing => {
+
+    if (!listing.latitude || !listing.longitude) return;
+
+    const marker = new google.maps.Marker({
+        position: {
+            lat: parseFloat(listing.latitude),
+            lng: parseFloat(listing.longitude)
+        },
+        map: map,
+        title: listing.listingName
+    });
+
+    const infoWindow = new google.maps.InfoWindow({
+        content: `
+        <div style="width:200px">
+            <h4>${listing.listingName}</h4>
+            <a href="property-details.php?id=${listing.listing_id}">
+                View Property
+            </a>
+        </div>
+        `
+    });
+
+    marker.addListener("click", () => {
+        infoWindow.open(map, marker);
+    });
+
+});
+}
+</script>
+
 <!-- MAIN JS -->
 <script src="js/script.js?v=<?php echo time(); ?>" defer></script>
 <!-- BS JS -->
 <script src="js/bootstrap.bundle.min.js"></script>
 <!-- SCROLL REVEAL -->
 <script src="https://unpkg.com/scrollreveal"></script>
-<!-- LEAFLET JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script>
-    // Pass PHP array to JS as JSON
-    var listings = <?= json_encode($listings); ?>;
-
-    // Default center (if no data)
-    var map = L.map('map').setView([14.3647, 121.0556], 13);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
-
-    listings.forEach(function(item) {
-        if (item.latitude && item.longitude) {
-            // create popup content with a button
-            var popupContent = `
-            <button class="small-button" onclick="window.location.href='property-details.php?id=${item.listing_id}'">
-                View
-            </button>
-        `;
-
-            L.marker([item.latitude, item.longitude])
-                .addTo(map)
-                .bindPopup(popupContent);
-        }
-    });
-</script>
 
 </html>
