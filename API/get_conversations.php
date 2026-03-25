@@ -13,7 +13,6 @@ if (!$user_id || !$user_type) {
     exit;
 }
 
-// Get conversations for this user
 $stmt = $conn->prepare("
     SELECT 
         c.id as conversation_id,
@@ -32,6 +31,10 @@ $stmt = $conn->prepare("
             WHEN cm_other.user_type = 'landlord' THEN l.email
             WHEN cm_other.user_type = 'tenant' THEN t.email
         END as other_user_email,
+        CASE 
+            WHEN cm_other.user_type = 'landlord' THEN l.profilePic
+            WHEN cm_other.user_type = 'tenant' THEN t.profilePic
+        END as other_user_profile_pic,
         (SELECT content FROM messages WHERE conversation_id = c.id AND status = 'active' ORDER BY created_at DESC LIMIT 1) as last_message,
         (SELECT created_at FROM messages WHERE conversation_id = c.id AND status = 'active' ORDER BY created_at DESC LIMIT 1) as last_message_time
     FROM conversations c
@@ -52,7 +55,6 @@ $result = $stmt->get_result();
 
 $conversations = [];
 while ($row = $result->fetch_assoc()) {
-    // Clean up the name
     $row['other_user_name'] = trim(preg_replace('/\s+/', ' ', $row['other_user_name']));
     $conversations[] = $row;
 }

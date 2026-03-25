@@ -195,26 +195,28 @@ $fullName = ucwords(strtolower($landlord['firstName'] . ' ' . $landlord['lastNam
             margin-top: 60px;
         }
 
-        .profile-name {
+       .profile-name {
             font-size: 2rem;
             font-weight: 700;
             color: #2d3748;
             margin: 0 0 8px 0;
+            background: white;
+            padding: 16px 40px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            display: inline-block;
         }
 
-        .profile-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.875rem;
-            color: #4a5568;
+        .profile-role {
+            color: #718096;
+            font-size: 1rem;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .profile-badge i {
+        .profile-role i {
             color: #8d0b41;
         }
 
@@ -692,6 +694,186 @@ $fullName = ucwords(strtolower($landlord['firstName'] . ' ' . $landlord['lastNam
             border: 1px solid #bee5eb;
         }
 
+
+        .report-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 10000;
+        justify-content: center;
+        align-items: center;
+        animation: fadeIn 0.3s ease;
+    }
+    
+    .report-modal.show {
+        display: flex;
+    }
+    
+    .report-modal-content {
+        background: white;
+        border-radius: 24px;
+        padding: 40px;
+        max-width: 700px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideUp 0.3s ease;
+    }
+    
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .report-modal .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .report-modal .modal-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #2d3748;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .report-modal .modal-title i {
+        color: #8d0b41;
+    }
+    
+    .report-modal .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #718096;
+        cursor: pointer;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    .report-modal .modal-close:hover {
+        background: #f7fafc;
+        color: #2d3748;
+    }
+    
+    /* Form Styling for Report Modal */
+    .report-modal .form-group {
+        margin-bottom: 24px;
+    }
+    
+    .report-modal .form-label {
+        display: block;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    
+    .report-modal .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+    
+    .report-modal .form-control:focus {
+        outline: none;
+        border-color: #8d0b41;
+        box-shadow: 0 0 0 4px rgba(141, 11, 65, 0.1);
+    }
+    
+    .report-modal textarea.form-control {
+        resize: vertical;
+        min-height: 120px;
+    }
+    
+    .report-modal select.form-control {
+        cursor: pointer;
+    }
+    
+    .report-notice {
+        background: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 16px;
+        border-radius: 8px;
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        font-size: 0.9rem;
+        color: #78350f;
+    }
+    
+    .report-notice i {
+        font-size: 20px;
+        flex-shrink: 0;
+        color: #f59e0b;
+    }
+    
+    .submit-report-btn {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #8d0b41 0%, #6a0831 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .submit-report-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(141, 11, 65, 0.4);
+    }
+    
+    .submit-report-btn:disabled {
+        background: #cbd5e0;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .report-modal-content {
+            padding: 24px;
+            width: 95%;
+        }
+    
+        .report-modal .modal-title {
+            font-size: 1.5rem;
+        }
+    }
+
         /* Responsive */
         @media (max-width: 768px) {
             .landlord-page {
@@ -856,9 +1038,9 @@ $fullName = ucwords(strtolower($landlord['firstName'] . ' ' . $landlord['lastNam
                                 <i class="fas fa-share-alt"></i>
                                 Share Profile
                             </button>
-                            <button class="action-btn action-btn-outline" onclick="alert('Report function coming soon.')">
+                           <button class="action-btn action-btn-outline" onclick="openReportModal()">
                                 <i class="fas fa-flag"></i>
-                                Report
+                                Report Landlord
                             </button>
                         </div>
                     </div>
@@ -1081,6 +1263,112 @@ $fullName = ucwords(strtolower($landlord['firstName'] . ' ' . $landlord['lastNam
         </div>
     </div>
 
+        <!-- Report Modal -->
+    <div class="report-modal" id="reportModal">
+        <div class="report-modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-flag"></i>
+                    Report Landlord
+                </h3>
+                <button class="modal-close" onclick="closeReportModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+    
+            <form id="reportForm" method="POST" action="../api/submit_report.php">
+                <input type="hidden" name="landlord_id" value="<?= $landlordId ?>">
+    
+                <!-- Category -->
+                <div class="form-group">
+                    <label class="form-label">Report Category *</label>
+                    <select name="category" class="form-control" required>
+                        <option value="">Select a category</option>
+                        <option value="Scamming/Fraud">Scamming/Fraud</option>
+                        <option value="Property Misrepresentation">Property Misrepresentation (fake photos, wrong info)</option>
+                        <option value="Poor Property Maintenance">Poor Property Maintenance</option>
+                        <option value="Unresponsive/Bad Communication">Unresponsive/Bad Communication</option>
+                        <option value="Violation of Lease Terms">Violation of Lease Terms</option>
+                        <option value="Harassment/Inappropriate Behavior">Harassment/Inappropriate Behavior</option>
+                        <option value="Illegal Activities">Illegal Activities</option>
+                        <option value="Overcharging/Hidden Fees">Overcharging/Hidden Fees</option>
+                        <option value="Unsafe Property Conditions">Unsafe Property Conditions</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+    
+                <!-- Subject -->
+                <div class="form-group">
+                    <label class="form-label">Subject/Title *</label>
+                    <input type="text" 
+                        name="subject" 
+                        class="form-control" 
+                        placeholder="Brief summary of the issue" 
+                        required
+                        maxlength="255">
+                </div>
+    
+                <!-- Description -->
+                <div class="form-group">
+                    <label class="form-label">Detailed Description *</label>
+                    <textarea 
+                        name="description" 
+                        class="form-control" 
+                        placeholder="Please provide a detailed description of the issue, including any relevant dates, conversations, or incidents..."
+                        required
+                        minlength="50"
+                        maxlength="2000"
+                        rows="6"></textarea>
+                    <small style="color: #718096; font-size: 0.875rem;">Minimum 50 characters, maximum 2000</small>
+                </div>
+    
+                <!-- Incident Date -->
+                <div class="form-group">
+                    <label class="form-label">When did this occur?</label>
+                    <input type="date" 
+                        name="incident_date" 
+                        class="form-control"
+                        max="<?= date('Y-m-d') ?>">
+                </div>
+    
+                <!-- Priority -->
+                <div class="form-group">
+                    <label class="form-label">Priority Level</label>
+                    <select name="priority" class="form-control">
+                        <option value="low">Low - Minor issue</option>
+                        <option value="medium" selected>Medium - Needs attention</option>
+                        <option value="high">High - Serious issue</option>
+                        <option value="urgent">Urgent - Immediate danger/scam</option>
+                    </select>
+                </div>
+    
+                <!-- Anonymous Option -->
+                <div class="form-group">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" name="is_anonymous" value="1">
+                        <span>Submit anonymously (landlord won't see your name)</span>
+                    </label>
+                </div>
+    
+                <!-- Important Notice -->
+                <div class="report-notice">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Important:</strong> False reports may result in account restrictions. 
+                        Please only report genuine concerns. Our admin team will review all reports carefully.
+                    </div>
+                </div>
+    
+                <!-- Submit Button -->
+                <button type="submit" class="submit-report-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Submit Report
+                </button>
+            </form>
+        </div>
+    </div>
+        
+
     <!-- SCRIPTS -->
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script src="../js/script.js" defer></script>
@@ -1205,8 +1493,65 @@ $fullName = ucwords(strtolower($landlord['firstName'] . ' ' . $landlord['lastNam
                 distance: '20px',
                 interval: 100,
                 easing: 'ease-out'
-            });
+            }); 
         }
+
+                    // Report Modal Functions
+            function openReportModal() {
+                document.getElementById('reportModal').classList.add('show');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeReportModal() {
+                document.getElementById('reportModal').classList.remove('show');
+                document.body.style.overflow = 'auto';
+                document.getElementById('reportForm').reset();
+            }
+            
+            // Close modal on outside click
+            document.getElementById('reportModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeReportModal();
+                }
+            });
+            
+            // Form Submission Handler
+            document.getElementById('reportForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const submitBtn = this.querySelector('.submit-report-btn');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting Report...';
+                submitBtn.disabled = true;
+            
+                const formData = new FormData(this);
+            
+                try {
+                    const response = await fetch(this.action, {
+                        method: 'POST',
+                        body: formData
+                    });
+            
+                    const data = await response.json();
+            
+                    if (data.success) {
+                        alert('✅ ' + data.message);
+                        closeReportModal();
+                        // Optional: Reload page to show updated status
+                        // window.location.reload();
+                    } else {
+                        alert('❌ ' + (data.message || 'Failed to submit report. Please try again.'));
+                        submitBtn.innerHTML = originalText;
+                        submitBtn.disabled = false;
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('❌ An error occurred. Please try again.');
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            });
+
     </script>
 </body>
 </html>

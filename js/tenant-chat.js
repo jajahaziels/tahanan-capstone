@@ -1,11 +1,4 @@
-
-
-console.log('✅ tenant-chat.js (improved) is loading!');
-
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log('✅ DOMContentLoaded fired');
-  
-  // DOM Elements
   const chatMessages = document.querySelector(".chat-messages");
   const chatInput = document.querySelector(".chat-input input[type='text']");
   const sendBtn = document.querySelector(".chat-input button[type='submit']");
@@ -13,48 +6,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   const chatHeader = document.querySelector(".chat-header");
   const fileInput = document.getElementById('file-input');
 
-  // State Variables
   let currentUserId = null;
   let currentConversationId = null;
   let currentUserType = null;
   let loadMessagesInterval = null;
   let selectedFile = null;
-  let isTyping = false;
-  let typingTimeout = null;
+  let lastMessagesHash = '';
   
-  // Get conversation ID from URL
   const urlParams = new URLSearchParams(window.location.search);
   let targetConversationId = urlParams.get('conversation_id');
-  
-  console.log('🎯 Target Conversation ID from URL:', targetConversationId);
 
-  /* ========================================
-     INITIALIZATION
-     ======================================== */
-  
-  // Check session and get user info
   try {
-    console.log('🔍 Fetching session from API...');
     const sessionRes = await fetch("../api/session_check.php");
+    if (!sessionRes.ok) throw new Error(`HTTP ${sessionRes.status}`);
     
-    if (!sessionRes.ok) {
-      throw new Error(`HTTP ${sessionRes.status}`);
-    }
-    
-    const sessionText = await sessionRes.text();
-    console.log('📄 Session response received');
-    
-    let sessionData;
-    try {
-      sessionData = JSON.parse(sessionText);
-      console.log('✅ Session validated');
-    } catch (parseErr) {
-      console.error('❌ JSON parse error:', parseErr);
-      throw new Error('Invalid session response');
-    }
+    const sessionData = await JSON.parse(await sessionRes.text());
     
     if (!sessionData.success) {
-      console.error('❌ Session invalid');
       window.location.href = sessionData.redirect || "../LOGIN/login.php";
       return;
     }
@@ -62,72 +30,45 @@ document.addEventListener("DOMContentLoaded", async () => {
     currentUserId = sessionData.user_id;
     currentUserType = sessionData.user_type;
     
-    console.log('👤 User:', { id: currentUserId, type: currentUserType, name: sessionData.name });
-    
     await loadConversations();
     
   } catch (err) {
-    console.error("💥 Session error:", err);
-    
-    // Fallback to window.currentUser
     if (window.currentUser) {
-      console.log('⚠️ Using fallback user data');
       currentUserId = window.currentUser.id;
       currentUserType = window.currentUser.type;
       await loadConversations();
     } else {
       showNotification('Session expired. Please login again.', 'error');
-      setTimeout(() => {
-        window.location.href = "../LOGIN/login.php";
-      }, 2000);
+      setTimeout(() => window.location.href = "../LOGIN/login.php", 2000);
     }
   }
 
-  /* ========================================
-     LOAD CONVERSATIONS
-     ======================================== */
-  
   async function loadConversations() {
-    console.log('🔄 Loading conversations...');
-    
     try {
       const res = await fetch(
-        `../api/get_conversations.php?user_id=${currentUserId}&user_type=${currentUserType}`
+        `../api/get_conversations.php?user_id=${currentUserId}&user_type=${currentUserType}&t=${Date.now()}`,
+        { cache: 'no-cache' }
       );
       
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      
       const data = await res.json();
-      console.log('📋 Conversations:', data.conversations?.length || 0);
 
       if (data.success) {
         displayConversations(data.conversations);
         
-        // Hide loading state
         const loadingEl = document.getElementById('conversations-loading');
-        if (loadingEl) {
-          loadingEl.style.opacity = '0';
-          setTimeout(() => loadingEl.style.display = 'none', 300);
-        }
+        if (loadingEl) loadingEl.style.display = 'none';
         
-        // Handle empty state
         if (data.conversations.length === 0) {
           const noConvEl = document.getElementById('no-conversations');
-          if (noConvEl) {
-            noConvEl.style.display = 'block';
-            setTimeout(() => noConvEl.style.opacity = '1', 100);
-          }
+          if (noConvEl) noConvEl.style.display = 'block';
         } else {
           const noConvEl = document.getElementById('no-conversations');
           if (noConvEl) noConvEl.style.display = 'none';
           
-          // Select target conversation or first one
           if (targetConversationId) {
-            const targetConv = data.conversations.find(
-              c => c.conversation_id == targetConversationId
-            );
+            const targetConv = data.conversations.find(c => c.conversation_id == targetConversationId);
             if (targetConv) {
-              console.log('✅ Opening target conversation');
               selectConversation(targetConv);
               window.history.replaceState({}, document.title, window.location.pathname);
             } else {
@@ -137,113 +78,81 @@ document.addEventListener("DOMContentLoaded", async () => {
             selectConversation(data.conversations[0]);
           }
         }
-      } else {
-        throw new Error(data.error || 'Failed to load conversations');
       }
     } catch (err) {
-      console.error("❌ Load conversations error:", err);
+      console.error("Load conversations error:", err);
       showNotification('Failed to load conversations', 'error');
     }
   }
 
-  /* ========================================
-     DISPLAY CONVERSATIONS
-     ======================================== */
-  
   function displayConversations(conversations) {
-    const searchInput = document.querySelector(".search-chats");
-    conversationsList.innerHTML = "";
-    
-    // Re-add search input
-    if (searchInput) {
-      conversationsList.appendChild(searchInput);
-    }
+    const existingConvos = conversationsList.querySelectorAll('.convo');
+    existingConvos.forEach(conv => conv.remove());
 
     conversations.forEach((conv, index) => {
       const convDiv = document.createElement("div");
       convDiv.className = "convo d-flex align-items-center";
       convDiv.setAttribute("data-conversation-id", conv.conversation_id);
+      convDiv.setAttribute("data-user-name", conv.other_user_name || '');
+      convDiv.setAttribute("data-last-message", conv.last_message || '');
       convDiv.style.opacity = '0';
       convDiv.style.animation = `fadeIn 0.4s ease forwards ${index * 0.05}s`;
       
-      const profilePic = conv.other_user_profile_pic ? 
-        `../uploads/profiles/${conv.other_user_profile_pic}` : 
-        "../img/default-avatar.png";
+      let profilePicSrc = "../img/home.png";
+      
+      if (conv.other_user_profile_pic && conv.other_user_profile_pic.trim() !== '') {
+        profilePicSrc = `../uploads/${conv.other_user_profile_pic}`;
+      }
       
       const lastMessage = conv.last_message || 'No messages yet';
-      const truncatedMessage = lastMessage.length > 35 ? 
-        lastMessage.substring(0, 35) + '...' : 
-        lastMessage;
+      const truncatedMessage = lastMessage.length > 40 ? lastMessage.substring(0, 40) + '...' : lastMessage;
       
       convDiv.innerHTML = `
-        <img src="${profilePic}" alt="Profile" onerror="this.src='../img/home.png'">
+        <img src="${profilePicSrc}" 
+             alt="Profile" 
+             style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 12px;"
+             onerror="this.onerror=null; this.src='../img/home.png';">
         <div style="flex: 1; min-width: 0;">
-          <h4>${escapeHtml(conv.other_user_name || conv.other_user_type)}</h4>
-          <small>${escapeHtml(truncatedMessage)}</small>
+          <h4 style="margin: 0; font-size: 14px; font-weight: 600;">${escapeHtml(conv.other_user_name || conv.other_user_type)}</h4>
+          <small style="font-size: 12px; color: #888;">${escapeHtml(truncatedMessage)}</small>
         </div>
       `;
 
-      convDiv.addEventListener("click", () => {
-        selectConversation(conv);
-      });
-
+      convDiv.addEventListener("click", () => selectConversation(conv));
       conversationsList.appendChild(convDiv);
     });
   }
 
-  /* ========================================
-     SELECT CONVERSATION
-     ======================================== */
-  
   function selectConversation(conversation) {
-    console.log('🎯 Selecting conversation:', conversation.conversation_id);
-    
-    // Update UI
-    document.querySelectorAll(".convo").forEach(conv => {
-      conv.classList.remove("active");
-    });
+    document.querySelectorAll(".convo").forEach(conv => conv.classList.remove("active"));
 
-    const selectedConv = document.querySelector(
-      `[data-conversation-id="${conversation.conversation_id}"]`
-    );
-    if (selectedConv) {
-      selectedConv.classList.add("active");
-      selectedConv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
+    const selectedConv = document.querySelector(`[data-conversation-id="${conversation.conversation_id}"]`);
+    if (selectedConv) selectedConv.classList.add("active");
 
     currentConversationId = conversation.conversation_id;
+    lastMessagesHash = '';
     
-    // Update header with animation
-    chatHeader.style.opacity = '0';
-    setTimeout(() => {
-      chatHeader.textContent = `Chat with ${conversation.other_user_name || conversation.other_user_type}`;
-      chatHeader.style.opacity = '1';
-    }, 150);
+    chatHeader.textContent = `Chat with ${conversation.other_user_name || conversation.other_user_type}`;
     
-    // Enable input
     if (chatInput) {
       chatInput.disabled = false;
       chatInput.placeholder = "Type a message...";
+      chatInput.focus();
     }
     if (sendBtn) sendBtn.disabled = false;
     
-    // Clear previous interval
     if (loadMessagesInterval) {
       clearInterval(loadMessagesInterval);
+      loadMessagesInterval = null;
     }
     
-    // Load messages
     loadMessages();
-    loadMessagesInterval = setInterval(loadMessages, 3000);
+    loadMessagesInterval = setInterval(() => {
+      if (!document.hidden) loadMessages();
+    }, 3000);
   }
 
-  /* ========================================
-     SEND MESSAGE
-     ======================================== */
-  
-  if (sendBtn) {
-    sendBtn.addEventListener("click", sendMessage);
-  }
+  if (sendBtn) sendBtn.addEventListener("click", sendMessage);
   
   if (chatInput) {
     chatInput.addEventListener("keypress", (e) => {
@@ -251,21 +160,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         e.preventDefault();
         sendMessage();
       }
-    });
-    
-    // Typing indicator (optional - for future implementation)
-    chatInput.addEventListener("input", () => {
-      if (typingTimeout) clearTimeout(typingTimeout);
-      
-      if (!isTyping && chatInput.value.trim()) {
-        isTyping = true;
-        // Send typing status to server
-      }
-      
-      typingTimeout = setTimeout(() => {
-        isTyping = false;
-        // Send stop typing to server
-      }, 1000);
     });
   }
 
@@ -278,11 +172,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // Disable inputs
-    if (chatInput) {
-      chatInput.disabled = true;
-      chatInput.style.opacity = '0.6';
-    }
+    const originalButtonHTML = sendBtn.innerHTML;
+    if (chatInput) chatInput.disabled = true;
     if (sendBtn) {
       sendBtn.disabled = true;
       sendBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
@@ -290,14 +181,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const formData = new FormData();
     formData.append("conversation_id", currentConversationId);
-    
-    if (message) {
-      formData.append("message", message);
-    }
-    
-    if (selectedFile) {
-      formData.append("file", selectedFile);
-    }
+    if (message) formData.append("message", message);
+    if (selectedFile) formData.append("file", selectedFile);
 
     try {
       const res = await fetch("../api/send_message.php", {
@@ -306,71 +191,59 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
       const data = await res.json();
       
       if (data.success) {
-        // Clear input
         if (chatInput) chatInput.value = "";
         if (selectedFile) removeFile();
         
-        // Reload messages and conversations
+        lastMessagesHash = '';
         await loadMessages();
-        await loadConversations();
         
-        // Show success feedback
         if (sendBtn) {
           sendBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
           setTimeout(() => {
-            if (sendBtn) sendBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i>';
+            if (sendBtn) sendBtn.innerHTML = originalButtonHTML;
           }, 1000);
         }
       } else {
         throw new Error(data.error || 'Failed to send message');
       }
     } catch (err) {
-      console.error("❌ Send error:", err);
+      console.error("Send error:", err);
       showNotification(err.message || "Failed to send message", 'error');
-      
-      if (sendBtn) {
-        sendBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
-        setTimeout(() => {
-          if (sendBtn) sendBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i>';
-        }, 1500);
-      }
+      if (sendBtn) sendBtn.innerHTML = originalButtonHTML;
     } finally {
-      // Re-enable inputs
       if (chatInput) {
         chatInput.disabled = false;
-        chatInput.style.opacity = '1';
         chatInput.focus();
       }
       if (sendBtn) sendBtn.disabled = false;
     }
   }
 
-  /* ========================================
-     LOAD MESSAGES
-     ======================================== */
-  
   async function loadMessages() {
     if (!currentConversationId || !chatMessages) return;
 
     try {
       const res = await fetch(
-        `../api/get_messages.php?conversation_id=${currentConversationId}`
+        `../api/get_messages.php?conversation_id=${currentConversationId}&t=${Date.now()}`,
+        { cache: 'no-cache' }
       );
       
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      
       const data = await res.json();
 
       if (data.success) {
+        const messagesHash = JSON.stringify(data.messages.map(m => m.id + m.created_at));
+        
+        if (messagesHash === lastMessagesHash && data.messages.length > 0) {
+          return;
+        }
+        
+        lastMessagesHash = messagesHash;
         const wasAtBottom = isScrolledToBottom();
         
-        chatMessages.innerHTML = "";
-        
-        // Empty state
         if (data.messages.length === 0) {
           chatMessages.innerHTML = `
             <div class="empty-chat">
@@ -384,55 +257,37 @@ document.addEventListener("DOMContentLoaded", async () => {
           return;
         }
 
-        // Render messages
+        chatMessages.innerHTML = "";
         data.messages.forEach((msg, index) => {
           const messageEl = createMessageElement(msg, index);
           chatMessages.appendChild(messageEl);
         });
 
-        // Auto-scroll if was at bottom
-        if (wasAtBottom) {
-          smoothScrollToBottom();
-        }
-      } else {
-        throw new Error(data.error || 'Failed to load messages');
+        if (wasAtBottom) chatMessages.scrollTop = chatMessages.scrollHeight;
       }
     } catch (err) {
-      console.error("❌ Load messages error:", err);
-      // Don't show notification for polling errors
+      console.error("Load messages error:", err);
     }
   }
 
-  /* ========================================
-     CREATE MESSAGE ELEMENT
-     ======================================== */
-  
   function createMessageElement(msg, index) {
-    // Determine if message is mine
-    const isMine = (parseInt(msg.sender_id) === parseInt(currentUserId)) && 
-                   (msg.sender_type === currentUserType);
+    const isMine = (parseInt(msg.sender_id) === parseInt(currentUserId)) && (msg.sender_type === currentUserType);
     
     const messageDiv = document.createElement("div");
     messageDiv.classList.add("message");
     messageDiv.classList.add(isMine ? "sent" : "received");
-    messageDiv.style.animationDelay = `${index * 0.03}s`;
     
-    // Avatar
     const avatar = document.createElement("img");
     avatar.classList.add("message-avatar");
     avatar.src = "../img/home.png";
-    avatar.alt = "User";
     avatar.onerror = function() { this.src = "../img/home.png"; };
     
-    // Bubble container
     const bubbleDiv = document.createElement("div");
     bubbleDiv.classList.add("message-bubble");
     
-    // Content
     const contentDiv = document.createElement("div");
     contentDiv.classList.add("message-content");
     
-    // Handle files
     if (msg.file_path) {
       const fileDiv = document.createElement("div");
       fileDiv.classList.add("message-file");
@@ -440,28 +295,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (msg.file_type === 'image') {
         const img = document.createElement("img");
         img.src = msg.file_path;
-        img.alt = "Image";
         img.onclick = () => openImageModal(msg.file_path);
         img.style.maxWidth = '300px';
         img.style.maxHeight = '300px';
+        img.style.cursor = 'pointer';
         fileDiv.appendChild(img);
         contentDiv.appendChild(fileDiv);
         contentDiv.style.background = 'transparent';
-        contentDiv.style.border = 'none';
         contentDiv.style.padding = '0';
-        contentDiv.style.boxShadow = 'none';
       } else {
         const link = document.createElement("a");
         link.href = msg.file_path;
         link.download = msg.message;
         link.innerHTML = `
-          <div class="message-file-icon">
-            <i class="fa-solid ${getFileIcon(msg.file_path)}"></i>
-          </div>
-          <div class="message-file-info">
-            <p class="message-file-name">${escapeHtml(msg.message)}</p>
-            <p class="message-file-size">${formatFileSize(msg.file_size)}</p>
-          </div>
+          <i class="fa-solid ${getFileIcon(msg.file_path)}"></i>
+          <span>${escapeHtml(msg.message)}</span>
           <i class="fa-solid fa-download"></i>
         `;
         fileDiv.appendChild(link);
@@ -471,15 +319,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       contentDiv.textContent = msg.message;
     }
     
-    // Meta (time and status)
     const metaDiv = document.createElement("div");
     metaDiv.classList.add("message-meta");
     
     const timeSpan = document.createElement("span");
     timeSpan.classList.add("message-time");
     timeSpan.textContent = formatMessageTime(msg.created_at);
-    timeSpan.title = new Date(msg.created_at).toLocaleString();
-    
     metaDiv.appendChild(timeSpan);
     
     if (isMine) {
@@ -489,44 +334,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       metaDiv.appendChild(statusSpan);
     }
     
-    // Assemble
     bubbleDiv.appendChild(contentDiv);
     bubbleDiv.appendChild(metaDiv);
-    
     messageDiv.appendChild(avatar);
     messageDiv.appendChild(bubbleDiv);
     
     return messageDiv;
   }
 
-  /* ========================================
-     FILE HANDLING
-     ======================================== */
-  
   if (fileInput) {
     fileInput.addEventListener('change', function(e) {
       const file = e.target.files[0];
       if (!file) return;
       
-      // Validate file size (10MB max)
       if (file.size > 10485760) {
         showNotification("File too large. Maximum size is 10MB.", 'error');
-        fileInput.value = '';
-        return;
-      }
-      
-      // Validate file type
-      const allowedTypes = [
-        'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-        'application/pdf', 'application/msword',
-        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-        'application/vnd.ms-excel',
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'text/plain'
-      ];
-      
-      if (!allowedTypes.includes(file.type)) {
-        showNotification("File type not supported", 'error');
         fileInput.value = '';
         return;
       }
@@ -546,9 +368,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     if (!icon || !nameElem || !sizeElem) return;
     
-    // Set appropriate icon
     icon.className = `fa-solid ${getFileIcon(file.name)}`;
-    
     nameElem.textContent = file.name;
     sizeElem.textContent = formatFileSize(file.size);
     preview.classList.add('show');
@@ -561,44 +381,47 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (preview) preview.classList.remove('show');
   }
 
-  /* ========================================
-     SEARCH FUNCTIONALITY
-     ======================================== */
-  
   const searchInput = document.querySelector(".search-chats");
   if (searchInput) {
     let searchTimeout;
     
     searchInput.addEventListener("input", (e) => {
       clearTimeout(searchTimeout);
-      
       const searchTerm = e.target.value.toLowerCase().trim();
       
       searchTimeout = setTimeout(() => {
-        document.querySelectorAll(".convo").forEach((conv, index) => {
-          const text = conv.textContent.toLowerCase();
-          const matches = text.includes(searchTerm);
+        const conversations = document.querySelectorAll(".convo");
+        let visibleCount = 0;
+        
+        conversations.forEach((conv) => {
+          const userName = (conv.getAttribute('data-user-name') || '').toLowerCase();
+          const lastMessage = (conv.getAttribute('data-last-message') || '').toLowerCase();
           
-          if (matches) {
+          const matches = userName.includes(searchTerm) || lastMessage.includes(searchTerm);
+          
+          if (searchTerm === '' || matches) {
             conv.style.display = "flex";
-            conv.style.animation = `fadeIn 0.3s ease forwards ${index * 0.05}s`;
+            visibleCount++;
           } else {
-            conv.style.opacity = '0';
-            setTimeout(() => {
-              if (!searchTerm || !text.includes(searchTerm)) {
-                conv.style.display = "none";
-              }
-            }, 300);
+            conv.style.display = "none";
           }
         });
+        
+        const noConvEl = document.getElementById('no-conversations');
+        if (noConvEl) {
+          if (searchTerm && visibleCount === 0) {
+            noConvEl.innerHTML = '<i class="fa-solid fa-search"></i><p>No conversations found</p><small>Try a different search term</small>';
+            noConvEl.style.display = 'block';
+          } else if (searchTerm === '') {
+            noConvEl.style.display = conversations.length === 0 ? 'block' : 'none';
+          } else {
+            noConvEl.style.display = 'none';
+          }
+        }
       }, 300);
     });
   }
 
-  /* ========================================
-     UTILITY FUNCTIONS
-     ======================================== */
-  
   function formatMessageTime(timestamp) {
     const messageDate = new Date(timestamp);
     const now = new Date();
@@ -613,14 +436,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (diffDays === 1) return "Yesterday";
     if (diffDays < 7) return `${diffDays}d ago`;
     
-    return messageDate.toLocaleDateString('en-US', { 
-      month: 'short', 
-      day: 'numeric' 
-    });
+    return messageDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
 
   function formatFileSize(bytes) {
-    if (!bytes || bytes === 0) return '0 Bytes';
+    if (!bytes) return '0 Bytes';
     const k = 1024;
     const sizes = ['Bytes', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -630,17 +450,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   function getFileIcon(filename) {
     const ext = filename.split('.').pop().toLowerCase();
     const iconMap = {
-      'pdf': 'fa-file-pdf',
-      'doc': 'fa-file-word',
-      'docx': 'fa-file-word',
-      'xls': 'fa-file-excel',
-      'xlsx': 'fa-file-excel',
-      'txt': 'fa-file-lines',
-      'jpg': 'fa-file-image',
-      'jpeg': 'fa-file-image',
-      'png': 'fa-file-image',
-      'gif': 'fa-file-image',
-      'webp': 'fa-file-image'
+      'pdf': 'fa-file-pdf', 'doc': 'fa-file-word', 'docx': 'fa-file-word',
+      'xls': 'fa-file-excel', 'xlsx': 'fa-file-excel', 'txt': 'fa-file-lines',
+      'jpg': 'fa-file-image', 'jpeg': 'fa-file-image', 'png': 'fa-file-image',
+      'gif': 'fa-file-image', 'webp': 'fa-file-image'
     };
     return iconMap[ext] || 'fa-file';
   }
@@ -653,52 +466,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function isScrolledToBottom() {
     if (!chatMessages) return false;
-    return chatMessages.scrollTop + chatMessages.clientHeight >= 
-           chatMessages.scrollHeight - 50;
-  }
-
-  function smoothScrollToBottom() {
-    if (!chatMessages) return;
-    chatMessages.scrollTo({
-      top: chatMessages.scrollHeight,
-      behavior: 'smooth'
-    });
+    return chatMessages.scrollTop + chatMessages.clientHeight >= chatMessages.scrollHeight - 50;
   }
 
   function openImageModal(imageSrc) {
-    // Create modal overlay
     const modal = document.createElement('div');
-    modal.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.9);
-      z-index: 10000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: zoom-out;
-      animation: fadeIn 0.3s ease;
-    `;
+    modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:10000;display:flex;align-items:center;justify-content:center;cursor:zoom-out;';
     
     const img = document.createElement('img');
     img.src = imageSrc;
-    img.style.cssText = `
-      max-width: 90%;
-      max-height: 90%;
-      border-radius: 8px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    `;
+    img.style.cssText = 'max-width:90%;max-height:90%;border-radius:8px;box-shadow:0 20px 60px rgba(0,0,0,0.5);';
     
     modal.appendChild(img);
     document.body.appendChild(modal);
-    
-    modal.onclick = () => {
-      modal.style.animation = 'fadeOut 0.3s ease';
-      setTimeout(() => document.body.removeChild(modal), 300);
-    };
+    modal.onclick = () => document.body.removeChild(modal);
   }
 
   function showNotification(message, type = 'info') {
@@ -708,60 +489,29 @@ document.addEventListener("DOMContentLoaded", async () => {
       warning: { bg: '#ed8936', icon: 'exclamation-triangle' },
       info: { bg: '#667eea', icon: 'info-circle' }
     };
-    
     const color = colors[type] || colors.info;
-    
     const notification = document.createElement("div");
-    notification.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: ${color.bg};
-      color: white;
-      padding: 16px 24px;
-      border-radius: 12px;
-      z-index: 10000;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      max-width: 400px;
-      font-size: 14px;
-      font-weight: 500;
-    `;
-    
-    notification.innerHTML = `
-      <i class="fa-solid fa-${color.icon}"></i>
-      <span>${escapeHtml(message)}</span>
-    `;
-    
+    notification.style.cssText = `position:fixed;top:20px;right:20px;background:${color.bg};color:white;padding:16px 24px;border-radius:12px;z-index:10000;box-shadow:0 10px 30px rgba(0,0,0,0.3);display:flex;align-items:center;gap:12px;font-size:14px;font-weight:500;`;
+    notification.innerHTML = `<i class="fa-solid fa-${color.icon}"></i><span>${escapeHtml(message)}</span>`;
     document.body.appendChild(notification);
-    
     setTimeout(() => {
-      notification.style.animation = "slideOut 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards";
-      setTimeout(() => {
-        if (document.body.contains(notification)) {
-          document.body.removeChild(notification);
-        }
-      }, 400);
+      if (document.body.contains(notification)) document.body.removeChild(notification);
     }, 4000);
   }
 
-  /* ========================================
-     CLEANUP
-     ======================================== */
-  
   window.addEventListener("beforeunload", () => {
-    if (loadMessagesInterval) {
+    if (loadMessagesInterval) clearInterval(loadMessagesInterval);
+  });
+  
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden && loadMessagesInterval) {
       clearInterval(loadMessagesInterval);
+    } else if (!document.hidden && currentConversationId) {
+      if (loadMessagesInterval) clearInterval(loadMessagesInterval);
+      loadMessagesInterval = setInterval(() => {
+        if (!document.hidden) loadMessages();
+      }, 3000);
+      loadMessages();
     }
   });
-
-  // Initial focus
-  if (chatInput && !chatInput.disabled) {
-    chatInput.focus();
-  }
-
-  console.log('✅ Chat system initialized successfully');
 });
