@@ -2,36 +2,39 @@
 require_once '../session_auth.php';
 require_once '../connection.php';
 
-// Get admin info
 $admin_name = $_SESSION['username'];
+$admin_id = $_SESSION['admin_id'];
 
-// Get pending verification count for badge
 $pending_verification = $conn->query("SELECT COUNT(*) as count FROM landlordtbl WHERE verification_status='pending'")->fetch_assoc()['count'];
 
-// Handle search
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+$status_filter = isset($_GET['status']) ? $_GET['status'] : 'pending';
 
-// Handle verification filter
-$filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
-
-// Fetch listings with search and filter
-$listings_query = "SELECT * FROM listingtbl WHERE 1=1";
+$pending_query = "
+    SELECT 
+        l.*,
+        CONCAT(ll.firstName, ' ', ll.middleName, ' ', ll.lastName) as landlord_name,
+        ll.email as landlord_email,
+        ll.phoneNum as landlord_phone
+    FROM listingtbl l
+    LEFT JOIN landlordtbl ll ON l.landlord_id = ll.ID
+    WHERE l.verification_status = ?
+";
 
 if (!empty($search)) {
-    $listings_query .= " AND (listingName LIKE '%$search%' OR barangay LIKE '%$search%' OR listingDesc LIKE '%$search%')";
+    $pending_query .= " AND (l.listingName LIKE '%$search%' OR l.barangay LIKE '%$search%' OR ll.firstName LIKE '%$search%' OR ll.lastName LIKE '%$search%')";
 }
 
-if ($filter !== 'all') {
-    $listings_query .= " AND verification_status = '$filter'";
-}
+$pending_query .= " ORDER BY l.listingDate DESC";
 
-$listings_query .= " ORDER BY ID DESC";
-$listings_result = $conn->query($listings_query);
+$stmt = $conn->prepare($pending_query);
+$stmt->bind_param("s", $status_filter);
+$stmt->execute();
+$pending_result = $stmt->get_result();
 
-// Get statistics
-$total_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl")->fetch_assoc()['count'];
-$available_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHERE availability='available'")->fetch_assoc()['count'];
-$occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHERE availability='occupied'")->fetch_assoc()['count'];
+$total_pending = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHERE verification_status='pending'")->fetch_assoc()['count'];
+$total_approved = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHERE verification_status='approved'")->fetch_assoc()['count'];
+$total_rejected = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHERE verification_status='rejected'")->fetch_assoc()['count'];
 ?>
 
 <!DOCTYPE html>
@@ -39,7 +42,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Property Listings - Admin Dashboard</title>
+  <title>Property Verification - Admin Dashboard</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
   
   <style>
@@ -71,7 +74,6 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       overflow-x: hidden;
     }
 
-    /* ========== SIDEBAR STYLES ========== */
     .sidebar {
       position: fixed;
       top: 0;
@@ -330,23 +332,6 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       top: 8px;
     }
 
-    .sidebar.collapsed li a:hover::after {
-      content: attr(data-tooltip);
-      position: absolute;
-      left: 70px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: var(--sidebar-color);
-      color: var(--text-color);
-      padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 13px;
-      white-space: nowrap;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-      z-index: 1001;
-    }
-
-    /* ========== MAIN CONTENT ========== */
     .content {
       margin-left: 260px;
       padding: 30px;
@@ -374,7 +359,6 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       font-size: 14px;
     }
 
-    /* ========== STATS BAR ========== */
     .stats-bar {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -392,6 +376,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       align-items: center;
       gap: 16px;
       transition: all 0.3s;
+      cursor: pointer;
     }
 
     .stat-box:hover {
@@ -400,9 +385,10 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       border-color: var(--stat-color);
     }
 
-    .stat-box.total { --stat-color: #667eea; }
-    .stat-box.available { --stat-color: #43e97b; }
-    .stat-box.occupied { --stat-color: #feca57; }
+    .stat-box.pending { --stat-color: #fbbf24; }
+    .stat-box.approved { --stat-color: #10b981; }
+    .stat-box.rejected { --stat-color: #ef4444; }
+    .stat-box.active { border-color: var(--stat-color); border-width: 2px; }
 
     .stat-icon {
       width: 50px;
@@ -429,8 +415,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       margin: 0;
     }
 
-    /* ========== SEARCH BAR ========== */
-    .search-section {
+    .filters-section {
       background: var(--card-bg);
       padding: 24px;
       border-radius: 12px;
@@ -487,109 +472,55 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       box-shadow: 0 4px 12px rgba(141, 11, 65, 0.3);
     }
 
-    .btn-clear {
-      padding: 12px 24px;
-      background: #6c757d;
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.3s;
-    }
-
-    .btn-clear:hover {
-      background: #5a6268;
-      color: white;
-    }
-
-    /* ========== LISTING CARDS ========== */
-    .listings-container {
+    .properties-table {
       background: var(--card-bg);
       border-radius: 12px;
       padding: 24px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.3);
       border: 1px solid var(--border-color);
+      overflow-x: auto;
     }
 
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
-    }
-
-    .listing-card {
-      background: var(--sidebar-hover);
-      border-radius: 12px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-      transition: all 0.3s ease;
-      opacity: 1;
-      border: 1px solid var(--border-color);
-    }
-
-    .listing-card:hover {
-      transform: translateY(-8px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-      border-color: var(--primary-color);
-    }
-
-    .listing-card.is-hidden {
-      opacity: 0;
-      transform: scale(0.97);
-      pointer-events: none;
-    }
-
-    .listing-card img {
+    table {
       width: 100%;
-      height: 200px;
-      object-fit: cover;
-      transition: transform 0.3s ease;
-      background: var(--border-color);
+      border-collapse: collapse;
     }
 
-    .listing-card:hover img {
-      transform: scale(1.05);
+    thead tr {
+      background: var(--sidebar-hover);
     }
 
-    .card-body {
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .card-body h3 {
-      margin: 0;
-      font-size: 18px;
+    th {
+      padding: 16px;
+      text-align: left;
+      font-size: 13px;
       font-weight: 600;
-      color: #ffffff;
-    }
-
-    .card-body .price {
-      font-weight: 700;
-      font-size: 20px;
-      color: var(--primary-color);
-      margin: 0;
-    }
-
-    .card-body .details {
-      font-size: 14px;
       color: var(--text-muted);
-      line-height: 1.6;
-      flex-grow: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid var(--border-color);
     }
 
-    .card-body .details i {
-      color: var(--primary-color);
-      margin-right: 6px;
+    td {
+      padding: 16px;
+      color: var(--text-color);
+      border-bottom: 1px solid var(--border-color);
+      font-size: 14px;
     }
 
-    .availability-badge {
+    tr:hover {
+      background: var(--sidebar-hover);
+    }
+
+    .property-thumb {
+      width: 80px;
+      height: 60px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 2px solid var(--border-color);
+    }
+
+    .status-badge {
       display: inline-flex;
       align-items: center;
       padding: 6px 12px;
@@ -599,70 +530,43 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       gap: 6px;
     }
 
-    .availability-badge.available {
-      background: rgba(67, 233, 123, 0.15);
-      color: #43e97b;
+    .status-badge.pending {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
     }
 
-    .availability-badge.occupied {
-      background: rgba(254, 202, 87, 0.15);
-      color: #feca57;
+    .status-badge.approved {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
     }
 
-    .card-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 12px;
+    .status-badge.rejected {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
     }
 
-    .btn-outline {
-      flex: 1;
-      border: 2px solid var(--primary-color);
-      background: transparent;
-      color: var(--primary-color);
-      padding: 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      font-size: 13px;
-      transition: all 0.3s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .btn-outline:hover {
-      background: var(--primary-color);
-      color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(141, 11, 65, 0.3);
-    }
-
-    .btn-primary {
-      flex: 1;
-      background: var(--primary-color);
-      color: white;
+    .btn-action {
+      padding: 8px 16px;
       border: none;
-      padding: 10px;
       border-radius: 8px;
       cursor: pointer;
       font-weight: 600;
-      font-size: 13px;
+      font-size: 12px;
       transition: all 0.3s;
-      display: flex;
+      display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 6px;
+      background: var(--primary-color);
+      color: white;
+      text-decoration: none;
     }
 
-    .btn-primary:hover {
+    .btn-action:hover {
       background: var(--primary-hover);
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(141, 11, 65, 0.3);
     }
 
-    /* Empty State */
     .empty-state {
       text-align: center;
       padding: 60px 20px;
@@ -673,33 +577,18 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       font-size: 64px;
       opacity: 0.3;
       margin-bottom: 16px;
-      color: #6c757d;
     }
 
-    .empty-state p {
-      font-size: 16px;
-      font-weight: 500;
-    }
-
-    /* ========== RESPONSIVE ========== */
     @media (max-width: 768px) {
       .sidebar {
         transform: translateX(-100%);
-      }
-
-      .sidebar.active {
-        transform: translateX(0);
       }
 
       .content {
         margin-left: 0;
       }
 
-      .sidebar.collapsed ~ .content {
-        margin-left: 0;
-      }
-
-      .card-grid {
+      .stats-bar {
         grid-template-columns: 1fr;
       }
     }
@@ -708,7 +597,6 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
 
 <body>
 
-  <!-- SIDEBAR -->
   <nav class="sidebar">
     <header>
       <div class="image-text">
@@ -750,20 +638,17 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
             </a>
           </li>
           <li>
-            <a href="listing.php" class="active" data-tooltip="Listing">
+            <a href="listing.php" data-tooltip="Listing">
               <i class='bx bx-building-house icon'></i>
               <span class="text">Listing</span>
             </a>
           </li>
           <li>
-            <a href="verify-properties.php" data-tooltip="Verify Properties">
+            <a href="verify-properties.php" class="active" data-tooltip="Verify Properties">
               <i class='bx bx-shield-alt-2 icon'></i>
               <span class="text">Verify Properties</span>
-              <?php 
-              $pending_props = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHERE verification_status='pending'")->fetch_assoc()['count'];
-              if($pending_props > 0): 
-              ?>
-                <span class="badge"><?= $pending_props ?></span>
+              <?php if($total_pending > 0): ?>
+                <span class="badge"><?= $total_pending ?></span>
               <?php endif; ?>
             </a>
           </li>
@@ -800,211 +685,134 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
     </div>
   </nav>
 
-  <!-- MAIN CONTENT -->
   <main class="content">
-    <!-- Page Header -->
     <div class="page-header">
-      <h1>Property Listings</h1>
-      <p>Manage all property listings across the platform</p>
+      <h1>Property Verification</h1>
+      <p>Review and verify property listings before they go live</p>
     </div>
 
-    <!-- Stats Bar -->
     <div class="stats-bar">
-      <div class="stat-box total">
+      <div class="stat-box pending <?= $status_filter === 'pending' ? 'active' : '' ?>" onclick="filterByStatus('pending')">
         <div class="stat-icon">
-          <i class='bx bx-building'></i>
+          <i class='bx bx-time'></i>
         </div>
         <div class="stat-info">
-          <h3><?= $total_listings ?></h3>
-          <p>Total Listings</p>
+          <h3><?= $total_pending ?></h3>
+          <p>Pending Review</p>
         </div>
       </div>
 
-      <div class="stat-box available">
+      <div class="stat-box approved <?= $status_filter === 'approved' ? 'active' : '' ?>" onclick="filterByStatus('approved')">
         <div class="stat-icon">
           <i class='bx bx-check-circle'></i>
         </div>
         <div class="stat-info">
-          <h3><?= $available_listings ?></h3>
-          <p>Available</p>
+          <h3><?= $total_approved ?></h3>
+          <p>Approved</p>
         </div>
       </div>
 
-      <div class="stat-box occupied">
+      <div class="stat-box rejected <?= $status_filter === 'rejected' ? 'active' : '' ?>" onclick="filterByStatus('rejected')">
         <div class="stat-icon">
-          <i class='bx bx-key'></i>
+          <i class='bx bx-x-circle'></i>
         </div>
         <div class="stat-info">
-          <h3><?= $occupied_listings ?></h3>
-          <p>Occupied</p>
+          <h3><?= $total_rejected ?></h3>
+          <p>Rejected</p>
         </div>
       </div>
     </div>
 
-    <!-- Verification Filter -->
-    <div class="stats-bar" style="margin-bottom: 20px;">
-      <a href="?filter=all" style="text-decoration: none;">
-        <div class="stat-box" style="cursor: pointer;">
-          <div class="stat-icon"><i class='bx bx-building'></i></div>
-          <div class="stat-info">
-            <h3><?= $conn->query("SELECT COUNT(*) as count FROM listingtbl")->fetch_assoc()['count'] ?></h3>
-            <p>All Properties</p>
-          </div>
-        </div>
-      </a>
-      
-      <a href="?filter=pending" style="text-decoration: none;">
-        <div class="stat-box" style="cursor: pointer; --stat-color: #fbbf24;">
-          <div class="stat-icon"><i class='bx bx-time'></i></div>
-          <div class="stat-info">
-            <h3><?= $conn->query("SELECT COUNT(*) as count FROM listingtbl WHERE verification_status='pending'")->fetch_assoc()['count'] ?></h3>
-            <p>Pending</p>
-          </div>
-        </div>
-      </a>
-      
-      <a href="?filter=approved" style="text-decoration: none;">
-        <div class="stat-box" style="cursor: pointer; --stat-color: #10b981;">
-          <div class="stat-icon"><i class='bx bx-check-circle'></i></div>
-          <div class="stat-info">
-            <h3><?= $conn->query("SELECT COUNT(*) as count FROM listingtbl WHERE verification_status='approved'")->fetch_assoc()['count'] ?></h3>
-            <p>Approved</p>
-          </div>
-        </div>
-      </a>
-      
-      <a href="?filter=rejected" style="text-decoration: none;">
-        <div class="stat-box" style="cursor: pointer; --stat-color: #ef4444;">
-          <div class="stat-icon"><i class='bx bx-x-circle'></i></div>
-          <div class="stat-info">
-            <h3><?= $conn->query("SELECT COUNT(*) as count FROM listingtbl WHERE verification_status='rejected'")->fetch_assoc()['count'] ?></h3>
-            <p>Rejected</p>
-          </div>
-        </div>
-      </a>
-    </div>
-
-    <!-- Search Section -->
-    <div class="search-section">
+    <div class="filters-section">
       <form method="GET" class="search-bar">
+        <input type="hidden" name="status" value="<?= htmlspecialchars($status_filter) ?>">
         <input type="text" 
                name="search" 
-               id="searchInput"
-               placeholder="🔍 Search by property name, location..." 
+               placeholder="🔍 Search by property name, location, or landlord..." 
                value="<?= htmlspecialchars($search) ?>">
         <button type="submit" class="btn-search">
           <i class='bx bx-search'></i> Search
         </button>
-        <?php if (!empty($search)): ?>
-          <a href="listing.php" class="btn-clear">
-            <i class='bx bx-x'></i> Clear
-          </a>
-        <?php endif; ?>
       </form>
     </div>
 
-    <!-- Listings Grid -->
-    <div class="listings-container">
-      <?php if ($listings_result && $listings_result->num_rows > 0): ?>
-        <div class="card-grid">
-          <?php while($listing = $listings_result->fetch_assoc()): ?>
-            <div class="listing-card">
+    <div class="properties-table">
+      <?php if ($pending_result->num_rows > 0): ?>
+        <table>
+          <thead>
+            <tr>
+              <th>Property</th>
+              <th>Landlord</th>
+              <th>Location</th>
+              <th>Price</th>
+              <th>Submitted</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php while($property = $pending_result->fetch_assoc()): ?>
               <?php
-              $images = !empty($listing['images']) ? $listing['images'] : '';
+              $images = !empty($property['images']) ? $property['images'] : '';
               $first_image = '../img/house1.jpeg';
               
               if (!empty($images)) {
                   $image_array = json_decode($images, true);
-                  
                   if (!is_array($image_array)) {
                       $image_array = array_map('trim', explode(',', $images));
                   }
-                  
                   if (!empty($image_array) && isset($image_array[0])) {
                       $raw_image = trim($image_array[0]);
-                      
                       if (!empty($raw_image)) {
-                          if (strpos($raw_image, '../LANDLORD/') === 0) {
-                              $first_image = $raw_image;
-                          } elseif (strpos($raw_image, 'uploads/') === 0) {
-                              $first_image = '../LANDLORD/' . $raw_image;
-                          } elseif (strpos($raw_image, 'LANDLORD/') === 0) {
-                              $first_image = '../' . $raw_image;
-                          } else {
-                              $first_image = '../LANDLORD/uploads/' . $raw_image;
-                          }
+                          $first_image = '../LANDLORD/uploads/' . $raw_image;
                       }
                   }
               }
               ?>
-              <img src="<?= htmlspecialchars($first_image) ?>" 
-                   alt="<?= htmlspecialchars($listing['listingName']) ?>"
-                   loading="lazy"
-                   onerror="this.onerror=null; this.src='../img/house1.jpeg';">
-              <div class="card-body">
-                <h3><?= htmlspecialchars($listing['listingName']) ?></h3>
-                <div class="price">₱<?= number_format($listing['price']) ?>/month</div>
-                
-                <?php if (isset($listing['verification_status'])): ?>
-                  <?php if ($listing['verification_status'] === 'pending'): ?>
-                    <span class="availability-badge" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24;">
-                      <i class='bx bx-time'></i>
-                      Pending Verification
-                    </span>
-                  <?php elseif ($listing['verification_status'] === 'rejected'): ?>
-                    <span class="availability-badge" style="background: rgba(239, 68, 68, 0.15); color: #ef4444;">
-                      <i class='bx bx-x-circle'></i>
-                      Rejected
-                    </span>
-                  <?php else: ?>
-                    <span class="availability-badge <?= $listing['availability'] ?>">
-                      <i class='bx <?= $listing['availability'] == 'available' ? 'bx-check-circle' : 'bx-lock' ?>'></i>
-                      <?= ucfirst($listing['availability']) ?>
-                    </span>
-                  <?php endif; ?>
-                <?php else: ?>
-                  <span class="availability-badge <?= $listing['availability'] ?>">
-                    <i class='bx <?= $listing['availability'] == 'available' ? 'bx-check-circle' : 'bx-lock' ?>'></i>
-                    <?= ucfirst($listing['availability']) ?>
+              <tr>
+                <td>
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="<?= htmlspecialchars($first_image) ?>" 
+                         class="property-thumb"
+                         onerror="this.src='../img/house1.jpeg';">
+                    <div>
+                      <strong><?= htmlspecialchars($property['listingName']) ?></strong><br>
+                      <small style="color: var(--text-muted);"><?= htmlspecialchars($property['category']) ?></small>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <strong><?= htmlspecialchars($property['landlord_name']) ?></strong><br>
+                  <small style="color: var(--text-muted);"><?= htmlspecialchars($property['landlord_email']) ?></small>
+                </td>
+                <td><?= htmlspecialchars($property['barangay']) ?>, San Pedro</td>
+                <td><strong style="color: var(--primary-color);">₱<?= number_format($property['price']) ?></strong>/mo</td>
+                <td><?= date('M d, Y', strtotime($property['listingDate'])) ?></td>
+                <td>
+                  <span class="status-badge <?= $property['verification_status'] ?>">
+                    <i class='bx <?= $property['verification_status'] === 'pending' ? 'bx-time' : ($property['verification_status'] === 'approved' ? 'bx-check' : 'bx-x') ?>'></i>
+                    <?= ucfirst($property['verification_status']) ?>
                   </span>
-                <?php endif; ?>
-
-                <div class="details">
-                  <div><i class='bx bx-map'></i><?= htmlspecialchars($listing['barangay']) ?><?= !empty($listing['city']) ? ', ' . htmlspecialchars($listing['city']) : '' ?></div>
-                  <?php if(!empty($listing['bedrooms'])): ?>
-                    <div><i class='bx bx-bed'></i><?= htmlspecialchars($listing['bedrooms']) ?> Bedrooms</div>
-                  <?php endif; ?>
-                  <?php if(!empty($listing['bathrooms'])): ?>
-                    <div><i class='bx bx-bath'></i><?= htmlspecialchars($listing['bathrooms']) ?> Bathrooms</div>
-                  <?php endif; ?>
-                  <?php if(!empty($listing['rooms'])): ?>
-                    <div><i class='bx bx-door-open'></i><?= htmlspecialchars($listing['rooms']) ?> Rooms</div>
-                  <?php endif; ?>
-                </div>
-
-                <div class="card-actions">
-                  <button class="btn-outline" onclick="viewListing(<?= $listing['ID'] ?>)">
-                    <i class='bx bx-show'></i> View
-                  </button>
-                  <button class="btn-primary" onclick="deleteListing(<?= $listing['ID'] ?>, '<?= htmlspecialchars($listing['listingName']) ?>')">
-                    <i class='bx bx-trash'></i> Remove
-                  </button>
-                </div>
-              </div>
-            </div>
-          <?php endwhile; ?>
-        </div>
+                </td>
+                <td>
+                  <a href="review-property.php?id=<?= $property['ID'] ?>" class="btn-action">
+                    <i class='bx bx-search'></i> Review
+                  </a>
+                </td>
+              </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
       <?php else: ?>
         <div class="empty-state">
           <i class='bx bx-building-house'></i>
-          <p><?= !empty($search) ? 'No listings found matching your search' : 'No property listings available' ?></p>
+          <p>No <?= $status_filter ?> properties found</p>
         </div>
       <?php endif; ?>
     </div>
   </main>
 
   <script>
-    // Sidebar toggle
     const sidebar = document.querySelector('.sidebar');
     const toggle = document.querySelector('.toggle');
 
@@ -1020,68 +828,11 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       );
     });
 
-    // View listing
-    function viewListing(id) {
-      window.location.href = `view-listing.php?id=${id}`;
-    }
-
-    // Delete listing
-    function deleteListing(id, name) {
-      if(confirm(`Are you sure you want to remove "${name}"?\n\nThis action cannot be undone.`)) {
-        window.location.href = `delete-listing.php?id=${id}`;
-      }
-    }
-
-    // Live search (client-side filtering for smooth UX)
-    const searchInput = document.getElementById('searchInput');
-    const cards = Array.from(document.querySelectorAll('.listing-card'));
-    const FADE_MS = 220;
-
-    function hideCard(card) {
-      if (card.classList.contains('is-hidden')) return;
-      card.classList.add('is-hidden');
-      setTimeout(() => {
-        card.style.display = 'none';
-      }, FADE_MS);
-    }
-
-    function showCard(card) {
-      if (!card.classList.contains('is-hidden') && card.style.display !== 'none') return;
-      card.style.display = '';
-      void card.offsetWidth;
-      card.classList.remove('is-hidden');
-    }
-
-    function filterCards(query) {
-      const q = query.trim().toLowerCase();
-      cards.forEach(card => {
-        const title = card.querySelector('.card-body h3')?.innerText || '';
-        const details = card.querySelector('.card-body .details')?.innerText || '';
-        const price = card.querySelector('.card-body .price')?.innerText || '';
-        const text = (title + ' ' + details + ' ' + price).toLowerCase();
-
-        if (q === '' || text.includes(q)) {
-          showCard(card);
-        } else {
-          hideCard(card);
-        }
-      });
-    }
-
-    function debounce(fn, wait) {
-      let t;
-      return function(...args) {
-        clearTimeout(t);
-        t = setTimeout(() => fn.apply(this, args), wait);
-      };
-    }
-
-    const onInput = debounce((e) => {
-      filterCards(e.target.value);
-    }, 120);
-
-    if (searchInput) {
-      searchInput.addEventListener('input', onInput);
+    function filterByStatus(status) {
+      const urlParams = new URLSearchParams(window.location.search);
+      urlParams.set('status', status);
+      urlParams.delete('search');
+      window.location.search = urlParams.toString();
     }
   </script>
 

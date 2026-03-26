@@ -127,9 +127,19 @@ $result = $stmt->get_result();
                                             <?php endif; ?>
 
                                             <div class="status">
-                                                <p class="<?= $isOccupied ? 'status-occupied' : 'status-available'; ?>">
-                                                    <?= $isOccupied ? "Occupied" : "Available"; ?>
-                                                </p>
+                                                <?php if ($row['verification_status'] === 'pending'): ?>
+                                                    <p style="background-color: #fbbf24; color: white; padding: 8px; border-radius: 20px;">
+                                                        ⏳ Pending Verification
+                                                    </p>
+                                                       <?php elseif ($row['verification_status'] === 'rejected'): ?>
+                                                    <p style="background-color: #ef4444; color: white; padding: 8px; border-radius: 20px;">
+                                                        ❌ Rejected
+                                                    </p>
+                                                      <?php else: ?>
+                                                    <p class="<?= $isOccupied ? 'status-occupied' : 'status-available'; ?>">
+                                                        <?= $isOccupied ? "Occupied" : "Available"; ?>
+                                                    </p>
+                                                <?php endif; ?>
                                             </div>
 
                                             <div class="price-tag">₱ <?= number_format($row['price']); ?></div>

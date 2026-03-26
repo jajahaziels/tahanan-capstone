@@ -61,7 +61,8 @@ if ($user_type === 'landlord') {
 
 // Verify user exists in the appropriate table
 try {
-    $stmt = $conn->prepare("SELECT ID, firstName, middleName, lastName, email FROM $table WHERE ID = ?");
+    // UPDATED: Added profilePic to SELECT
+    $stmt = $conn->prepare("SELECT ID, firstName, middleName, lastName, email, profilePic FROM $table WHERE ID = ?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $user = $stmt->get_result()->fetch_assoc();
@@ -69,12 +70,14 @@ try {
     if ($user) {
         $full_name = trim($user['firstName'] . ' ' . ($user['middleName'] ? $user['middleName'] . ' ' : '') . $user['lastName']);
 
+        // UPDATED: Added profile_pic to response
         echo json_encode([
             "success" => true,
             "user_id" => $user_id,
             "user_type" => $user_type,
             "name" => $full_name,
-            "email" => $user['email']
+            "email" => $user['email'],
+            "profile_pic" => $user['profilePic']
         ]);
     } else {
         echo json_encode([

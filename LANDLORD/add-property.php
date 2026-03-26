@@ -5,10 +5,8 @@ include '../session_auth.php';
 $errors = [];
 $success = "";
 
-// Landlord ID from session
 $landlord_id = $_SESSION['landlord_id'] ?? null;
 
-// ✅ Check verification status before allowing property posting
 if ($landlord_id) {
     $sql = "SELECT verification_status FROM landlordtbl WHERE ID = ?";
     $stmt = $conn->prepare($sql);
@@ -28,7 +26,6 @@ if ($landlord_id) {
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
-    // Collect inputs
     $listingName  = trim($_POST['listing_name'] ?? '');
     $address      = trim($_POST['address'] ?? '');
     $barangay     = $_POST['barangay'] ?? '';
@@ -39,7 +36,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
     $latitude     = $_POST['latitude'] ?? null;
     $longitude    = $_POST['longitude'] ?? null;
 
-    // Validation
     if ($listingName === '') $errors[] = "Listing name is required.";
     if ($address === '') $errors[] = "Address is required.";
     if ($barangay === '') $errors[] = "Barangay is required.";
@@ -52,7 +48,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
     $listingDate = date('Y-m-d H:i:s');
     if ($listingDesc === '') $listingDesc = null;
 
-    // Handle image uploads
     $uploadedImages = [];
     if (!empty($_FILES['image']['name'][0])) {
         $targetDir = __DIR__ . "/uploads/";
@@ -77,14 +72,13 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
         }
     }
 
-    // Save to database
     if (empty($errors)) {
         $imagesJson = json_encode($uploadedImages);
 
         $stmt = $conn->prepare("
             INSERT INTO listingtbl 
-            (listingName, address, barangay, price, rooms, category, listingDesc, images, listingDate, latitude, longitude, landlord_id)  
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (listingName, address, barangay, price, rooms, category, listingDesc, images, listingDate, latitude, longitude, landlord_id, verification_status)  
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
         ");
 
         $stmt->bind_param(
@@ -104,7 +98,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
         );
 
         if ($stmt->execute()) {
-            $_SESSION['success'] = "✅ Property added successfully!";
+            $_SESSION['property_submitted'] = true;
             header("Location: " . $_SERVER['PHP_SELF']);
             exit;
         } else {
@@ -115,10 +109,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
     }
 }
 
-// Show success message after redirect
-if (!empty($_SESSION['success'])) {
-    $success = $_SESSION['success'];
-    unset($_SESSION['success']);
+$showPendingModal = false;
+if (isset($_SESSION['property_submitted'])) {
+    $showPendingModal = true;
+    unset($_SESSION['property_submitted']);
 }
 ?>
 
@@ -128,19 +122,13 @@ if (!empty($_SESSION['success'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- FAVICON -->
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-    <!-- FA -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <!-- BS -->
     <link rel="stylesheet" href="../css/bootstrap.min.css">
-    <!-- MAIN CSS -->
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
-    <!-- LEAFLET -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <!-- SWEET ALERT -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <title>ADD PROPERTIES</title>
     <style>
@@ -177,10 +165,8 @@ if (!empty($_SESSION['success'])) {
 </head>
 
 <body>
-    <!-- HEADER -->
     <?php include '../Components/landlord-header.php'; ?>
 
-    <!-- PROPERTY PAGE -->
     <div class="landlord-page">
         <div class="container m-auto">
             <h2>Add Property</h2>
@@ -306,7 +292,7 @@ if (!empty($_SESSION['success'])) {
                         
                         <div class="mb-1">
                             <button type="submit" class="main-button mx-2">
-                                <i class="fas fa-plus"></i> Add Property
+                                <i class="fas fa-plus"></i> Submit Property
                             </button>
                             <button type="button" class="main-button" onclick="location.href='landlord-properties.php'">
                                 <i class="fas fa-times"></i> Cancel
@@ -318,16 +304,11 @@ if (!empty($_SESSION['success'])) {
         </div>
     </div>
 
-    <!-- MAIN JS -->
     <script src="../js/script.js" defer></script>
-    <!-- BS JS -->
     <script src="../js/bootstrap.bundle.min.js"></script>
-    <!-- SCROLL REVEAL -->
     <script src="https://unpkg.com/scrollreveal"></script>
-    <!-- LEAFLET JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script>
-        // INITIALIZE MAP IN SAN PEDRO
         var map = L.map('map').setView([14.3647, 121.0556], 15);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -350,20 +331,43 @@ if (!empty($_SESSION['success'])) {
             document.getElementById('longitude').value = lng;
         });
 
-        // Show success message if property was added
-        <?php if (!empty($success)): ?>
+        <?php if ($showPendingModal): ?>
         Swal.fire({
-            icon: 'success',
-            title: 'Added Successfully!',
-            text: 'Your property was added successfully.',
-            confirmButtonColor: '#4caf50'
-        }).then(() => {
-            // Redirect to properties page
-            window.location.href = 'landlord-properties.php';
+            icon: 'info',
+            title: 'Property Submitted!',
+            html: `
+                <div style="text-align: left; padding: 20px;">
+                    <p style="font-size: 16px; margin-bottom: 16px;">
+                        <strong>Your listing is now pending verification.</strong>
+                    </p>
+                    <div style="background: #f0f9ff; border-left: 4px solid #0284c7; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
+                        <p style="margin: 0; color: #0c4a6e;">
+                            <i class="fas fa-info-circle" style="color: #0284c7;"></i>
+                            <strong>What happens next?</strong>
+                        </p>
+                        <ol style="margin: 12px 0 0 0; padding-left: 20px; color: #0c4a6e;">
+                            <li>Our team will review your listing</li>
+                            <li>We'll schedule a site visit to verify the property</li>
+                            <li>Once approved, your listing will go live</li>
+                        </ol>
+                    </div>
+                    <p style="font-size: 14px; color: #64748b; margin: 0;">
+                        <i class="fas fa-clock"></i> This usually takes 2-3 business days.
+                    </p>
+                </div>
+            `,
+            confirmButtonText: 'View My Listings',
+            confirmButtonColor: 'rgb(141, 11, 65)',
+            showCancelButton: true,
+            cancelButtonText: 'Add Another Property',
+            width: 600
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'landlord-properties.php';
+            }
         });
         <?php endif; ?>
 
-        // Show error messages if any
         <?php if (!empty($errors)): ?>
         Swal.fire({
             icon: 'error',

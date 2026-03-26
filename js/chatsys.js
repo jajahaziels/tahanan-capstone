@@ -9,9 +9,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   let currentUserId = null;
   let currentConversationId = null;
   let currentUserType = null;
+  let currentUserProfilePic = null;
   let loadMessagesInterval = null;
   let selectedFile = null;
   let lastMessagesHash = '';
+  let currentConversationData = null;
   
   const urlParams = new URLSearchParams(window.location.search);
   let targetConversationId = urlParams.get('conversation_id');
@@ -29,6 +31,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     currentUserId = sessionData.user_id;
     currentUserType = sessionData.user_type;
+    currentUserProfilePic = sessionData.profile_pic || null;
     
     await loadConversations();
     
@@ -36,6 +39,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (window.currentUser) {
       currentUserId = window.currentUser.id;
       currentUserType = window.currentUser.type;
+      currentUserProfilePic = window.currentUser.profilePic || null;
       await loadConversations();
     } else {
       showNotification('Session expired. Please login again.', 'error');
@@ -86,6 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function displayConversations(conversations) {
+    const searchInput = document.querySelector(".search-chats");
     const existingConvos = conversationsList.querySelectorAll('.convo');
     existingConvos.forEach(conv => conv.remove());
 
@@ -95,11 +100,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       convDiv.setAttribute("data-conversation-id", conv.conversation_id);
       convDiv.setAttribute("data-user-name", conv.other_user_name || '');
       convDiv.setAttribute("data-last-message", conv.last_message || '');
+      convDiv.setAttribute("data-profile-pic", conv.other_user_profile_pic || '');
       convDiv.style.opacity = '0';
       convDiv.style.animation = `fadeIn 0.4s ease forwards ${index * 0.05}s`;
       
       let profilePicSrc = "../img/home.png";
-      
       if (conv.other_user_profile_pic && conv.other_user_profile_pic.trim() !== '') {
         profilePicSrc = `../uploads/${conv.other_user_profile_pic}`;
       }
@@ -121,6 +126,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       convDiv.addEventListener("click", () => selectConversation(conv));
       conversationsList.appendChild(convDiv);
     });
+    
+    if (searchInput && searchInput.parentNode === conversationsList) {
+      conversationsList.insertBefore(searchInput, conversationsList.firstChild);
+    }
   }
 
   function selectConversation(conversation) {
@@ -130,6 +139,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (selectedConv) selectedConv.classList.add("active");
 
     currentConversationId = conversation.conversation_id;
+    currentConversationData = conversation;
     lastMessagesHash = '';
     
     chatHeader.textContent = `Chat with ${conversation.other_user_name || conversation.other_user_type}`;
@@ -279,7 +289,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     const avatar = document.createElement("img");
     avatar.classList.add("message-avatar");
-    avatar.src = "../img/home.png";
+    
+    if (isMine) {
+      if (currentUserProfilePic && currentUserProfilePic.trim() !== '') {
+        avatar.src = `../uploads/${currentUserProfilePic}`;
+      } else {
+        avatar.src = "../img/home.png";
+      }
+    } else {
+      if (currentConversationData && currentConversationData.other_user_profile_pic) {
+        avatar.src = `../uploads/${currentConversationData.other_user_profile_pic}`;
+      } else {
+        avatar.src = "../img/home.png";
+      }
+    }
+    
     avatar.onerror = function() { this.src = "../img/home.png"; };
     
     const bubbleDiv = document.createElement("div");
@@ -383,42 +407,35 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const searchInput = document.querySelector(".search-chats");
   if (searchInput) {
-    let searchTimeout;
-    
     searchInput.addEventListener("input", (e) => {
-      clearTimeout(searchTimeout);
       const searchTerm = e.target.value.toLowerCase().trim();
+      const conversations = document.querySelectorAll(".convo");
+      let visibleCount = 0;
       
-      searchTimeout = setTimeout(() => {
-        const conversations = document.querySelectorAll(".convo");
-        let visibleCount = 0;
+      conversations.forEach((conv) => {
+        const userName = (conv.getAttribute('data-user-name') || '').toLowerCase();
+        const lastMessage = (conv.getAttribute('data-last-message') || '').toLowerCase();
         
-        conversations.forEach((conv) => {
-          const userName = (conv.getAttribute('data-user-name') || '').toLowerCase();
-          const lastMessage = (conv.getAttribute('data-last-message') || '').toLowerCase();
-          
-          const matches = userName.includes(searchTerm) || lastMessage.includes(searchTerm);
-          
-          if (searchTerm === '' || matches) {
-            conv.style.display = "flex";
-            visibleCount++;
-          } else {
-            conv.style.display = "none";
-          }
-        });
-        
-        const noConvEl = document.getElementById('no-conversations');
-        if (noConvEl) {
-          if (searchTerm && visibleCount === 0) {
-            noConvEl.innerHTML = '<i class="fa-solid fa-search"></i><p>No conversations found</p><small>Try a different search term</small>';
-            noConvEl.style.display = 'block';
-          } else if (searchTerm === '') {
-            noConvEl.style.display = conversations.length === 0 ? 'block' : 'none';
-          } else {
-            noConvEl.style.display = 'none';
-          }
+        if (searchTerm === '' || userName.includes(searchTerm) || lastMessage.includes(searchTerm)) {
+          conv.style.display = "flex";
+          visibleCount++;
+        } else {
+          conv.style.display = "none";
         }
-      }, 300);
+      });
+      
+      const noConvEl = document.getElementById('no-conversations');
+      if (noConvEl) {
+        if (searchTerm && visibleCount === 0) {
+          noConvEl.innerHTML = '<i class="fa-solid fa-search"></i><p>No conversations found</p><small>Try searching for "' + escapeHtml(searchTerm) + '"</small>';
+          noConvEl.style.display = 'block';
+        } else if (!searchTerm && conversations.length === 0) {
+          noConvEl.innerHTML = '<i class="fa-solid fa-comments"></i><p>No conversations yet</p><small>Start a conversation</small>';
+          noConvEl.style.display = 'block';
+        } else {
+          noConvEl.style.display = 'none';
+        }
+      }
     });
   }
 

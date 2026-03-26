@@ -32,7 +32,9 @@ $sql = "
     JOIN landlordtbl AS lt ON l.landlord_id = lt.ID
     LEFT JOIN renttbl AS r 
         ON l.ID = r.listing_id AND r.status = 'approved'
-    WHERE r.ID IS NULL AND l.availability = 'available'
+    WHERE r.ID IS NULL 
+    AND l.availability = 'available'
+    AND l.verification_status = 'approved'
 ";
 
 if (!empty($search)) {
