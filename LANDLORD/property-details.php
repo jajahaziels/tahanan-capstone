@@ -26,6 +26,7 @@ $images = json_decode($property['images'], true) ?? [];
 $stmt->close();
 
 // --- Query 2: Tenant Requests + Lease Info ---
+// Excludes requests where the linked lease is terminated
 $sqlRequests = "
     SELECT 
         r.ID AS request_id,
@@ -38,7 +39,8 @@ $sqlRequests = "
         t.email,
         l.ID AS lease_id,
         l.pdf_path,
-        l.tenant_response
+        l.tenant_response,
+        l.status AS lease_status
     FROM requesttbl r
     JOIN tenanttbl t 
         ON r.tenant_id = t.ID
@@ -46,6 +48,7 @@ $sqlRequests = "
         ON l.listing_id = r.listing_id
        AND l.tenant_id = r.tenant_id
     WHERE r.listing_id = ?
+      AND (l.status IS NULL OR l.status != 'terminated')
     ORDER BY r.date DESC
 ";
 

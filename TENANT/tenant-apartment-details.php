@@ -240,14 +240,9 @@ if ($rental) {
                                     <?= htmlspecialchars(ucwords(strtolower($rental['landlord_firstName'] . ' ' . $rental['landlord_lastName']))); ?>
                                 </p>
                                 <p><strong>Phone:</strong> <?= htmlspecialchars($rental['landlord_phone']); ?></p>
-                                <p><strong>Email:</strong> <?= htmlspecialchars($rental['landlord_email']); ?></p>
-                                <button class="small-button"
-                                    onclick="window.location.href='landlord-profile.php?id=<?= htmlspecialchars($rental['landlord_id']); ?>'">
-                                    <i class="fa-solid fa-user"></i> Profile
-                                </button>
+                                <p><strong>Email:</strong> <?= htmlspecialchars($rental['landlord_email']); ?></p>      
                             </div>
                         </div>
-
                     </div>
                 </div>
 
