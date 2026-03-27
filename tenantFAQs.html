@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tenant FAQs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid #eee;
+            padding: 20px 0;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-question:hover {
+            color: #3498db;
+        }
+
+        .faq-question::after {
+            content: '+';
+            font-size: 24px;
+            font-weight: 300;
+            transition: transform 0.3s;
+        }
+
+        .faq-item.active .faq-question::after {
+            content: '−';
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            color: #555;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+            padding-top: 15px;
+        }
+
+        .contact-section {
+            margin-top: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .contact-section h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .contact-section a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .contact-section a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Tenant FAQs</h1>
+        <p class="subtitle">Answers to commonly asked questions</p>
+
+        <div class="faq-item">
+            <div class="faq-question">How do I pay rent?</div>
+            <div class="faq-answer">
+                Rent payment methods are determined by the Landlord. Tenants may be asked to pay via e-wallet or cash as
+                requested.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">How do I submit a maintenance request?</div>
+            <div class="faq-answer">
+                Log into the tenant portal and click "Submit Maintenance Request." Provide a detailed description of the
+                issue and send photos to the Landlord. For emergencies (flooding, no heat, gas leaks), call our emergency
+                line immediately.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">What is the guest policy?</div>
+            <div class="faq-answer">
+                All guests must comply with the Landlord’s guest policy. Please refer to your agreement for specific
+                rules regarding overnight visitors and visiting hours. </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">Can I have pets?</div>
+            <div class="faq-answer">
+                Pets are welcome only with the Landlord's express consent. Please check with us regarding pet
+                eligibility and any applicable fees or deposits that may apply.
+            </div>
+        </div>
+
+
+        <div class="faq-item">
+            <div class="faq-question">What happens if I pay rent late?</div>
+            <div class="faq-answer">
+                Late fees depend on what was agreed upon with your landlord. Please check your contract or get in touch
+                with the landlord for more information.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">Am I allowed to make changes to the unit?</div>
+            <div class="faq-answer">
+                "Please consult your contract before making any changes to the apartment. All modifications, including
+                painting or hardware installation, require prior approval from the Landlord.
+            </div>
+        </div>
+
+        <div class="contact-section">
+            <h2>Still have questions?</h2>
+            <p>Contact us at <a href="mailto:info@example.com">mapawarehome@gmail.com</a> or call <a
+                    href="tel:555-123-4567">(+63) 2 8123-4567</a></p>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.parentElement;
+                item.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+
+</html>

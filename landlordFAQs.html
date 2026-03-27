@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landlord FAQs</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 40px;
+        }
+
+        .faq-item {
+            border-bottom: 1px solid #eee;
+            padding: 20px 0;
+        }
+
+        .faq-item:last-child {
+            border-bottom: none;
+        }
+
+        .faq-question {
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .faq-question:hover {
+            color: #3498db;
+        }
+
+        .faq-question::after {
+            content: '+';
+            font-size: 24px;
+            font-weight: 300;
+            transition: transform 0.3s;
+        }
+
+        .faq-item.active .faq-question::after {
+            content: '−';
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            color: #555;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+            padding-top: 15px;
+        }
+
+        .contact-section {
+            margin-top: 40px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .contact-section h2 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 1.2em;
+        }
+
+        .contact-section a {
+            color: #3498db;
+            text-decoration: none;
+        }
+
+        .contact-section a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Landlord FAQs</h1>
+        <p class="subtitle">Management resources and owner information</p>
+
+        <div class="faq-item">
+            <div class="faq-question">How do I list my property?</div>
+            <div class="faq-answer">
+                To list your property, simply navigate to the "Add Property" section of your dashboard. You will need to
+                provide the unit address, monthly rent amount, a clear description of the amenities, and high-quality
+                photos. Once submitted, your listing will be visible to potential tenants seeking a new home.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">How are tenants screened?</div>
+            <div class="faq-answer">
+                Tenant screening is a vital step in ensuring a safe community. The process typically involves verifying
+                the applicant’s identity, employment status, and rental history. Landlords may also request character
+                references to ensure the applicant aligns with the building’s community standards.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">When and how do I receive rent payments?</div>
+            <div class="faq-answer">
+                Rent is due based on your agreed-upon start date. Tenants can pay you via cash or e-wallet (GCash/Maya)
+                or cash payment as
+                arranged with you landlord. A receipt is required for every transaction to ensure your records are
+                accurate.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">How are maintenance repairs handled?</div>
+            <div class="faq-answer">
+                Maintenance requests should be submitted directly to the landlord or via the official maintenance
+                request. For urgent issues (like plumbing leaks or electrical faults), please contact the landlord
+                immediately. Minor cosmetic changes or modifications to the unit require prior written approval from the
+                landlord.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">What is the process for late payments?</div>
+            <div class="faq-answer">
+                If rent is not received by the end of the agreed-upon grace period, a late fee may be applied as
+                outlined in the lease agreement. Tenants should contact their landlord immediately if they anticipate a
+                delay to discuss potential extensions or payment plans.
+            </div>
+        </div>
+
+        <div class="contact-section">
+            <h2>Need property management help?</h2>
+            <p>Email our support team at <a href="mailto:landlord-support@example.com">mapawarehome@gmail.com</a> or
+                call <a href="tel:555-123-4567">(+63) 2 8123-4567</a></p>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.faq-question').forEach(question => {
+            question.addEventListener('click', () => {
+                const item = question.parentElement;
+                item.classList.toggle('active');
+            });
+        });
+    </script>
+</body>
+
+</html>

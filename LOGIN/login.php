@@ -171,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
         <div class="auth-section">
             <div class="auth-card">
                 <div class="brand-identity">
-                    <img src="TAHANAN.png" alt="Tahanan Logo">
+                    <img src="../img/new_logo.png" alt="Tahanan Logo">
                 </div>
 
                 <form action="" method="POST">
