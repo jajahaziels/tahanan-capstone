@@ -5,6 +5,41 @@ include '../session_auth.php';
 // Get tenant ID from session
 $tenant_id = $_SESSION['tenant_id'];
 
+// Helper function to format Philippine phone number
+function formatPhilippinePhone($phoneNum) {
+    if (empty($phoneNum)) {
+        return 'Not provided';
+    }
+    
+    // Remove any non-digit characters
+    $phone = preg_replace('/[^0-9]/', '', $phoneNum);
+    
+    // If starts with 0, remove it
+    if (substr($phone, 0, 1) === '0') {
+        $phone = substr($phone, 1);
+    }
+    
+    // If starts with 63, remove it
+    if (substr($phone, 0, 2) === '63') {
+        $phone = substr($phone, 2);
+    }
+    
+    // Format: +63 917 123 4567
+    if (strlen($phone) === 10) {
+        return '+63 ' . substr($phone, 0, 3) . ' ' . substr($phone, 3, 3) . ' ' . substr($phone, 6);
+    }
+    
+    if (strlen($phone) === 9) {
+        return '+63 ' . substr($phone, 0, 3) . ' ' . substr($phone, 3, 3) . ' ' . substr($phone, 6);
+    }
+    
+    return '+63 ' . $phone;
+}
+
+
+// Get tenant ID from session
+$tenant_id = $_SESSION['tenant_id'];
+
 // Get landlord ID from URL
 $landlordId = $_GET['landlord_id'] ?? null;
 
@@ -1005,7 +1040,7 @@ $fullName = ucwords(strtolower($landlord['firstName'] . ' ' . $landlord['lastNam
                                 </div>
                                 <div class="contact-details">
                                     <strong>Phone</strong>
-                                    <?= htmlspecialchars($landlord['phoneNum'] ?: 'Not provided'); ?>
+                                    <?= formatPhilippinePhone($landlord['phoneNum']); ?>
                                 </div>
                             </div>
                             <div class="contact-item">

@@ -2,6 +2,39 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
+// Helper function to format Philippine phone number
+                        function formatPhilippinePhone($phoneNum) {
+                            if (empty($phoneNum)) {
+                                return 'Not provided';
+                            }
+                            
+                            // Remove any non-digit characters
+                            $phone = preg_replace('/[^0-9]/', '', $phoneNum);
+                            
+                            // If starts with 0, remove it (09171234567 -> 9171234567)
+                            if (substr($phone, 0, 1) === '0') {
+                                $phone = substr($phone, 1);
+                            }
+                            
+                            // If starts with 63, it's already in international format
+                            if (substr($phone, 0, 2) === '63') {
+                                $phone = substr($phone, 2);
+                            }
+                            
+                            // Format: +63 917 123 4567
+                            if (strlen($phone) === 10) {
+                                return '+63 ' . substr($phone, 0, 3) . ' ' . substr($phone, 3, 3) . ' ' . substr($phone, 6);
+                            }
+                            
+                            // If length is 9, add leading 9: +63 9XX XXX XXXX
+                            if (strlen($phone) === 9) {
+                                return '+63 ' . substr($phone, 0, 3) . ' ' . substr($phone, 3, 3) . ' ' . substr($phone, 6);
+                            }
+                            
+                            // Fallback: just add +63
+                            return '+63 ' . $phone;
+                        }
+
 // Get landlord ID from session
 $landlord_id = $_SESSION['landlord_id'];
 
@@ -772,7 +805,7 @@ if ($table_check && $table_check->num_rows > 0) {
                                     </div>
                                     <div class="contact-details">
                                         <div class="contact-label">Phone Number</div>
-                                        <div class="contact-value"><?= htmlspecialchars($landlord['phoneNum'] ?: 'Not provided'); ?></div>
+                                        <div class="contact-value"><?= formatPhilippinePhone($landlord['phoneNum']); ?></div>
                                     </div>
                                 </div>
                                 <div class="contact-item">
@@ -874,6 +907,7 @@ if ($table_check && $table_check->num_rows > 0) {
                             $tenant_initial = strtoupper(substr($review['tenant_first_name'], 0, 1));
                             $review_date = date("F j, Y", strtotime($review['created_at']));
                             $time_ago = getTimeAgo($review['created_at']);
+
                         ?>
                             <div class="review-card">
                                 <div class="review-header">

@@ -2,6 +2,39 @@
 require_once '../connection.php';
 include '../session_auth.php';
 
+// Helper function to format Philippine phone number
+function formatPhilippinePhone($phoneNum) {
+    if (empty($phoneNum)) {
+        return 'Not provided';
+    }
+    
+    // Remove any non-digit characters
+    $phone = preg_replace('/[^0-9]/', '', $phoneNum);
+    
+    // If starts with 0, remove it (09171234567 -> 9171234567)
+    if (substr($phone, 0, 1) === '0') {
+        $phone = substr($phone, 1);
+    }
+    
+    // If starts with 63, it's already in international format
+    if (substr($phone, 0, 2) === '63') {
+        $phone = substr($phone, 2);
+    }
+    
+    // Format: +63 917 123 4567
+    if (strlen($phone) === 10) {
+        return '+63 ' . substr($phone, 0, 3) . ' ' . substr($phone, 3, 3) . ' ' . substr($phone, 6);
+    }
+    
+    // If length is 9, add leading 9: +63 9XX XXX XXXX
+    if (strlen($phone) === 9) {
+        return '+63 ' . substr($phone, 0, 3) . ' ' . substr($phone, 3, 3) . ' ' . substr($phone, 6);
+    }
+    
+    // Fallback: just add +63
+    return '+63 ' . $phone;
+}
+
 // Get tenant ID from session with fallback
 $tenant_id = $_SESSION['tenant_id'] ?? $_SESSION['user_id'] ?? null;
 
@@ -431,7 +464,7 @@ if (!empty($tenant['firstName'])) {
                                     </div>
                                     <div class="contact-card-details">
                                         <div class="contact-card-label">Phone Number</div>
-                                        <div class="contact-card-value"><?= htmlspecialchars($tenant['phoneNum'] ?: 'Not provided'); ?></div>
+                                        <div class="contact-card-value"><?= formatPhilippinePhone($tenant['phoneNum']); ?></div>
                                     </div>
                                 </div>
 

@@ -6,6 +6,41 @@ if (!isset($_SESSION['landlord_id'])) {
     die("Unauthorized access. Please log in as landlord.");
 }
 
+// Helper function to format Philippine phone number
+function formatPhilippinePhone($phoneNum) {
+    if (empty($phoneNum)) {
+        return 'Not provided';
+    }
+    
+    // Remove any non-digit characters
+    $phone = preg_replace('/[^0-9]/', '', $phoneNum);
+    
+    // If starts with 0, remove it
+    if (substr($phone, 0, 1) === '0') {
+        $phone = substr($phone, 1);
+    }
+    
+    // If starts with 63, remove it
+    if (substr($phone, 0, 2) === '63') {
+        $phone = substr($phone, 2);
+    }
+    
+    // Format: +63 917 123 4567
+    if (strlen($phone) === 10) {
+        return '+63 ' . substr($phone, 0, 3) . ' ' . substr($phone, 3, 3) . ' ' . substr($phone, 6);
+    }
+    
+    if (strlen($phone) === 9) {
+        return '+63 ' . substr($phone, 0, 3) . ' ' . substr($phone, 3, 3) . ' ' . substr($phone, 6);
+    }
+    
+    return '+63 ' . $phone;
+}
+
+if (!isset($_SESSION['landlord_id'])) {
+    die("Unauthorized access. Please log in as landlord.");
+}
+
 $landlord_id = (int) $_SESSION['landlord_id'];
 
 $tenant_id = isset($_GET['tenant_id']) ? (int) $_GET['tenant_id'] : 0;
@@ -229,7 +264,7 @@ $firstLetter = strtoupper(substr($tenant['firstName'], 0, 1));
         width: 100%;
     }
 }
-        }
+        
     </style>
 </head>
 
@@ -266,7 +301,7 @@ $firstLetter = strtoupper(substr($tenant['firstName'], 0, 1));
                 </div>
                 <div class="info-text">
                     <small>PHONE NUMBER</small>
-                    <span><?= htmlspecialchars($tenant['phoneNum']); ?></span>
+                    <span><?= formatPhilippinePhone($tenant['phoneNum']); ?></span>
                 </div>
             </div>
 
