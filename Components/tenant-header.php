@@ -1,4 +1,4 @@
-    <?php
+<?php
     $current_page = basename($_SERVER['PHP_SELF']);
     ?>
     <!DOCTYPE html>
@@ -85,9 +85,17 @@
                 </ul>
             </div>
         </header>
-    </body>
 
-    </html>
+    <!-- GLOBAL NOTIFICATION SYSTEM -->
+    <?php if (isset($_SESSION['tenant_id'])): ?>
+    <script>
+        window.currentUser = {
+            id: <?php echo (int)$_SESSION['tenant_id']; ?>,
+            type: 'tenant'
+        };
+    </script>
+    <script src="../js/global-notification-init.js"></script>
+    <?php endif; ?>
 
     <script>
         const notificationList = document.getElementById("notificationList");
@@ -120,19 +128,27 @@
             updateBadge(notificationList.children.length);
         }
 
-        // Clear all notifications
         clearBtn.addEventListener("click", () => {
-            notificationList.innerHTML = `
+    notificationList.innerHTML = `
         <li>
             <span class="dropdown-item text-muted text-center py-3">
                 No notifications
             </span>
         </li>
     `;
-            updateBadge(0);
-        });
+    
+    // Reset badge to 0
+    const badge = document.querySelector(".count");
+    if (badge) {
+        badge.style.display = "none";
+    }
+});
 
-        // DEMO
-        addNotification("Aplication approved for 123 Main St.");
-        addNotification("New message from landlord.");
+        // DEMO - Commented out (chat notifications will handle this now)
+        // addNotification("Aplication approved for 123 Main St.");
+        // addNotification("New message from landlord.");
     </script>
+    <script src="../js/chat-notifications.js?v=20260327"></script>
+    </body>
+
+    </html>

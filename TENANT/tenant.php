@@ -510,7 +510,7 @@ $result = $conn->query($sql);
                                                 </div>
 
                                                 <div class="landlord-actions">
-                                                    <a href="landlord-profile.php?id=<?= $row['landlord_id']; ?>" class="btn">
+                                                    <a href="landlord-profile.php?landlord_id=<?= $row['landlord_id']; ?>" class="btn">
                                                             <i class="fa-solid fa-user"></i>
                                                     </a>
 

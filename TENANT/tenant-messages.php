@@ -102,12 +102,24 @@ $tenant_name = trim(ucwords(strtolower(
             id: <?php echo json_encode((int)$tenant_id); ?>,
             type: 'tenant',
             name: <?php echo json_encode($tenant_name); ?>,
-            email: <?php echo json_encode($tenant['email']); ?>
+            email: <?php echo json_encode($tenant['email']); ?>,
+            profilePic: <?php echo json_encode($tenant['profilePic'] ?? ''); ?>
         };
     </script>
 
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script src="../js/script.js"></script>
+    <!-- NOTIFICATION SYSTEM -->
+    <script src="../js/chat-notifications.js?v=<?= time() ?>"></script>
     <script src="../js/tenant-chat.js?v=<?= time() ?>"></script>
+    
+    <script>
+        // Connect notification system to chat
+        if (window.chatNotifications && typeof openConversation === 'function') {
+            window.chatNotifications.openConversation = function(conversationId) {
+                openConversation(conversationId);
+            };
+        }
+    </script>
 </body>
 </html>

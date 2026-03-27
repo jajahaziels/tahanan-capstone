@@ -1,4 +1,4 @@
-    <?php
+<?php
     $current_page = basename($_SERVER['PHP_SELF']);
     ?>
     <!DOCTYPE html>
@@ -85,43 +85,51 @@
                 </ul>
             </div>
         </header>
-    </body>
 
-    </html>
+    <!-- GLOBAL NOTIFICATION SYSTEM -->
+    <?php if (isset($_SESSION['landlord_id'])): ?>
+    <script>
+        window.currentUser = {
+            id: <?php echo (int)$_SESSION['landlord_id']; ?>,
+            type: 'landlord'
+        };
+    </script>
+    <script src="../js/global-notification-init.js"></script>
+    <?php endif; ?>
 
-<script>
-const notificationList = document.getElementById("notificationList");
-const badge = document.querySelector(".count");
-const clearBtn = document.getElementById("clearNotifications");
+    <script>
+        const notificationList = document.getElementById("notificationList");
+        const badge = document.querySelector(".count");
+        const clearBtn = document.getElementById("clearNotifications");
 
-function updateBadge(count) {
-    if (count > 0) {
-        badge.textContent = count;
-        badge.style.display = "inline-block";
-    } else {
-        badge.style.display = "none";
-    }
-}
+        function updateBadge(count) {
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = "inline-block";
+            } else {
+                badge.style.display = "none";
+            }
+        }
 
-// Example: add notification
-function addNotification(message) {
-    if (notificationList.innerText.includes("No notifications")) {
-        notificationList.innerHTML = "";
-    }
+        // Example: add notification
+        function addNotification(message) {
+            if (notificationList.innerText.includes("No notifications")) {
+                notificationList.innerHTML = "";
+            }
 
-    const li = document.createElement("li");
-    li.innerHTML = `
-        <span class="dropdown-item notification-item">
-            ${message}
-        </span>
-    `;
-    notificationList.prepend(li);
+            const li = document.createElement("li");
+            li.innerHTML = `
+                <span class="dropdown-item notification-item">
+                    ${message}
+                </span>
+            `;
+            notificationList.prepend(li);
 
-    updateBadge(notificationList.children.length);
-}
+            updateBadge(notificationList.children.length);
+        }
 
-// Clear all notifications
-clearBtn.addEventListener("click", () => {
+        // Clear all notifications
+        clearBtn.addEventListener("click", () => {
     notificationList.innerHTML = `
         <li>
             <span class="dropdown-item text-muted text-center py-3">
@@ -129,10 +137,19 @@ clearBtn.addEventListener("click", () => {
             </span>
         </li>
     `;
-    updateBadge(0);
+    
+    // Reset badge to 0
+    const badge = document.querySelector(".count");
+    if (badge) {
+        badge.style.display = "none";
+    }
 });
 
-// DEMO
-addNotification("New property added");
-addNotification("New tenant inquiry received");
-</script>
+        // DEMO - Commented out (chat notifications will handle this now)
+        // addNotification("New property added");
+        // addNotification("New tenant inquiry received");
+    </script>
+    <script src="../js/chat-notifications.js?v=20260327"></script>
+    </body>
+
+    </html>

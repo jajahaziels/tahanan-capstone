@@ -132,13 +132,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  function selectConversation(conversation) {
+   function selectConversation(conversation) {
     document.querySelectorAll(".convo").forEach(conv => conv.classList.remove("active"));
 
     const selectedConv = document.querySelector(`[data-conversation-id="${conversation.conversation_id}"]`);
     if (selectedConv) selectedConv.classList.add("active");
 
     currentConversationId = conversation.conversation_id;
+    
+    if (window.chatNotifications) {
+        window.chatNotifications.setCurrentConversation(conversation.conversation_id);
+    }
+    
     currentConversationData = conversation;
     lastMessagesHash = '';
     

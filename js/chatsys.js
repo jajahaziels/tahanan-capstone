@@ -132,13 +132,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  function selectConversation(conversation) {
+ function selectConversation(conversation) {
+    console.log('🚀 selectConversation CALLED with:', conversation.conversation_id);
+    
+    document.querySelectorAll(".convo").forEach(conv => conv.classList.remove("active"));
     document.querySelectorAll(".convo").forEach(conv => conv.classList.remove("active"));
 
     const selectedConv = document.querySelector(`[data-conversation-id="${conversation.conversation_id}"]`);
     if (selectedConv) selectedConv.classList.add("active");
 
     currentConversationId = conversation.conversation_id;
+    // Tell notification system which conversation is open
+console.log('🔍 Checking window.chatNotifications:', window.chatNotifications);
+if (window.chatNotifications) {
+    console.log('✅ Calling setCurrentConversation with:', conversation.conversation_id);
+    window.chatNotifications.setCurrentConversation(conversation.conversation_id);
+} else {
+    console.error('❌ window.chatNotifications is NOT available!');
+}
     currentConversationData = conversation;
     lastMessagesHash = '';
     
