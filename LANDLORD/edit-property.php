@@ -278,6 +278,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                                     <option value="Condominium" <?= $property['category'] == "Condominium" ? 'selected' : '' ?>>Condominium</option>
                                     <option value="Apartment complex" <?= $property['category'] == "Apartment complex" ? 'selected' : '' ?>>Apartment complex</option>
                                     <option value="Single-family home" <?= $property['category'] == "Single-family home" ? 'selected' : '' ?>>Single-family home</option>
+                                    <option value="Studio Unit" <?= $property['category'] == "Studio Unit" ? 'selected' : '' ?>>Studio Unit</option>
+                                    <option value="Boarding House" <?= $property['category'] == "Boarding House" ? 'selected' : '' ?>>Boarding House</option>
+                                    <option value="Commercial Residential" <?= $property['category'] == "Commercial Residential" ? 'selected' : '' ?>>Commercial Residential</option>
                                     <option value="Townhouse" <?= $property['category'] == "Townhouse" ? 'selected' : '' ?>>Townhouse</option>
                                     <option value="Low-rise apartment" <?= $property['category'] == "Low-rise apartment" ? 'selected' : '' ?>>Low-rise apartment</option>
                                     <option value="High-rise apartment" <?= $property['category'] == "High-rise apartment" ? 'selected' : '' ?>>High-rise apartment</option>
@@ -335,7 +338,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <!-- SCROLL REVEAL -->
     <script src="https://unpkg.com/scrollreveal"></script>
     <!-- GOOGLE MAPS API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
     function initMap() {

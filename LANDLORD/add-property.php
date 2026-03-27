@@ -130,6 +130,10 @@ if (isset($_SESSION['property_submitted'])) {
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script async defer 
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4
+&callback=initMap">
+</script>
     <title>ADD PROPERTIES</title>
     <style>
         .landlord-page {
@@ -308,75 +312,43 @@ if (isset($_SESSION['property_submitted'])) {
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/scrollreveal"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script>
-        var map = L.map('map').setView([14.3647, 121.0556], 15);
+   <script>
+function initMap() {
+    // Default location (San Pedro)
+    const defaultLocation = { lat: 14.3647, lng: 121.0556 };
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+    const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 15,
+        center: defaultLocation,
+    });
 
-        var marker;
+    let marker;
 
-        map.on('click', function(e) {
-            var lat = e.latlng.lat;
-            var lng = e.latlng.lng;
+    map.addListener("click", function (event) {
+        const lat = event.latLng.lat();
+        const lng = event.latLng.lng();
 
-            if (marker) {
-                map.removeLayer(marker);
-            }
+        // Remove old marker
+        if (marker) {
+            marker.setMap(null);
+        }
 
-            marker = L.marker([lat, lng]).addTo(map).bindPopup("Selected Location").openPopup();
-
-            document.getElementById('latitude').value = lat;
-            document.getElementById('longitude').value = lng;
+        // Add new marker
+        marker = new google.maps.Marker({
+            position: { lat, lng },
+            map: map,
         });
 
-        <?php if ($showPendingModal): ?>
-        Swal.fire({
-            icon: 'info',
-            title: 'Property Submitted!',
-            html: `
-                <div style="text-align: left; padding: 20px;">
-                    <p style="font-size: 16px; margin-bottom: 16px;">
-                        <strong>Your listing is now pending verification.</strong>
-                    </p>
-                    <div style="background: #f0f9ff; border-left: 4px solid #0284c7; padding: 16px; border-radius: 8px; margin-bottom: 16px;">
-                        <p style="margin: 0; color: #0c4a6e;">
-                            <i class="fas fa-info-circle" style="color: #0284c7;"></i>
-                            <strong>What happens next?</strong>
-                        </p>
-                        <ol style="margin: 12px 0 0 0; padding-left: 20px; color: #0c4a6e;">
-                            <li>Our team will review your listing</li>
-                            <li>We'll schedule a site visit to verify the property</li>
-                            <li>Once approved, your listing will go live</li>
-                        </ol>
-                    </div>
-                    <p style="font-size: 14px; color: #64748b; margin: 0;">
-                        <i class="fas fa-clock"></i> This usually takes 2-3 business days.
-                    </p>
-                </div>
-            `,
-            confirmButtonText: 'View My Listings',
-            confirmButtonColor: 'rgb(141, 11, 65)',
-            showCancelButton: true,
-            cancelButtonText: 'Add Another Property',
-            width: 600
-        }).then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = 'landlord-properties.php';
-            }
-        });
-        <?php endif; ?>
-
-        <?php if (!empty($errors)): ?>
-        Swal.fire({
-            icon: 'error',
-            title: 'Submission Error!',
-            html: '<?php echo implode("<br>", array_map("htmlspecialchars", $errors)); ?>',
-            confirmButtonColor: '#dc3545'
-        });
-        <?php endif; ?>
-    </script>
+        // Set hidden inputs
+        document.getElementById("latitude").value = lat;
+        document.getElementById("longitude").value = lng;
+    });
+}
+</script>
+<script async defer 
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4
+&libraries=places&callback=initMap">
+</script>
 </body>
 
 </html>

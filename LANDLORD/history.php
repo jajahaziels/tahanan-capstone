@@ -7,15 +7,67 @@ $landlord_id = $_SESSION['landlord_id'];
 
 // ✅ 2. Verify landlord status
 $verifyQuery = "SELECT verification_status, admin_rejection_reason FROM landlordtbl WHERE ID = ?";
-$verifyStmt = $conn->prepare($verifyQuery);
+$verifyStmt  = $conn->prepare($verifyQuery);
 $verifyStmt->bind_param("i", $landlord_id);
 $verifyStmt->execute();
 $resultVerify = $verifyStmt->get_result();
-$landlord = $resultVerify->fetch_assoc();
-$status = $landlord['verification_status'] ?? 'unverified';
-$reason = $landlord['admin_rejection_reason'] ?? '';
+$landlord     = $resultVerify->fetch_assoc();
+$status       = $landlord['verification_status'] ?? 'unverified';
+$reason       = $landlord['admin_rejection_reason'] ?? '';
 
-// ✅ 3. Fetch active tenants with last payment and request info
+// ✅ 3. AUTO-GENERATE OVERDUE ROWS for all active tenants under this landlord
+$activeLeasesSql = "
+    SELECT ls.ID as lease_id, ls.tenant_id, ls.start_date, ls.end_date, ls.rent
+    FROM leasetbl ls
+    WHERE ls.landlord_id = ? AND ls.status = 'active'
+";
+$alStmt = $conn->prepare($activeLeasesSql);
+$alStmt->bind_param("i", $landlord_id);
+$alStmt->execute();
+$activeLeases = $alStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+$today = new DateTime();
+
+foreach ($activeLeases as $al) {
+    $leaseStart = new DateTime($al['start_date']);
+    $cursor     = clone $leaseStart;
+    $cursor->modify('first day of this month');
+
+    while ($cursor <= $today) {
+        $dueYear  = (int)$cursor->format('Y');
+        $dueMonth = (int)$cursor->format('m');
+
+        $chkSql  = "
+            SELECT COUNT(*) AS cnt FROM paymentstbl
+            WHERE lease_id = ? AND tenant_id = ?
+              AND payment_type = 'rent'
+              AND YEAR(due_date) = ? AND MONTH(due_date) = ?
+        ";
+        $chkStmt = $conn->prepare($chkSql);
+        $chkStmt->bind_param("iiii", $al['lease_id'], $al['tenant_id'], $dueYear, $dueMonth);
+        $chkStmt->execute();
+        $cnt = $chkStmt->get_result()->fetch_assoc()['cnt'];
+
+        if ($cnt == 0 && $cursor < $today) {
+            $dueDate = (clone $cursor)->modify('last day of this month')->format('Y-m-d');
+            if (new DateTime($dueDate) < $today) {
+                $insSql = "
+                    INSERT INTO paymentstbl
+                        (lease_id, tenant_id, landlord_id, payment_type, amount, due_date,
+                         paid_date, payment_method, status, reference_no, remarks, created_at)
+                    VALUES (?, ?, ?, 'rent', NULL, ?, NULL, NULL, 'overdue', NULL, NULL, NOW())
+                ";
+                $insStmt = $conn->prepare($insSql);
+                $insStmt->bind_param("iiis", $al['lease_id'], $al['tenant_id'], $landlord_id, $dueDate);
+                $insStmt->execute();
+            }
+        }
+
+        $cursor->modify('+1 month');
+    }
+}
+
+// ✅ 4. Fetch active tenants with last payment and request info
 $query = "SELECT 
     t.ID as tenant_id,
     t.firstName,
@@ -30,11 +82,12 @@ $query = "SELECT
     (SELECT COUNT(*) FROM lease_terminationstbl tt WHERE tt.lease_id = ls.ID AND tt.landlord_status = 'pending') AS pending_termination,
     (SELECT tt.reason FROM lease_terminationstbl tt WHERE tt.lease_id = ls.ID AND tt.landlord_status = 'pending' ORDER BY tt.terminated_at DESC LIMIT 1) AS termination_reason,
     (SELECT tt.terminated_at FROM lease_terminationstbl tt WHERE tt.lease_id = ls.ID AND tt.landlord_status = 'pending' ORDER BY tt.terminated_at DESC LIMIT 1) AS termination_date,
-    (SELECT rr.landlord_response FROM lease_renewaltbl rr WHERE rr.lease_id = ls.ID ORDER BY rr.requested_date DESC LIMIT 1) AS renewal_response
+    (SELECT rr.landlord_response FROM lease_renewaltbl rr WHERE rr.lease_id = ls.ID ORDER BY rr.requested_date DESC LIMIT 1) AS renewal_response,
+    (SELECT COUNT(*) FROM paymentstbl pv WHERE pv.lease_id = ls.ID AND pv.status = 'pending_verification') AS pending_payments
 FROM leasetbl ls
 JOIN tenanttbl t ON ls.tenant_id = t.ID
 JOIN listingtbl l ON ls.listing_id = l.ID
-LEFT JOIN paymentstbl p ON ls.ID = p.lease_id
+LEFT JOIN paymentstbl p ON ls.ID = p.lease_id AND p.status IN ('paid','partial')
 WHERE ls.landlord_id = ?
 AND ls.status = 'active'
 GROUP BY 
@@ -51,7 +104,7 @@ while ($row = $result->fetch_assoc()) {
     $active_tenants[] = $row;
 }
 
-// ✅ 4. Fetch maintenance requests / complaints for this landlord
+// ✅ 5. Fetch maintenance requests / complaints for this landlord
 $complaints_query = "SELECT 
                         mr.ID as complaint_id,
                         mr.title,
@@ -84,13 +137,13 @@ while ($row = $result2->fetch_assoc()) {
     $complaints[] = $row;
 }
 
-// ✅ 5. Fetch payment history per tenant (for history modal)
+// ✅ 6. Fetch full payment history per tenant (for history modal + overdue count)
 $paymentHistoryMap = [];
 $histSql = "
     SELECT 
         p.id, p.payment_type, p.amount, p.due_date, p.paid_date,
         p.payment_method, p.status, p.reference_no, p.remarks, p.created_at,
-        p.tenant_id
+        p.tenant_id, p.proof_path
     FROM paymentstbl p
     JOIN leasetbl ls ON p.lease_id = ls.ID
     WHERE ls.landlord_id = ?
@@ -104,9 +157,8 @@ while ($row = $histResult->fetch_assoc()) {
     $paymentHistoryMap[$row['tenant_id']][] = $row;
 }
 
-// ✅ 6. Helper functions
-function getPriorityBadge($priority)
-{
+// ✅ 7. Helper functions
+function getPriorityBadge($priority) {
     return match (strtolower($priority)) {
         'low'    => '<span class="badge bg-success">Low</span>',
         'medium' => '<span class="badge bg-warning text-dark">Medium</span>',
@@ -116,8 +168,7 @@ function getPriorityBadge($priority)
     };
 }
 
-function getStatusBadge($status)
-{
+function getStatusBadge($status) {
     return match (strtolower($status)) {
         'pending'     => '<span class="badge bg-warning text-dark">Pending</span>',
         'in progress' => '<span class="badge bg-primary">Scheduled</span>',
@@ -125,6 +176,14 @@ function getStatusBadge($status)
         'rejected'    => '<span class="badge bg-danger">Rejected</span>',
         default       => '<span class="badge bg-secondary">' . htmlspecialchars($status) . '</span>'
     };
+}
+
+function getDaysLate($dueDate) {
+    if (!$dueDate) return null;
+    $due   = new DateTime($dueDate);
+    $today = new DateTime();
+    if ($today <= $due) return null;
+    return (int)$today->diff($due)->days;
 }
 ?>
 <!DOCTYPE html>
@@ -328,7 +387,9 @@ function getStatusBadge($status)
         transform: translateY(-1px);
     }
 
-    /* Payment date badge */
+    /* ============================= */
+    /* LAST PAYMENT BADGE            */
+    /* ============================= */
     .payment-badge {
         display: inline-flex;
         align-items: center;
@@ -339,26 +400,49 @@ function getStatusBadge($status)
         font-weight: 500;
         border-radius: 8px;
         border: none;
-        cursor: pointer;
         white-space: nowrap;
-        transition: all 0.2s ease;
         min-width: 120px;
+        cursor: default;
     }
     .payment-badge-paid {
         background-color: #198754;
         color: #fff;
     }
-    .payment-badge-paid:hover {
-        background-color: #146c43;
-        transform: translateY(-1px);
-    }
     .payment-badge-unpaid {
         background-color: #dc3545;
         color: #fff;
     }
-    .payment-badge-unpaid:hover {
-        background-color: #b02a37;
-        transform: translateY(-1px);
+
+    /* Pending payment notification dot */
+    .pending-dot {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffc107;
+        border-radius: 20px;
+        padding: 3px 10px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .pending-dot:hover {
+        background: #ffc107;
+        color: #212529;
+    }
+    .pending-dot .dot {
+        width: 8px;
+        height: 8px;
+        background: #e65100;
+        border-radius: 50%;
+        display: inline-block;
+        animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.5; transform: scale(1.3); }
     }
 
     /* ============================= */
@@ -398,8 +482,6 @@ function getStatusBadge($status)
         justify-content: flex-end;
         gap: 10px;
     }
-
-    /* Modal form fields */
     .themed-modal .form-label {
         font-weight: 600;
         font-size: 0.82rem;
@@ -422,7 +504,6 @@ function getStatusBadge($status)
         box-shadow: 0 0 0 3px rgba(141,11,65,0.12);
     }
 
-    /* Reason / info box inside modals */
     .modal-info-box {
         border-radius: 10px;
         padding: 14px 16px;
@@ -458,8 +539,12 @@ function getStatusBadge($status)
         border-left: 4px solid #0d6efd;
     }
     .modal-info-box-blue .info-label { color: #0d6efd; }
+    .modal-info-box-gold {
+        background: #fffdf0;
+        border-left: 4px solid #f59e0b;
+    }
+    .modal-info-box-gold .info-label { color: #92400e; }
 
-    /* Modal footer buttons */
     .modal-btn {
         display: inline-flex;
         align-items: center;
@@ -474,43 +559,18 @@ function getStatusBadge($status)
         transition: all 0.2s ease;
         white-space: nowrap;
     }
-    .modal-btn-cancel {
-        background: #e2e8f0;
-        color: #4a5568;
-    }
+    .modal-btn-cancel  { background: #e2e8f0; color: #4a5568; }
     .modal-btn-cancel:hover { background: #cbd5e0; }
-    .modal-btn-primary {
-        background: #8d0b41;
-        color: #fff;
-    }
-    .modal-btn-primary:hover {
-        background: #6a0831;
-        box-shadow: 0 4px 10px rgba(141,11,65,0.3);
-    }
-    .modal-btn-approve {
-        background: #198754;
-        color: #fff;
-    }
-    .modal-btn-approve:hover {
-        background: #146c43;
-        box-shadow: 0 4px 10px rgba(25,135,84,0.3);
-    }
-    .modal-btn-reject {
-        background: #8d0b41;
-        color: #fff;
-    }
-    .modal-btn-reject:hover { background: #6e0832; }
-    .modal-btn-danger {
-        background: #dc3545;
-        color: #fff;
-    }
-    .modal-btn-danger:hover { background: #b02a37; }
+    .modal-btn-primary { background: #8d0b41; color: #fff; }
+    .modal-btn-primary:hover { background: #6a0831; box-shadow: 0 4px 10px rgba(141,11,65,0.3); }
+    .modal-btn-approve { background: #198754; color: #fff; }
+    .modal-btn-approve:hover { background: #146c43; box-shadow: 0 4px 10px rgba(25,135,84,0.3); }
+    .modal-btn-reject  { background: #8d0b41; color: #fff; }
+    .modal-btn-reject:hover  { background: #6e0832; }
+    .modal-btn-danger  { background: #dc3545; color: #fff; }
+    .modal-btn-danger:hover  { background: #b02a37; }
 
-    .modal-section-divider {
-        border: none;
-        border-top: 1.5px solid #edf2f7;
-        margin: 18px 0;
-    }
+    .modal-section-divider { border: none; border-top: 1.5px solid #edf2f7; margin: 18px 0; }
 
     @keyframes fadeInScale {
         from { transform: scale(0.96); opacity: 0; }
@@ -567,14 +627,23 @@ function getStatusBadge($status)
         white-space: nowrap;
     }
     .hist-tr:hover { background: #fffafb; }
+    .hist-tr-overdue { background: #fff8f8; }
+    .hist-tr-overdue:hover { background: #fff0f0 !important; }
+    .hist-tr-pending { background: #fffdf0; }
+    .hist-tr-pending:hover { background: #fffae0 !important; }
+
     .hist-badge-paid    { background:#d4edda; color:#155724; padding:4px 10px; border-radius:20px; font-size:.72rem; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
     .hist-badge-partial { background:#cce5ff; color:#004085; padding:4px 10px; border-radius:20px; font-size:.72rem; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
     .hist-badge-pending { background:#fff3cd; color:#856404; padding:4px 10px; border-radius:20px; font-size:.72rem; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
     .hist-badge-overdue { background:#f8d7da; color:#721c24; padding:4px 10px; border-radius:20px; font-size:.72rem; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
+    .hist-badge-verify  { background:#e0d7ff; color:#4c1d95; padding:4px 10px; border-radius:20px; font-size:.72rem; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
+    .hist-badge-rejected{ background:#f8d7da; color:#721c24; padding:4px 10px; border-radius:20px; font-size:.72rem; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
+
     .hist-type-rent    { background:rgba(141,11,65,.08); color:#8d0b41; padding:3px 9px; border-radius:20px; font-size:.72rem; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
     .hist-type-deposit { background:#e8f5e9; color:#2e7d32; padding:3px 9px; border-radius:20px; font-size:.72rem; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
     .hist-type-penalty { background:#fff3e0; color:#e65100; padding:3px 9px; border-radius:20px; font-size:.72rem; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
     .hist-type-other   { background:#e2e8f0; color:#4a5568; padding:3px 9px; border-radius:20px; font-size:.72rem; font-weight:600; display:inline-flex; align-items:center; gap:4px; }
+
     .hist-filter-input {
         border: 1.5px solid #e2e8f0;
         border-radius: 8px;
@@ -589,6 +658,39 @@ function getStatusBadge($status)
         border-color: #8d0b41;
         box-shadow: 0 0 0 3px rgba(141,11,65,0.12);
     }
+
+    /* Days late chip */
+    .days-late-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        background: #fff0f0;
+        color: #c0392b;
+        border: 1px solid #f5c6cb;
+        border-radius: 20px;
+        padding: 1px 7px;
+        font-size: 0.66rem;
+        font-weight: 700;
+        margin-left: 4px;
+    }
+
+    /* Approve / Reject buttons for pending verification */
+    .approve-pay-btn {
+        display: inline-flex; align-items: center; gap: 4px;
+        background: #198754; color: #fff;
+        border: none; border-radius: 7px;
+        padding: 4px 11px; font-size: 0.74rem; font-weight: 600;
+        cursor: pointer; transition: all 0.18s;
+    }
+    .approve-pay-btn:hover { background: #146c43; transform: translateY(-1px); }
+    .reject-pay-btn {
+        display: inline-flex; align-items: center; gap: 4px;
+        background: #dc3545; color: #fff;
+        border: none; border-radius: 7px;
+        padding: 4px 11px; font-size: 0.74rem; font-weight: 600;
+        cursor: pointer; transition: all 0.18s;
+    }
+    .reject-pay-btn:hover { background: #b02a37; transform: translateY(-1px); }
 </style>
 
 <body>
@@ -656,16 +758,18 @@ function getStatusBadge($status)
                         <th>Lease</th>
                         <th>Rent Amount</th>
                         <th>Last Payment</th>
+                        <th>Pending Payments</th>
                         <th>Tenant Requests</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php foreach ($active_tenants as $tenant):
-                        $tenant_name       = ucwords(strtolower($tenant['firstName'] . ' ' . $tenant['lastName']));
-                        $tenant_initial    = strtoupper(substr($tenant['firstName'], 0, 1));
-                        $last_payment      = $tenant['last_payment_date'] ? date("M j, Y", strtotime($tenant['last_payment_date'])) : 'No Payment';
+                        $tenant_name        = ucwords(strtolower($tenant['firstName'] . ' ' . $tenant['lastName']));
+                        $tenant_initial     = strtoupper(substr($tenant['firstName'], 0, 1));
+                        $last_payment       = $tenant['last_payment_date'] ? date("M j, Y", strtotime($tenant['last_payment_date'])) : 'No Payment';
                         $termination_reason = htmlspecialchars($tenant['termination_reason'] ?? 'No reason provided.');
-                        $termination_date  = $tenant['termination_date'] ? date("M j, Y h:i A", strtotime($tenant['termination_date'])) : '';
+                        $termination_date   = $tenant['termination_date'] ? date("M j, Y h:i A", strtotime($tenant['termination_date'])) : '';
+                        $pendingPayCount    = (int)($tenant['pending_payments'] ?? 0);
                     ?>
                         <tr>
                             <!-- Profile -->
@@ -714,16 +818,9 @@ function getStatusBadge($status)
                             <!-- Last Payment + History Button -->
                             <td>
                                 <div class="d-flex align-items-center gap-2">
-                                    <!-- Record payment button -->
-                                    <button
-                                        class="payment-badge <?= $tenant['last_payment_date'] ? 'payment-badge-paid' : 'payment-badge-unpaid' ?>"
-                                        data-bs-toggle="modal" data-bs-target="#paymentModal"
-                                        data-tenant="<?= $tenant['tenant_id'] ?>"
-                                        data-lease="<?= $tenant['lease_id'] ?>"
-                                        data-name="<?= htmlspecialchars($tenant_name) ?>"
-                                        data-amount="<?= $tenant['amount'] ?? 0 ?>">
+                                    <span class="payment-badge <?= $tenant['last_payment_date'] ? 'payment-badge-paid' : 'payment-badge-unpaid' ?>">
                                         <?= $last_payment ?>
-                                    </button>
+                                    </span>
 
                                     <!-- View history button -->
                                     <button
@@ -736,6 +833,24 @@ function getStatusBadge($status)
                                         <i class="bi bi-clock-history"></i>
                                     </button>
                                 </div>
+                            </td>
+
+                            <!-- Pending Payments -->
+                            <td>
+                                <?php if ($pendingPayCount > 0): ?>
+                                    <button class="pending-dot view-history-btn"
+                                        data-tenant-id="<?= $tenant['tenant_id'] ?>"
+                                        data-tenant-name="<?= htmlspecialchars($tenant_name) ?>"
+                                        data-property="<?= htmlspecialchars($tenant['property_name']) ?>"
+                                        data-amount="<?= $tenant['amount'] ?? 0 ?>"
+                                        data-filter-status="pending_verification"
+                                        title="Click to review submitted payments">
+                                        <span class="dot"></span>
+                                        <?= $pendingPayCount ?> Awaiting Review
+                                    </button>
+                                <?php else: ?>
+                                    <span class="text-muted" style="font-size:0.83rem;">—</span>
+                                <?php endif; ?>
                             </td>
 
                             <!-- Tenant Requests -->
@@ -790,7 +905,7 @@ function getStatusBadge($status)
     <!-- ============================= -->
     <!-- COMPLAINTS / MAINTENANCE      -->
     <!-- ============================= -->
-    <div class="payments-section mt-5">
+    <div class="payments-section mt-5" style="margin-top:20px!important;">
         <div class="section-header">
             <h3 class="section-title">
                 <i class="bi bi-tools"></i>
@@ -832,7 +947,6 @@ function getStatusBadge($status)
                         $completed_date   = $complaint['completed_date'] ? date("M j, Y", strtotime($complaint['completed_date'])) : '—';
                     ?>
                         <tr>
-                            <!-- Profile -->
                             <td>
                                 <?php if (!empty($complaint['profilePic'])): ?>
                                     <img src="../uploads/<?= htmlspecialchars($complaint['profilePic']) ?>"
@@ -844,11 +958,7 @@ function getStatusBadge($status)
                                 <?php endif; ?>
                             </td>
                             <td class="fw-bold text-dark"><?= htmlspecialchars($tenant_name) ?></td>
-                            <td>
-                                <span class="text-muted">
-                                    <i class="fas fa-home me-1"></i><?= htmlspecialchars($complaint['property_name']) ?>
-                                </span>
-                            </td>
+                            <td><span class="text-muted"><i class="fas fa-home me-1"></i><?= htmlspecialchars($complaint['property_name']) ?></span></td>
                             <td><?= htmlspecialchars($complaint['title']) ?></td>
                             <td><?= htmlspecialchars($complaint['category']) ?></td>
                             <td><?= getPriorityBadge($complaint['priority']) ?></td>
@@ -909,85 +1019,6 @@ function getStatusBadge($status)
     </div>
 
     <!-- ============================= -->
-    <!-- PAYMENT MODAL                 -->
-    <!-- ============================= -->
-    <div class="modal fade themed-modal" id="paymentModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <form id="paymentForm">
-                    <div class="modal-header">
-                        <h5 class="modal-title">
-                            <i class="bi bi-cash-coin"></i>
-                            <span id="paymentModalTitle">Record Payment</span>
-                        </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="hidden" name="tenant_id" id="tenant_id">
-                        <input type="hidden" name="lease_id"  id="lease_id">
-
-                        <div class="modal-info-box modal-info-box-red mb-4">
-                            <div class="info-label"><i class="bi bi-person-fill"></i> Tenant</div>
-                            <div class="info-text fw-semibold" id="paymentTenantName">—</div>
-                            <div class="info-date">
-                                Expected Amount: <strong id="paymentExpected">₱0.00</strong>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="amount" class="form-label">Payment Amount</label>
-                            <div class="input-group">
-                                <span class="input-group-text"
-                                    style="border-radius:8px 0 0 8px; border:1.5px solid #e2e8f0; background:#f8fafc; color:#8d0b41; font-weight:700;">
-                                    ₱
-                                </span>
-                                <input type="number" class="form-control" name="amount" id="amount"
-                                    placeholder="0.00" step="0.01" min="0" required
-                                    style="border-radius:0 8px 8px 0;">
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="paid_date" class="form-label">Payment Date</label>
-                            <input type="date" class="form-control" name="paid_date" id="paid_date" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="payment_method" class="form-label">Payment Method</label>
-                            <select class="form-select" name="payment_method" id="payment_method">
-                                <option value="cash">Cash</option>
-                                <option value="gcash">GCash</option>
-                                <option value="bank_transfer">Bank Transfer</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="reference_no" class="form-label">Reference No. <span style="color:#a0aec0;font-weight:400;">(optional)</span></label>
-                            <input type="text" class="form-control" name="reference_no" id="reference_no"
-                                placeholder="e.g. GCash ref, bank transaction ID">
-                        </div>
-
-                        <div class="mb-1">
-                            <label for="remarks" class="form-label">Remarks <span style="color:#a0aec0;font-weight:400;">(optional)</span></label>
-                            <textarea class="form-control" name="remarks" id="remarks" rows="2"
-                                placeholder="e.g. January rent, partial payment..."></textarea>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="modal-btn modal-btn-cancel" data-bs-dismiss="modal">
-                            <i class="bi bi-x"></i> Cancel
-                        </button>
-                        <button type="submit" class="modal-btn modal-btn-approve">
-                            <i class="bi bi-check-circle-fill"></i> Save Payment
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- ============================= -->
     <!-- COMPLAINT RESPONSE MODAL      -->
     <!-- ============================= -->
     <div class="modal fade themed-modal" id="complaintModal" tabindex="-1" aria-hidden="true">
@@ -995,14 +1026,11 @@ function getStatusBadge($status)
             <div class="modal-content">
                 <form id="complaintForm" method="post" action="maintenance-respond.php">
                     <div class="modal-header">
-                        <h5 class="modal-title">
-                            <i class="bi bi-tools"></i> Respond to Complaint
-                        </h5>
+                        <h5 class="modal-title"><i class="bi bi-tools"></i> Respond to Complaint</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <input type="hidden" name="complaint_id" id="complaint_id">
-
                         <div class="mb-3">
                             <label for="comp_status" class="form-label">Status</label>
                             <select class="form-select" name="status" id="comp_status" required>
@@ -1058,7 +1086,6 @@ function getStatusBadge($status)
                             <div class="info-date" id="terminationDateText"></div>
                         </div>
                     </div>
-
                     <div id="renewalInfoSection" style="display:none;">
                         <div class="modal-info-box modal-info-box-blue">
                             <div class="info-label"><i class="bi bi-arrow-repeat"></i> Renewal Request</div>
@@ -1096,7 +1123,7 @@ function getStatusBadge($status)
                 </div>
                 <div class="modal-body p-0">
 
-                    <!-- Tenant / Property Info Bar -->
+                    <!-- Info Bar -->
                     <div style="background:linear-gradient(135deg,#8d0b41,#6a0831);color:#fff;padding:14px 22px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
                         <i class="bi bi-building" style="font-size:1.5rem;opacity:.8;"></i>
                         <div>
@@ -1110,7 +1137,7 @@ function getStatusBadge($status)
                     </div>
 
                     <!-- Summary Cards -->
-                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;padding:18px 20px 4px;">
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;padding:18px 20px 4px;">
                         <div class="hist-summary-card" style="border-left:4px solid #198754;">
                             <div class="hist-summary-label">Total Paid</div>
                             <div class="hist-summary-value" id="histTotalPaid">₱0.00</div>
@@ -1131,6 +1158,11 @@ function getStatusBadge($status)
                             <div class="hist-summary-value" id="histOverdueCount">0</div>
                             <div class="hist-summary-sub">Record(s)</div>
                         </div>
+                        <div class="hist-summary-card" style="border-left:4px solid #7c3aed;">
+                            <div class="hist-summary-label">Awaiting Review</div>
+                            <div class="hist-summary-value" id="histVerifyCount">0</div>
+                            <div class="hist-summary-sub">Submitted by tenant</div>
+                        </div>
                     </div>
 
                     <!-- Filters -->
@@ -1144,6 +1176,8 @@ function getStatusBadge($status)
                             <option value="partial">Partial</option>
                             <option value="pending">Pending</option>
                             <option value="overdue">Overdue</option>
+                            <option value="pending_verification">Awaiting Review</option>
+                            <option value="rejected">Rejected</option>
                         </select>
                         <select id="histTypeFilter" class="hist-filter-input">
                             <option value="">All Types</option>
@@ -1165,14 +1199,15 @@ function getStatusBadge($status)
                                     <th class="hist-th">Amount</th>
                                     <th class="hist-th">Method</th>
                                     <th class="hist-th">Reference No.</th>
+                                    <th class="hist-th">Proof</th>
                                     <th class="hist-th">Status</th>
                                     <th class="hist-th">Remarks</th>
-                                    <th class="hist-th">Recorded On</th>
+                                    <th class="hist-th">Action</th>
                                 </tr>
                             </thead>
                             <tbody id="histTableBody">
                                 <tr>
-                                    <td colspan="10" style="text-align:center;padding:40px;color:#a0aec0;">
+                                    <td colspan="11" style="text-align:center;padding:40px;color:#a0aec0;">
                                         No payment records found.
                                     </td>
                                 </tr>
@@ -1186,7 +1221,7 @@ function getStatusBadge($status)
                         <span>Total paid: <strong style="color:#8d0b41;" id="histFooterTotal">₱0.00</strong></span>
                     </div>
 
-                </div><!-- end modal-body -->
+                </div>
                 <div class="modal-footer">
                     <button type="button" class="modal-btn modal-btn-cancel" data-bs-dismiss="modal">
                         <i class="bi bi-x"></i> Close
@@ -1198,96 +1233,6 @@ function getStatusBadge($status)
 
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- ============================= -->
-    <!-- PAYMENT MODAL SCRIPT (FIXED)  -->
-    <!-- ============================= -->
-    <script>
-        document.getElementById('paymentModal').addEventListener('show.bs.modal', function (event) {
-            const btn = event.relatedTarget;
-            this.querySelector('#tenant_id').value               = btn.dataset.tenant || '';
-            this.querySelector('#lease_id').value                = btn.dataset.lease  || '';
-            this.querySelector('#paymentTenantName').textContent = btn.dataset.name   || '—';
-            this.querySelector('#paymentModalTitle').textContent = 'Record Payment';
-
-            const amount = parseFloat(btn.dataset.amount || 0);
-            this.querySelector('#paymentExpected').textContent =
-                '₱' + amount.toLocaleString('en-PH', { minimumFractionDigits: 2 });
-
-            this.querySelector('#amount').value         = amount > 0 ? amount : '';
-            this.querySelector('#paid_date').value      = new Date().toISOString().split('T')[0];
-            this.querySelector('#payment_method').value = 'cash';
-            this.querySelector('#reference_no').value   = '';
-            this.querySelector('#remarks').value        = '';
-        });
-
-        document.getElementById('paymentForm').addEventListener('submit', function (e) {
-            e.preventDefault();
-
-            const saveBtn = this.querySelector('button[type="submit"]');
-            saveBtn.disabled = true;
-            saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
-
-            const body = new URLSearchParams({
-                lease_id:       document.getElementById('lease_id').value,
-                tenant_id:      document.getElementById('tenant_id').value,
-                amount:         document.getElementById('amount').value,
-                paid_date:      document.getElementById('paid_date').value,
-                payment_method: document.getElementById('payment_method').value,
-                reference_no:   document.getElementById('reference_no').value,
-                remarks:        document.getElementById('remarks').value
-            });
-
-            fetch('record-payment.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: body.toString()
-            })
-            .then(res => res.text())         
-            .then(rawText => {
-                console.log('Raw response from record-payment.php:', rawText); // debug
-
-                let data;
-                try {
-                    data = JSON.parse(rawText);
-                } catch (e) {
-                    // PHP is outputting something before/after the JSON 
-                    saveBtn.disabled = false;
-                    saveBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Save Payment';
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Server Error',
-                        text: 'Unexpected server response. Check console for details.',
-                        confirmButtonColor: '#8d0b41'
-                    });
-                    return;
-                }
-
-                bootstrap.Modal.getInstance(document.getElementById('paymentModal')).hide();
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Save Payment';
-
-                Swal.fire({
-                    icon: data.success ? 'success' : 'error',
-                    title: data.success ? 'Payment Recorded!' : 'Failed',
-                    text: data.success
-                        ? 'The payment has been recorded successfully.'
-                        : (data.message || 'Something went wrong.'),
-                    confirmButtonColor: '#8d0b41'
-                }).then(() => { if (data.success) location.reload(); });
-            })
-            .catch(err => {
-                saveBtn.disabled = false;
-                saveBtn.innerHTML = '<i class="bi bi-check-circle-fill"></i> Save Payment';
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Network Error',
-                    text: 'Could not connect: ' + err.message,
-                    confirmButtonColor: '#8d0b41'
-                });
-            });
-        });
-    </script>
 
     <!-- Complaint Modal Script -->
     <script>
@@ -1421,32 +1366,42 @@ function getStatusBadge($status)
     <!-- PAYMENT HISTORY MODAL SCRIPT  -->
     <!-- ============================= -->
     <script>
-        // Embed all payment history data from PHP into JS
         const paymentHistoryData = <?= json_encode($paymentHistoryMap) ?>;
 
         function fmtDate(d) {
             if (!d) return '—';
             const dt = new Date(d);
-            return isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString('en-PH', { month: 'short', day: 'numeric', year: 'numeric' });
+            return isNaN(dt.getTime()) ? '—' : dt.toLocaleDateString('en-PH', { month:'short', day:'numeric', year:'numeric' });
         }
         function fmtAmt(a) {
             return '₱' + parseFloat(a || 0).toLocaleString('en-PH', { minimumFractionDigits: 2 });
         }
+        function daysLate(dueDateStr) {
+            if (!dueDateStr) return null;
+            const due   = new Date(dueDateStr);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            due.setHours(0,0,0,0);
+            if (today <= due) return null;
+            return Math.floor((today - due) / 86400000);
+        }
         function getHistStatusBadge(s) {
             const map = {
-                paid:    ['hist-badge-paid',    'bi-check-circle-fill',       'Paid'],
-                partial: ['hist-badge-partial', 'bi-dash-circle-fill',        'Partial'],
-                pending: ['hist-badge-pending', 'bi-clock-fill',              'Pending'],
-                overdue: ['hist-badge-overdue', 'bi-exclamation-circle-fill', 'Overdue']
+                paid:                 ['hist-badge-paid',    'bi-check-circle-fill',       'Paid'],
+                partial:              ['hist-badge-partial', 'bi-dash-circle-fill',        'Partial'],
+                pending:              ['hist-badge-pending', 'bi-clock-fill',              'Pending'],
+                overdue:              ['hist-badge-overdue', 'bi-exclamation-circle-fill', 'Overdue'],
+                pending_verification: ['hist-badge-verify',  'bi-hourglass-split',         'Awaiting Review'],
+                rejected:             ['hist-badge-rejected','bi-x-circle-fill',           'Rejected']
             };
             const [cls, ico, label] = map[s] || ['hist-badge-pending', 'bi-question-circle', s || 'Unknown'];
             return `<span class="${cls}"><i class="bi ${ico}"></i>${label}</span>`;
         }
         function getHistTypePill(t) {
             const map = {
-                rent:    ['hist-type-rent',    'bi-house-fill',                    'Rent'],
-                deposit: ['hist-type-deposit', 'bi-safe2-fill',                    'Deposit'],
-                penalty: ['hist-type-penalty', 'bi-exclamation-triangle-fill',     'Penalty']
+                rent:    ['hist-type-rent',    'bi-house-fill',                'Rent'],
+                deposit: ['hist-type-deposit', 'bi-safe2-fill',               'Deposit'],
+                penalty: ['hist-type-penalty', 'bi-exclamation-triangle-fill','Penalty']
             };
             const [cls, ico, label] = map[t] || ['hist-type-other', 'bi-tag-fill', t || 'Other'];
             return `<span class="${cls}"><i class="bi ${ico}"></i>${label}</span>`;
@@ -1454,7 +1409,7 @@ function getStatusBadge($status)
         function getMethodPill(m) {
             if (!m) return '<span style="color:#a0aec0;">—</span>';
             return `<span style="background:#f1f5f9;color:#4a5568;padding:3px 9px;border-radius:20px;font-size:.72rem;font-weight:600;display:inline-flex;align-items:center;gap:4px;">
-                        <i class="bi bi-credit-card"></i>${m.replace(/_/g, ' ')}
+                        <i class="bi bi-credit-card"></i>${m.replace(/_/g,' ')}
                     </span>`;
         }
 
@@ -1462,81 +1417,118 @@ function getStatusBadge($status)
 
         function renderHistTable(rows) {
             const tbody = document.getElementById('histTableBody');
-
             if (!rows.length) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="10" style="text-align:center;padding:50px;color:#a0aec0;">
-                            <i class="bi bi-receipt" style="font-size:2.5rem;display:block;margin-bottom:10px;opacity:.4;"></i>
-                            No payment records found.
-                        </td>
-                    </tr>`;
+                tbody.innerHTML = `<tr><td colspan="11" style="text-align:center;padding:50px;color:#a0aec0;">
+                    <i class="bi bi-receipt" style="font-size:2.5rem;display:block;margin-bottom:10px;opacity:.4;"></i>
+                    No payment records found.</td></tr>`;
                 document.getElementById('histRowCount').textContent = '0 transaction(s)';
                 return;
             }
 
             tbody.innerHTML = rows.map((p, i) => {
-                const searchStr = [
-                    p.payment_type   || '',
-                    p.payment_method || '',
-                    p.reference_no   || '',
-                    p.status         || '',
-                    p.remarks        || ''
-                ].join(' ').toLowerCase();
+                const s = (p.status || '').toLowerCase();
+                const isOverdue = s === 'overdue';
+                const isVerify  = s === 'pending_verification';
+                const dl        = isOverdue ? daysLate(p.due_date) : null;
+                const rowCls    = isOverdue ? 'hist-tr hist-tr-overdue' : (isVerify ? 'hist-tr hist-tr-pending' : 'hist-tr');
 
-                return `
-                    <tr class="hist-tr"
-                        data-status="${(p.status || '').toLowerCase()}"
-                        data-type="${(p.payment_type || '').toLowerCase()}"
-                        data-search="${searchStr}">
-                        <td class="hist-td" style="color:#a0aec0;font-size:.78rem;">${i + 1}</td>
-                        <td class="hist-td">${getHistTypePill((p.payment_type || '').toLowerCase())}</td>
-                        <td class="hist-td">${fmtDate(p.due_date)}</td>
-                        <td class="hist-td">${p.paid_date
-                            ? fmtDate(p.paid_date)
-                            : '<span style="color:#a0aec0;font-size:.8rem;">Not yet paid</span>'}</td>
-                        <td class="hist-td" style="font-weight:700;color:#2d3748;">${p.amount !== null && p.amount !== undefined
-                            ? fmtAmt(p.amount)
-                            : '<span style="color:#a0aec0;">—</span>'}</td>
-                        <td class="hist-td">${getMethodPill(p.payment_method)}</td>
-                        <td class="hist-td">${p.reference_no
-                            ? `<span style="font-family:monospace;font-size:.78rem;background:#f1f5f9;padding:3px 8px;border-radius:5px;color:#4a5568;">${p.reference_no}</span>`
-                            : '<span style="color:#a0aec0;">—</span>'}</td>
-                        <td class="hist-td">${getHistStatusBadge((p.status || '').toLowerCase())}</td>
-                        <td class="hist-td" style="max-width:150px;font-size:.78rem;color:#718096;white-space:normal;">${p.remarks
-                            ? p.remarks
-                            : '<span style="color:#a0aec0;">—</span>'}</td>
-                        <td class="hist-td" style="font-size:.78rem;color:#a0aec0;">${fmtDate(p.created_at)}</td>
-                    </tr>`;
+                const proofHtml = p.proof_path
+                    ? `<a href="../uploads/${p.proof_path}" target="_blank" style="color:#0d6efd;font-size:.76rem;"><i class="bi bi-file-earmark-check"></i> View</a>`
+                    : '<span style="color:#a0aec0;">—</span>';
+
+                let actionHtml = '<span style="color:#a0aec0;">—</span>';
+                if (isVerify) {
+                    actionHtml = `
+                        <div style="display:flex;gap:5px;align-items:center;">
+                            <button class="approve-pay-btn" onclick="reviewPayment(${p.id},'approved')">
+                                <i class="bi bi-check2"></i> Approve
+                            </button>
+                            <button class="reject-pay-btn" onclick="reviewPayment(${p.id},'rejected')">
+                                <i class="bi bi-x"></i> Reject
+                            </button>
+                        </div>`;
+                }
+
+                const dueDateHtml = p.due_date
+                    ? fmtDate(p.due_date) + (dl !== null ? `<br><span class="days-late-chip"><i class="bi bi-clock-history"></i>${dl}d late</span>` : '')
+                    : '—';
+
+                return `<tr class="${rowCls}">
+                    <td class="hist-td" style="color:#a0aec0;font-size:.78rem;">${i+1}</td>
+                    <td class="hist-td">${getHistTypePill((p.payment_type||'').toLowerCase())}</td>
+                    <td class="hist-td">${dueDateHtml}</td>
+                    <td class="hist-td">${p.paid_date ? fmtDate(p.paid_date) : '<span style="color:#a0aec0;font-size:.8rem;">Not yet paid</span>'}</td>
+                    <td class="hist-td" style="font-weight:700;color:#2d3748;">${p.amount !== null && p.amount !== undefined ? fmtAmt(p.amount) : '<span style="color:#a0aec0;">—</span>'}</td>
+                    <td class="hist-td">${getMethodPill(p.payment_method)}</td>
+                    <td class="hist-td">${p.reference_no ? `<span style="font-family:monospace;font-size:.78rem;background:#f1f5f9;padding:3px 8px;border-radius:5px;">${p.reference_no}</span>` : '<span style="color:#a0aec0;">—</span>'}</td>
+                    <td class="hist-td">${proofHtml}</td>
+                    <td class="hist-td">${getHistStatusBadge(s)}</td>
+                    <td class="hist-td" style="max-width:140px;font-size:.78rem;color:#718096;white-space:normal;">${p.remarks || '<span style="color:#a0aec0;">—</span>'}</td>
+                    <td class="hist-td">${actionHtml}</td>
+                </tr>`;
             }).join('');
 
             document.getElementById('histRowCount').textContent = rows.length + ' transaction(s)';
         }
 
-        // ── Filter 
         function filterHist() {
             const q      = document.getElementById('histSearch').value.toLowerCase();
             const status = document.getElementById('histStatusFilter').value.toLowerCase();
             const type   = document.getElementById('histTypeFilter').value.toLowerCase();
 
             const filtered = histAllRows.filter(p => {
-                const search = [
-                    p.payment_type   || '',
-                    p.payment_method || '',
-                    p.reference_no   || '',
-                    p.status         || '',
-                    p.remarks        || ''
-                ].join(' ').toLowerCase();
-
+                const search = [p.payment_type||'', p.payment_method||'', p.reference_no||'', p.status||'', p.remarks||''].join(' ').toLowerCase();
                 return (!q      || search.includes(q))
-                    && (!status || (p.status        || '').toLowerCase() === status)
-                    && (!type   || (p.payment_type  || '').toLowerCase() === type);
+                    && (!status || (p.status||'').toLowerCase() === status)
+                    && (!type   || (p.payment_type||'').toLowerCase() === type);
             });
 
             renderHistTable(filtered);
         }
 
-        // ── Open Modal 
+        /* ── Approve / Reject payment ── */
+        function reviewPayment(paymentId, action) {
+            const label = action === 'approved' ? 'Approve' : 'Reject';
+            Swal.fire({
+                title: label + ' this payment?',
+                text: action === 'approved'
+                    ? 'This will mark the payment as Paid and update the record.'
+                    : 'This will reject the tenant\'s submitted payment.',
+                icon: action === 'approved' ? 'question' : 'warning',
+                showCancelButton: true,
+                confirmButtonColor: action === 'approved' ? '#198754' : '#dc3545',
+                cancelButtonColor:  '#6c757d',
+                confirmButtonText:  action === 'approved' ? 'Yes, Approve' : 'Yes, Reject'
+            }).then(result => {
+                if (!result.isConfirmed) return;
+
+                fetch('review-payment.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `payment_id=${paymentId}&action=${action}`
+                })
+                .then(r => r.text())
+                .then(raw => {
+                    let data;
+                    try { data = JSON.parse(raw); }
+                    catch { Swal.fire({ icon:'error', title:'Error', text:'Unexpected server response.', confirmButtonColor:'#8d0b41' }); return; }
+
+                    Swal.fire({
+                        icon: data.success ? 'success' : 'error',
+                        title: data.success ? 'Done!' : 'Failed',
+                        text: data.success
+                            ? (action === 'approved' ? 'Payment approved and marked as Paid.' : 'Payment has been rejected.')
+                            : (data.message || 'Something went wrong.'),
+                        confirmButtonColor: '#8d0b41'
+                    }).then(() => { if (data.success) location.reload(); });
+                })
+                .catch(err => Swal.fire({ icon:'error', title:'Network Error', text: err.message, confirmButtonColor:'#8d0b41' }));
+            });
+        }
+
+        /* ── Open Modal ── */
+        let defaultFilterStatus = '';
+
         document.querySelectorAll('.view-history-btn').forEach(btn => {
             btn.addEventListener('click', function () {
                 const tenantId   = this.dataset.tenantId;
@@ -1544,44 +1536,47 @@ function getStatusBadge($status)
                 const property   = this.dataset.property;
                 const rentAmt    = parseFloat(this.dataset.amount || 0);
                 const records    = paymentHistoryData[tenantId] || [];
+                defaultFilterStatus = this.dataset.filterStatus || '';
 
                 histAllRows = records;
 
-                // Populate header
                 document.getElementById('histModalTenantName').textContent = tenantName;
                 document.getElementById('histModalProperty').textContent   = property;
                 document.getElementById('histModalRent').textContent       = fmtAmt(rentAmt);
 
-                // Compute summary stats
-                const totalPaid    = records.reduce((s, p) =>
-                    ['paid', 'partial'].includes((p.status || '').toLowerCase())
-                        ? s + parseFloat(p.amount || 0) : s, 0);
-                const paidCount    = records.filter(p => (p.status || '').toLowerCase() === 'paid').length;
-                const pendingCount = records.filter(p => (p.status || '').toLowerCase() === 'pending').length;
-                const overdueCount = records.filter(p => (p.status || '').toLowerCase() === 'overdue').length;
+                const totalPaid    = records.reduce((s,p) => ['paid','partial'].includes((p.status||'').toLowerCase()) ? s+parseFloat(p.amount||0) : s, 0);
+                const paidCount    = records.filter(p => (p.status||'').toLowerCase() === 'paid').length;
+                const pendingCount = records.filter(p => (p.status||'').toLowerCase() === 'pending').length;
+                const overdueCount = records.filter(p => (p.status||'').toLowerCase() === 'overdue').length;
+                const verifyCount  = records.filter(p => (p.status||'').toLowerCase() === 'pending_verification').length;
                 const lastPaidRec  = records.find(p => p.paid_date);
 
                 document.getElementById('histTotalPaid').textContent    = fmtAmt(totalPaid);
                 document.getElementById('histTotalCount').textContent   = records.length;
                 document.getElementById('histPaidPending').textContent  = paidCount + ' paid · ' + pendingCount + ' pending';
                 document.getElementById('histOverdueCount').textContent = overdueCount;
+                document.getElementById('histVerifyCount').textContent  = verifyCount;
                 document.getElementById('histLastPayment').textContent  = lastPaidRec ? fmtDate(lastPaidRec.paid_date) : '—';
                 document.getElementById('histFooterTotal').textContent  = fmtAmt(totalPaid);
 
-                // Reset filters
+                // Reset / pre-set filters
                 document.getElementById('histSearch').value       = '';
-                document.getElementById('histStatusFilter').value = '';
+                document.getElementById('histStatusFilter').value = defaultFilterStatus;
                 document.getElementById('histTypeFilter').value   = '';
 
-                renderHistTable(records);
+                if (defaultFilterStatus) {
+                    filterHist();
+                } else {
+                    renderHistTable(records);
+                }
+
                 new bootstrap.Modal(document.getElementById('paymentHistoryModal')).show();
             });
         });
 
-        // Filter listeners
-        document.getElementById('histSearch').addEventListener('input',          filterHist);
-        document.getElementById('histStatusFilter').addEventListener('change',   filterHist);
-        document.getElementById('histTypeFilter').addEventListener('change',     filterHist);
+        document.getElementById('histSearch').addEventListener('input',        filterHist);
+        document.getElementById('histStatusFilter').addEventListener('change', filterHist);
+        document.getElementById('histTypeFilter').addEventListener('change',   filterHist);
     </script>
 
 </body>

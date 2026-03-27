@@ -189,10 +189,8 @@ function initMap() {
 }
 </script>
 
-<!-- Google Maps API (replace YOUR_API_KEY with your key) -->
+<!-- Google Maps API -->
 <script async
-    src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap">
 </script>
-
-
 </html>

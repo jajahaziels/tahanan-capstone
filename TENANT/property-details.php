@@ -406,7 +406,7 @@ if ($hasActiveLease || $hasActiveRent) {
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/scrollreveal"></script>
     <script src="../js/contact-landlord.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap" async defer></script>
 
     <!-- ✅ Cancel Apply Logic -->
     <script>

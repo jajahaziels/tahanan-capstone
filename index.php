@@ -276,8 +276,8 @@ $result = $conn->query($sql);
                                     <i class="fa-regular fa-message mb-4 mt-5"></i>
                                     <p>"This platform has been a game-changer for managing our apartments. Everything is in one place—tenant requests, payments, and updates—so I no longer waste time juggling multiple tools. It keeps everything organized and stress-free."</p>
                                     <div class="person mt-5">
-                                        <img src="../TAHANAN/img/mina.jpg" alt="" width="10%">
-                                        <h5 class="mt-3">Jonathan Allen Mina</h5>
+                                        <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
+                                        <h5 class="mt-3">Jahaziel Sison</h5>
                                         <div class="stars">
                                             <i class="fa-solid fa-star"></i>
                                             <i class="fa-solid fa-star"></i>
@@ -299,7 +299,28 @@ $result = $conn->query($sql);
                                     <p>"I love how easy it is to stay connected with tenants through this platform. From announcements to maintenance updates, communication is clear and efficient. It has improved relationships and boosted tenant satisfaction."</p>
                                     <div class="person mt-5">
                                         <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
-                                        <h5 class="mt-3">Jahaziel Sison</h5>
+                                        <h5 class="mt-3">John Carlo</h5>
+                                        <div class="stars">
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star"></i>
+                                            <i class="fa-solid fa-star-half-stroke"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="carousel-item">
+                        <div class="row justify-content-center">
+                            <div class="col-lg-8">
+                                <div class="review text-center p-4">
+                                    <i class="fa-regular fa-message mb-4 mt-5"></i>
+                                    <p>"I love how easy it is to stay connected with tenants through this platform. From announcements to maintenance updates, communication is clear and efficient. It has improved relationships and boosted tenant satisfaction."</p>
+                                    <div class="person mt-5">
+                                        <img src="../TAHANAN/img/house1.jpeg" alt="" width="10%">
+                                        <h5 class="mt-3">Joven Quinal</h5>
                                         <div class="stars">
                                             <i class="fa-solid fa-star"></i>
                                             <i class="fa-solid fa-star"></i>

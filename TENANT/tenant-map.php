@@ -145,7 +145,7 @@ while ($row = $result->fetch_assoc()) {
         <div class="legend-item"><span class="legend-color" style="background:purple"></span>> ₱20k</div>
         <div class="legend-item"><span class="legend-color" style="background:red"></span>Flood-prone Area</div>
         <div class="legend-item"><span class="legend-color" style="background:red; height:4px"></span>Fault Line</div>
-        <div class="legend-item"><img src="https://maps.google.com/mapfiles/ms/icons/hospitals.png" style="width:18px;height:18px;margin-right:6px">Hospital</div>
+        <div class="legend-item"> <i class="fas fa-hospital" style="color:red; margin-right:6px;"></i>Hospital</div>
         <div class="legend-item"><img src="https://maps.google.com/mapfiles/ms/icons/blue-pushpin.png" style="width:18px;height:18px;margin-right:6px">Evacuation Center</div>
     `;
             map.controls[google.maps.ControlPosition.LEFT_TOP].push(legendDiv);
@@ -247,7 +247,7 @@ while ($row = $result->fetch_assoc()) {
         }
     </script>
 
-    <script async src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap"></script>
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap"></script>
 </body>
 
 </html>

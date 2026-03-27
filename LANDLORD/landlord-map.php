@@ -139,8 +139,7 @@ while ($row = $result->fetch_assoc())
             const searchDiv = document.createElement("div");
             searchDiv.style.padding = "8px";
             searchDiv.innerHTML = `
-        <input id="proximitySearch" class="form-control" placeholder="Enter location to check distance/time">
-        <button id="proximityBtn" class="btn btn-primary mt-1">Check</button>
+        
     `;
             map.controls[google.maps.ControlPosition.TOP_LEFT].push(searchDiv);
 
@@ -153,7 +152,7 @@ while ($row = $result->fetch_assoc())
         <div class="legend-item"><span class="legend-color" style="background:purple"></span>> ₱20k</div>
         <div class="legend-item"><span class="legend-color" style="background:red"></span>Flood-prone Area</div>
         <div class="legend-item"><span class="legend-color" style="background:red; height:4px"></span>Fault Line</div>
-        <div class="legend-item"><img src="https://maps.google.com/mapfiles/ms/icons/hospitals.png" style="width:18px;height:18px;margin-right:6px">Hospital</div>
+        <div class="legend-item"> <i class="fas fa-hospital" style="color:red; margin-right:6px;"></i>Hospital</div>
         <div class="legend-item"><img src="https://maps.google.com/mapfiles/ms/icons/blue-pushpin.png" style="width:18px;height:18px;margin-right:6px">Evacuation Center</div>
     `;
             map.controls[google.maps.ControlPosition.LEFT_TOP].push(legendDiv);
@@ -213,59 +212,6 @@ while ($row = $result->fetch_assoc())
                     icon: { url: "https://maps.google.com/mapfiles/ms/icons/blue-pushpin.png", scaledSize: new google.maps.Size(32, 32) }
                 });
                 bounds.extend(new google.maps.LatLng(e.lat, e.lng));
-            });
-
-            // Flood polygons
-            const floodPolygons = {
-                "Landayan": [{ lat: 14.3577, lng: 121.071 }, { lat: 14.3555, lng: 121.0695 }, { lat: 14.354, lng: 121.064 }, { lat: 14.3523, lng: 121.0607 }, { lat: 14.3508, lng: 121.0589 }],
-                "Poblacion": [{ lat: 14.361, lng: 121.0545 }, { lat: 14.36, lng: 121.051 }, { lat: 14.358, lng: 121.0495 }, { lat: 14.357, lng: 121.0525 }],
-                "SanRoque": [{ lat: 14.3525, lng: 121.0625 }, { lat: 14.3515, lng: 121.0595 }, { lat: 14.35, lng: 121.058 }, { lat: 14.349, lng: 121.061 }],
-                "StoNino": [{ lat: 14.3495, lng: 121.059 }, { lat: 14.348, lng: 121.0565 }, { lat: 14.347, lng: 121.058 }, { lat: 14.3485, lng: 121.061 }],
-                "Cuyab": [{ lat: 14.3455, lng: 121.063 }, { lat: 14.3445, lng: 121.0595 }, { lat: 14.343, lng: 121.058 }, { lat: 14.342, lng: 121.061 }]
-            };
-            Object.values(floodPolygons).forEach(coords => {
-                new google.maps.Polygon({
-                    paths: coords, strokeColor: "red", strokeOpacity: 0.7, strokeWeight: 2, fillColor: "red", fillOpacity: 0.25, map
-                });
-            });
-
-            // Fault line
-            new google.maps.Polyline({
-                path: [{ lat: 14.3635, lng: 121.052 }, { lat: 14.362, lng: 121.057 }, { lat: 14.361, lng: 121.062 }, { lat: 14.358, lng: 121.065 }],
-                map, strokeColor: "orange", strokeOpacity: 0.8, strokeWeight: 3
-            });
-
-            if (listings.length > 0) map.fitBounds(bounds);
-
-            document.getElementById("proximityBtn").addEventListener("click", () => {
-                const addr = document.getElementById("proximitySearch").value;
-                if (!addr) return;
-                const geocoder = new google.maps.Geocoder();
-                geocoder.geocode({ address: addr }, (results, status) => {
-                    if (status === "OK" && results[0]) {
-                        const loc = results[0].geometry.location;
-                        listings.forEach(item => {
-                            const pos = { lat: parseFloat(item.latitude), lng: parseFloat(item.longitude) };
-                            distanceService.getDistanceMatrix({ origins: [loc], destinations: [pos], travelMode: google.maps.TravelMode.DRIVING }, (res, status) => {
-                                let distText = "";
-                                if (status === "OK" && res.rows[0].elements[0].status === "OK") {
-                                    const e = res.rows[0].elements[0];
-                                    distText = `${e.distance.text} • ${e.duration.text}`;
-                                }
-                                item.infoWindow.setContent(`
-                            <div style="text-align:center;">
-                                <strong>${item.listingName}</strong><br>
-                                ₱${Number(item.price).toLocaleString()}<br>
-                                ${distText}<br>
-                                <button class="small-button mt-1" onclick="location.href='property-details.php?ID=${item.listing_id}'">View</button><br>
-                                <button class="small-button mt-1" onclick="window.open('https://www.google.com/maps/dir/?api=1&origin=${loc.lat()},${loc.lng()}&destination=${pos.lat},${pos.lng}','_blank')">Directions</button>
-                            </div>
-                        `);
-                            });
-                        });
-                        map.setCenter(loc); map.setZoom(13);
-                    } else alert("Location not found.");
-                });
             });
 
         }

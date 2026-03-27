@@ -460,10 +460,11 @@ $result = $conn->query($sql);
                                                 style="width:100%; max-height:200px; object-fit:cover;"
                                                 onerror="this.src='../img/house1.jpeg'">
 
+                                            <!-- to add
                                             <div class="labels">
                                                 <div class="label"><i class="fa-regular fa-star"></i> Featured</div>
                                                 <div class="label">Specials</div>
-                                            </div>
+                                            </div>-->
 
                                             <!-- Price -->
                                             <div class="price-tag">₱ <?= number_format($row['price']); ?></div>
