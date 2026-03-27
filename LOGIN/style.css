@@ -1,0 +1,386 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
+:root {
+    --bg-color: #fafafa;
+    --bg-alt-color: #dfdfdf;
+    --main-color: #8d0b41;
+    --text-color: #42505a;
+    --text-alt-color: #647887;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    list-style: none;
+    font-family: "Montserrat", sans-serif;
+}
+
+/* BODY & HTML STYLES */
+body,
+html {
+    height: 100%;
+    width: 100%;
+    background-color: var(--bg-color);
+    overflow: hidden;
+}
+
+/* CONTAINER */
+.main-wrapper {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+}
+
+/* Left Panel Styling */
+.hero-section {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--bg-alt-color);
+}
+
+.map-box {
+    height: 65%;
+    width: 100%;
+}
+
+.map-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.hero-text {
+    height: 35%;
+    display: flex;
+    align-items: center;
+    padding: 0 10%;
+    background-color: #fff;
+}
+
+.hero-text h1 {
+    font-size: clamp(1.5rem, 3.5vw, 2.8rem);
+    font-weight: 800;
+    line-height: 1.1;
+    color: #000;
+}
+
+.hero-text h1 span {
+    color: var(--main-color);
+}
+
+/* Right Panel Styling */
+.auth-section {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 380px;
+    text-align: center;
+}
+
+.brand-identity img {
+    width: 90px;
+    margin-bottom: 1rem;
+}
+
+h2 {
+    color: var(--main-color);
+    font-size: 1.7rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+}
+
+/* Form Box */
+.input-box {
+    position: relative;
+    margin-bottom: 1.2rem;
+}
+
+.input-box input {
+    width: 100%;
+    padding: 15px 45px 15px 20px;
+    border: 2px solid var(--main-color);
+    border-radius: 12px;
+    background-color: var(--bg-alt-color);
+    outline: none;
+    font-size: 14px;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.input-box input::placeholder {
+    color: var(--text-alt-color);
+}
+
+.input-box i {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--main-color);
+}
+
+/* Buttons */
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--main-color);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.btn-primary:active {
+    transform: scale(0.98);
+}
+
+.divider {
+    margin: 2rem 0;
+    display: flex;
+    align-items: center;
+    color: var(--text-alt-color);
+    font-size: 0.9rem;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--bg-alt-color);
+}
+
+.divider span {
+    padding: 0 12px;
+}
+
+.btn-google {
+    width: 100%;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid var(--main-color);
+    border-radius: 10px;
+    color: var(--main-color);
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    transition: 0.3s ease;
+}
+
+.btn-google:hover {
+    background-color: rgba(141, 11, 65, 0.05);
+    border-color: #b30d4f;
+    color: #b30d4f;
+}
+
+.redirect {
+    margin-top: 2.5rem;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.redirect a {
+    color: var(--main-color);
+    text-decoration: none;
+    font-weight: 700;
+}
+
+@media (max-width: 850px) {
+    .hero-section {
+        display: none;
+    }
+}
+
+.remember-forgot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: -5px 5px 20px 5px;
+    font-size: 0.85rem;
+    color: var(--text-alt-color);
+}
+
+.remember-forgot label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    gap: 8px;
+}
+
+.remember-forgot input[type="checkbox"] {
+    accent-color: var(--main-color);
+    cursor: pointer;
+}
+
+.forgot-link {
+    color: var(--main-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: opacity 0.2s;
+}
+
+.forgot-link:hover {
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+.btn-primary {
+    margin-top: 5px;
+}
+
+/* OTP Modal Overlay */
+#otpModal {
+    display: none;
+    /* hidden by default */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    /* dark overlay */
+    z-index: 1000;
+    /* always above everything */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* OTP Modal Box */
+.otp-box {
+    margin-top: 20px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.otp-box h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--text-color);
+}
+
+.otp-box input[type="text"] {
+    width: 70%;
+    padding: 10px;
+    border: 1px solid var(--main-color);
+    border-radius: 8px;
+    margin-right: 10px;
+    text-align: center;
+}
+
+.otp-box button {
+    padding: 10px 15px;
+    background: var(--main-color);
+    border: none;
+    border-radius: 8px;
+    color: var(--bg-color);
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.otp-box button:hover {
+    background: #b30d4f;
+}
+
+.otp-error {
+    color: red;
+    font-size: 14px;
+    margin-top: 10px;
+    display: none;
+    /* only show if OTP fails */
+}
+
+<style> :root {
+    --bg-color: #fafafa;
+    --bg-alt-color: #dfdfdf;
+    --main-color: #8d0b41;
+    --text-color: #42505a;
+    --text-alt-color: #647887;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Montserrat", sans-serif;
+}
+
+/* OTP */
+.otp-box {
+    margin-top: 20px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.otp-box input {
+    width: 70%;
+    padding: 12px;
+    border: 1px solid var(--main-color);
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.otp-box input::placeholder {
+    color: var(--text-alt-color);
+    font-weight: 500;
+}
+
+.otp-box button {
+    padding: 12px 18px;
+    background: var(--main-color);
+    border: none;
+    border-radius: 8px;
+    color: var(--bg-color);
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.otp-box button:hover {
+    background: #b30d4f;
+}
+
+/* MESSAGES */
+.message {
+    text-align: center;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.error {
+    color: red;
+}
+
+.success {
+    color: green;
+}

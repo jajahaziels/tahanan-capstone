@@ -2,6 +2,7 @@
 session_start();
 include '../includes/db.php';
 require '../vendor/autoload.php';
+
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -40,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
         if ($checkUsername && $checkUsername->num_rows > 0) {
             $columns .= ", username";
         }
-        
+
         $stmt = $conn->prepare("SELECT $columns FROM `$table` WHERE email=? LIMIT 1");
         $stmt->bind_param("s", $email);
         $stmt->execute();
@@ -54,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                 $dbRole = $map['db_role'];
                 $redirect = $map['redirect'];
                 $deviceHash = getDeviceHash();
-                
+
                 // FIXED: Handle case where lastName or username might not exist
                 $fullName = trim(($row['firstName'] ?? '') . ' ' . ($row['lastName'] ?? ''));
                 $username = isset($row['username']) && !empty($row['username']) ? $row['username'] : ($row['firstName'] ?? 'User');
@@ -105,8 +106,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                 $_SESSION['otp_name'] = $fullName;
                 $_SESSION['otp_username'] = $username;
                 $_SESSION['otp_email'] = $email;
-                $_SESSION['otp_redirect'] = $redirect; 
-                
+                $_SESSION['otp_redirect'] = $redirect;
+
                 // Send OTP via email
                 $mail = new PHPMailer(true);
                 try {
@@ -127,11 +128,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
                     // Redirect to OTP page
                     header("Location: otp.php");
                     exit();
-
                 } catch (Exception $e) {
                     $errorMsg = "❌ OTP send failed: " . $mail->ErrorInfo;
                 }
-
             } else {
                 $errorMsg = "❌ Wrong password.";
             }
@@ -145,76 +144,129 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['otp'])) {
 }
 ?>
 
-<!DOCTYPE html> 
-<html lang="en"> 
-<head> 
-    <link rel="stylesheet" href="signup.css"> 
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Map Aware Home</title>
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <title>Login Form</title> 
-</head> 
+</head>
 
-<body> 
-    <div class="form-container login-container"> 
-        <div class="form-box login-form"> 
-            <form method="POST" action=""> 
-                <h1>Login Form</h1> 
-                
-                <!-- Debug information  -->
-                <?php if (isset($_GET['debug'])): ?>
-                <div class="debug-info">
-                    <strong>Debug Info:</strong><br>
-                    User Agent: <?php echo htmlspecialchars(substr($_SERVER['HTTP_USER_AGENT'], 0, 50)); ?>...<br>
-                    IP: <?php echo $_SERVER['REMOTE_ADDR']; ?><br>
-                    HTTPS: <?php echo (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'Yes' : 'No'; ?>
+<body>
+    <div class="main-wrapper">
+        <div class="hero-section">
+            <div class="map-box">
+                <img src="maps.jpg" alt="Map View">
+            </div>
+            <div class="hero-text">
+                <h1>Your <span>Safe</span> Zone<br>Starts Here</h1>
+            </div>
+        </div>
+
+        <div class="auth-section">
+            <div class="auth-card">
+                <div class="brand-identity">
+                    <img src="TAHANAN.png" alt="Tahanan Logo">
                 </div>
-                <?php endif; ?>
-                
-                <!-- Show error/success messages neatly --> 
-                <?php if (!empty($errorMsg)): ?> 
-                    <p class="message error"><?php echo $errorMsg; ?></p> 
-                <?php elseif (!empty($_SESSION['success'])): ?> 
-                    <p class="message success"><?php echo $_SESSION['success']; unset($_SESSION['success']); ?></p> 
-                <?php endif; ?> 
-                
-                <div class="input-box"> 
-                    <input type="text" name="email" placeholder="Email" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>"> 
-                    <i class="fa-solid fa-user"></i> 
-                </div> 
-                <div class="input-box"> 
-                    <input type="password" name="password" placeholder="Password" required> 
-                    <i class="fa-solid fa-key"></i> 
-                </div> 
-                <div class="remember-forgot"> 
-                    <label><input type="checkbox" name="remember_me" value="1" <?php echo isset($_POST['remember_me']) ? 'checked' : ''; ?>> Remember me</label> 
-                    <a href="forgot_password.php" class="forgot-link">Forgot Password?</a>
-                </div><br> 
-                <button type="submit" class="btn login">Login</button> 
-                
-                <!-- OTP box appears only when condition is satisfy --> 
-                <?php if ($showOtpBox): ?> 
-                    <div class="otp-box"> 
-                        <h3>Enter OTP</h3> 
-                        <input type="text" name="otp" placeholder="Enter OTP" required> 
-                        <br> 
-                        <button type="submit">Verify OTP</button> 
-                    </div> 
-                <?php endif; ?> 
-                
-                <div class="socials"><br> 
-                    <p>or</p><br> 
-                    <a href="google-login.php?mode=login&role=tenant"> 
-                        <i class="fa-brands fa-google"></i> Login with Google 
-                    </a> 
-                </div><br> 
-                <div class="signup-link"> 
-                    Create an Account <a href="signup.php" class="signup">Signup now</a> 
-                </div> 
-            </form> 
-        </div> 
-    </div> 
-</body> 
+
+                <form action="" method="POST">
+
+                    <h2>Log in or Sign up</h2>
+                    <!-- Debug information  -->
+                    <?php if (isset($_GET['debug'])): ?>
+                        <div class="debug-info">
+                            <strong>Debug Info:</strong><br>
+                            User Agent: <?php echo htmlspecialchars(substr($_SERVER['HTTP_USER_AGENT'], 0, 50)); ?>...<br>
+                            IP: <?php echo $_SERVER['REMOTE_ADDR']; ?><br>
+                            HTTPS: <?php echo (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'Yes' : 'No'; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- Show error/success messages neatly -->
+                    <?php if (!empty($errorMsg)): ?>
+                        <p class="message error"><?php echo $errorMsg; ?></p>
+                    <?php elseif (!empty($_SESSION['success'])): ?>
+                        <p class="message success"><?php echo $_SESSION['success'];
+                                                    unset($_SESSION['success']); ?></p>
+                    <?php endif; ?>
+
+                    <div class="input-box">
+                        <input type="text" name="email" placeholder="Email" required value="<?php echo isset($_POST['email']) ? htmlspecialchars($_POST['email']) : ''; ?>">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+
+                    <div class="input-box">
+                        <input type="password" name="password" placeholder="Password" required>
+                        <i class="fa-solid fa-key"></i>
+                    </div>
+
+                    <div class="remember-forgot">
+                        <label>
+                            <input type="checkbox" name="remember_me" value="1" <?php echo isset($_POST['remember_me']) ? 'checked' : ''; ?>>
+                            Remember me
+                        </label>
+                        <a href="forgot_password.php" class="forgot-link">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="btn-primary btn login">Login</button>
+
+                    <!-- OTP box appears only when condition is satisfy -->
+                    <?php if ($showOtpBox): ?>
+                        <div class="otp-box">
+                            <h3>Enter OTP</h3>
+                            <input type="text" name="otp" placeholder="Enter OTP" required>
+                            <br>
+                            <button type="submit">Verify OTP</button>
+                        </div>
+                    <?php endif; ?>
+
+                    <div class="divider">
+                        <span>or</span>
+                    </div>
+                    <div class="socials">
+                        <a href="google-login.php?mode=login&role=tenant" class="btn-google">
+                            <i class="fa-brands fa-google"></i> Log in with Google
+                        </a>
+
+                        <p class="redirect">
+                            Create an Account <a href="signup.php" class="signup">Sign up now</a>
+
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <?php if (!empty($errorMsg)): ?>
+        <script>
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: '<?php echo $errorMsg; ?>',
+                confirmButtonColor: '#8d0b41'
+            });
+        </script>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['success'])): ?>
+        <script>
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '<?php echo $_SESSION['success']; ?>',
+                confirmButtonColor: '#8d0b41',
+                timer: 3000
+            });
+        </script>
+        <?php unset($_SESSION['success']); ?>
+    <?php endif; ?>
+
+</body>
 </html>
