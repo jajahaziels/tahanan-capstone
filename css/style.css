@@ -552,7 +552,8 @@ footer {
         border-radius: 20px;
     }
 
-    .nav-links.open {
+    .nav-links.open,
+    .nav-links.active {
         right: 0%;
     }
 }
