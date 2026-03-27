@@ -17,19 +17,39 @@
 }
 
 /* BODY & HTML STYLES */
-body,
-html {
+body, html {
     height: 100%;
     width: 100%;
     background-color: var(--bg-color);
-    overflow: hidden;
+    overflow: hidden; 
 }
 
-/* CONTAINER */
+/* --- KEYFRAMES --- */
+@keyframes mapReveal {
+    from { clip-path: inset(0 100% 0 0); transform: scale(1.1); }
+    to { clip-path: inset(0 0 0 0); transform: scale(1); }
+}
+
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes logoEntrance {
+    from { opacity: 0; transform: scale(0.8) translateY(-20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes formEntrance {
+    from { opacity: 0; transform: translateY(20px); filter: blur(5px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+
+/* --- LAYOUT --- */
 .main-wrapper {
     display: flex;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;       
+    min-height: 100vh; 
 }
 
 /* Left Panel Styling */
@@ -38,17 +58,21 @@ html {
     display: flex;
     flex-direction: column;
     border-right: 1px solid var(--bg-alt-color);
+    position: relative; 
 }
 
 .map-box {
-    height: 65%;
     width: 100%;
+    height: 100%;
+    overflow: hidden;
 }
 
 .map-box img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: cover; 
+    filter: brightness(0.9);
+    animation: mapReveal 1.5s cubic-bezier(0.19, 1, 0.22, 1) both;
 }
 
 .hero-text {
@@ -57,6 +81,8 @@ html {
     align-items: center;
     padding: 0 10%;
     background-color: #fff;
+    z-index: 2;
+    animation: fadeInUp 1s ease-out 0.5s both;
 }
 
 .hero-text h1 {
@@ -68,6 +94,8 @@ html {
 
 .hero-text h1 span {
     color: var(--main-color);
+    display: inline-block;
+    animation: fadeInUp 0.8s ease-out 0.8s both;
 }
 
 /* Right Panel Styling */
@@ -77,6 +105,7 @@ html {
     justify-content: center;
     align-items: center;
     padding: 2rem;
+    background-color: #ffffff; 
 }
 
 .auth-card {
@@ -88,20 +117,47 @@ html {
 .brand-identity img {
     width: 90px;
     margin-bottom: 1rem;
+    animation: logoEntrance 0.8s ease-out 0.6s both;
 }
 
-h2 {
+.auth-card h2 {
     color: var(--main-color);
     font-size: 1.7rem;
     font-weight: 700;
     margin-bottom: 2rem;
+    animation: formEntrance 0.6s ease-out 0.7s both;
 }
 
-/* Form Box */
-.input-box {
-    position: relative;
-    margin-bottom: 1.2rem;
+.auth-card .input-box:nth-of-type(1) { animation: formEntrance 0.6s ease-out 0.8s both; }
+.auth-card .input-box:nth-of-type(2) { animation: formEntrance 0.6s ease-out 0.9s both; }
+
+.remember-forgot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: -5px 5px 20px 5px;
+    font-size: 0.85rem;
+    color: var(--text-alt-color);
+    animation: formEntrance 0.6s ease-out 1s both;
 }
+
+.btn-primary.login {
+    animation: formEntrance 0.6s ease-out 1.1s both;
+}
+
+.divider {
+    margin: 2rem 0;
+    display: flex;
+    align-items: center;
+    color: var(--text-alt-color);
+    animation: formEntrance 0.6s ease-out 1.2s both;
+}
+
+.socials {
+    animation: formEntrance 0.6s ease-out 1.3s both;
+}
+
+.input-box { position: relative; margin-bottom: 1.2rem; }
 
 .input-box input {
     width: 100%;
@@ -115,10 +171,6 @@ h2 {
     font-weight: 500;
 }
 
-.input-box input::placeholder {
-    color: var(--text-alt-color);
-}
-
 .input-box i {
     position: absolute;
     right: 18px;
@@ -127,7 +179,6 @@ h2 {
     color: var(--main-color);
 }
 
-/* Buttons */
 .btn-primary {
     width: 100%;
     padding: 14px;
@@ -138,11 +189,26 @@ h2 {
     font-weight: 700;
     font-size: 1rem;
     cursor: pointer;
-    transition: transform 0.1s;
+    transition: 0.2s;
 }
 
-.btn-primary:active {
-    transform: scale(0.98);
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-google {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--main-color);
+    border-radius: 10px;
+    color: var(--main-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+}
+
+@media (max-width: 850px) {
+    .hero-section { display: none; }
 }
 
 .divider {
@@ -151,6 +217,8 @@ h2 {
     align-items: center;
     color: var(--text-alt-color);
     font-size: 0.9rem;
+    width: 100%; 
+    animation: formEntrance 0.6s ease-out 1.2s both;
 }
 
 .divider::before,
@@ -162,225 +230,45 @@ h2 {
 }
 
 .divider span {
-    padding: 0 12px;
+    padding: 0 25px; 
+    text-transform: lowercase; 
+    font-weight: 500;
+}
+.redirect {
+    margin-top: 2rem;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    animation: formEntrance 0.6s ease-out 1.4s both; 
 }
 
-.btn-google {
-    width: 100%;
-    padding: 12px;
-    background: transparent;
-    border: 1px solid var(--main-color);
-    border-radius: 10px;
-    color: var(--main-color);
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
+.redirect a.signup {
+    color: var(--main-color) !important;
     text-decoration: none;
+    font-weight: 700;
     transition: 0.3s ease;
 }
 
-.btn-google:hover {
-    background-color: rgba(141, 11, 65, 0.05);
-    border-color: #b30d4f;
-    color: #b30d4f;
+.redirect a.signup:hover {
+    text-decoration: underline;
+    filter: brightness(1.2); 
+}
+
+.socials {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    animation: formEntrance 0.6s ease-out 1.3s both;
 }
 
 .redirect {
-    margin-top: 2.5rem;
-    font-size: 0.9rem;
+    margin-top: 1.5rem;
+    padding-bottom: 1rem;
     color: var(--text-color);
+    font-weight: 500;
 }
 
 .redirect a {
     color: var(--main-color);
     text-decoration: none;
     font-weight: 700;
-}
-
-@media (max-width: 850px) {
-    .hero-section {
-        display: none;
-    }
-}
-
-.remember-forgot {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin: -5px 5px 20px 5px;
-    font-size: 0.85rem;
-    color: var(--text-alt-color);
-}
-
-.remember-forgot label {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    gap: 8px;
-}
-
-.remember-forgot input[type="checkbox"] {
-    accent-color: var(--main-color);
-    cursor: pointer;
-}
-
-.forgot-link {
-    color: var(--main-color);
-    text-decoration: none;
-    font-weight: 600;
-    transition: opacity 0.2s;
-}
-
-.forgot-link:hover {
-    text-decoration: underline;
-    opacity: 0.8;
-}
-
-.btn-primary {
-    margin-top: 5px;
-}
-
-/* OTP Modal Overlay */
-#otpModal {
-    display: none;
-    /* hidden by default */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    /* dark overlay */
-    z-index: 1000;
-    /* always above everything */
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* OTP Modal Box */
-.otp-box {
-    margin-top: 20px;
-    padding: 20px;
-    background: #fff;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.otp-box h3 {
-    margin-bottom: 15px;
-    font-size: 18px;
-    font-weight: bold;
-    color: var(--text-color);
-}
-
-.otp-box input[type="text"] {
-    width: 70%;
-    padding: 10px;
-    border: 1px solid var(--main-color);
-    border-radius: 8px;
-    margin-right: 10px;
-    text-align: center;
-}
-
-.otp-box button {
-    padding: 10px 15px;
-    background: var(--main-color);
-    border: none;
-    border-radius: 8px;
-    color: var(--bg-color);
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.otp-box button:hover {
-    background: #b30d4f;
-}
-
-.otp-error {
-    color: red;
-    font-size: 14px;
-    margin-top: 10px;
-    display: none;
-    /* only show if OTP fails */
-}
-
-<style> :root {
-    --bg-color: #fafafa;
-    --bg-alt-color: #dfdfdf;
-    --main-color: #8d0b41;
-    --text-color: #42505a;
-    --text-alt-color: #647887;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Montserrat", sans-serif;
-}
-
-/* OTP */
-.otp-box {
-    margin-top: 20px;
-    padding: 20px;
-    background: #fff;
-    border-radius: 12px;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.otp-box input {
-    width: 70%;
-    padding: 12px;
-    border: 1px solid var(--main-color);
-    border-radius: 8px;
-    text-align: center;
-    margin-bottom: 12px;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--text-color);
-}
-
-.otp-box input::placeholder {
-    color: var(--text-alt-color);
-    font-weight: 500;
-}
-
-.otp-box button {
-    padding: 12px 18px;
-    background: var(--main-color);
-    border: none;
-    border-radius: 8px;
-    color: var(--bg-color);
-    font-weight: 600;
-    font-size: 15px;
-    cursor: pointer;
-    transition: 0.3s ease;
-}
-
-.otp-box button:hover {
-    background: #b30d4f;
-}
-
-/* MESSAGES */
-.message {
-    text-align: center;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 10px;
-    color: var(--text-color);
-}
-
-.error {
-    color: red;
-}
-
-.success {
-    color: green;
 }

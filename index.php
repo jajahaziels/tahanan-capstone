@@ -37,13 +37,20 @@ $result = $conn->query($sql);
             padding: 0 !important;
             margin: auto;
         }
+
+        html {
+            scroll-behavior: smooth;
+        }
     </style>
 </head>
 
 <body>
     <!-- HEADER -->
     <header>
-        <a href="#" class="logo d-flex justify-content-center align-items-center"><img src="img/logo.png" alt="">Tahanan</a>
+        <a href="#" class="logo d-flex justify-content-center align-items-center">
+            <img src="img/new_logo.png" alt="Logo" style="height: 2.5rem; width: auto; margin-right: 10px;">
+            Map Aware Home
+        </a>
 
         <ul class="nav-links">
             <li><a href="#home">Home</a></li>
@@ -67,7 +74,7 @@ $result = $conn->query($sql);
                 <div class="col-lg-10">
                     <div class="row justify-content-center">
                         <div class="col-lg-6 col-sm-12">
-                            <h1 class="mb-0">Tahanan</h1>
+                            <h1 class="mb-0">Map Aware Home</h1>
                             <p>We simplify property life for everyone. Landlords can easily track rent, manage maintenance, and handle leasing. Tenants can submit requests, pay rent online, and access community info—all in one intuitive place.</p>
                             <button class="main-button">Rent Now</button>
                             <button class="main-button mx-2 mb-4"> <a href="#home-listing" class="text-white">Listing</a></button>
@@ -369,7 +376,7 @@ $result = $conn->query($sql);
                 <!-- START NG ROW -->
                 <div class="row justify-content-center gy-5">
                     <div class="col-lg-4 col-sm-12">
-                        <a href="#" class="logo"><i class="fa-solid fa-house"></i>Tahanan</a>
+                        <a href="#" class="logo"><i class="fa-solid fa-house"></i>Map Aware Home</a>
                         <p>Our platform makes house searching simple and worry-free. You can easily search for verified and secure rental homes or list your own apartment with confidence.</p>
                         <div class="d-flex">
                             <div class="mt-4 mx-1 footer-box"><i class="fa-solid fa-user-check"></i> Verified Listing</div>
@@ -386,23 +393,45 @@ $result = $conn->query($sql);
                     <div class="col-lg-2 col-sm-12">
                         <div class="lead">For Tenants </div>
                         <div class="mt-4">
-                            <p>Browse Rentals</p>
-                            <p>Filter Location</p>
-                            <p>Verified Listings</p>
-                            <p>Location Map</p>
-                            <p>Tenant Rights</p>
-                            <p>Landlord FAQs</p>
+                            <a href="#home-listing" rel="noopener noreferrer">
+                                <p>Browse Rentals</p>
+                            </a>
+                            <a href="#home-listing" rel="noopener noreferrer">
+                                <p>Filter Location</p>
+                            </a>
+                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer">
+                                <p>Verified Listings</p>
+                            </a>
+                            <a href="#map-section" rel="noopener noreferrer">
+                                <p>Location Map</p>
+                            </a>
+                            <a href="tenantRights.html" rel="noopener noreferrer">
+                                <p>Tenant Rights</p>
+                            </a>
+                            <a href="tenantFAQs.html" rel="noopener noreferrer">
+                                <p>Tenant FAQs</p>
+                            </a>
                         </div>
                     </div>
 
                     <div class="col-lg-2 col-sm-12">
                         <div class="lead">For Landlord</div>
                         <div class="mt-4">
-                            <p>List Your Properties</p>
+                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer">
+                                <p>List Your Properties</p>
+                            </a>
+                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer">
                             <p>Verification Process</p>
+                            </a>
+                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer">
                             <p>Update Property Information</p>
+                            </a>
+                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer">
                             <p>Rental Reminders & Notifications</p>
+                            </a>
+                            <a href="landlordFAQs.html" rel="noopener noreferrer">
                             <p>Landlords FAQs</p>
+                            </a>
                         </div>
                     </div>
 
@@ -439,43 +468,48 @@ $result = $conn->query($sql);
 </body>
 
 <!-- GOOGLE MAPS -->
-<script>const listings = <?php echo json_encode($listings); ?>;</script>
+<script>
+    const listings = <?php echo json_encode($listings); ?>;
+</script>
 
 <script
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap"
-async defer>
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap"
+    async defer>
 </script>
 
 <script>
-function initMap() {
+    function initMap() {
 
-    const centerLocation = { lat: 14.3595, lng: 121.0473 };
+        const centerLocation = {
+            lat: 14.3595,
+            lng: 121.0473
+        };
 
-    const map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 13,
-        center: centerLocation
-    });
+        const map = new google.maps.Map(document.getElementById("map"), {
+            zoom: 13,
+            center: centerLocation
+        });
 
-    if (!listings || listings.length === 0) {
-        console.log("No listings found.");
-        return;
-    }
+        if (!listings || listings.length === 0) {
+            console.log("No listings found.");
+            return;
+        }
 
-    listings.forEach(listing => {
+        listings.forEach(listing => {
 
-    if (!listing.latitude || !listing.longitude) return;
+            if (!listing.latitude || !listing.longitude) return;
 
-    const marker = new google.maps.Marker({
-        position: {
-            lat: parseFloat(listing.latitude),
-            lng: parseFloat(listing.longitude)
-        },
-        map: map,
-        title: listing.listingName
-    });
+            const marker = new google.maps.Marker({
+                position: {
+                    lat: parseFloat(listing.latitude),
+                    lng: parseFloat(listing.longitude)
+                },
+                map: map,
+                title: listing.listingName
+            });
 
-    const infoWindow = new google.maps.InfoWindow({
-        content: `
+            const infoWindow = new google.maps.InfoWindow({
+                content: `
         <div style="width:200px">
             <h4>${listing.listingName}</h4>
             <a href="property-details.php?id=${listing.listing_id}">
@@ -483,14 +517,14 @@ function initMap() {
             </a>
         </div>
         `
-    });
+            });
 
-    marker.addListener("click", () => {
-        infoWindow.open(map, marker);
-    });
+            marker.addListener("click", () => {
+                infoWindow.open(map, marker);
+            });
 
-});
-}
+        });
+    }
 </script>
 
 <!-- MAIN JS -->
