@@ -695,7 +695,7 @@
                     <!-- LEGAL SECTION -->
                     <div class="settings-section">
                         <div class="settings-section-title">
-                            <i class="fa-solid fa-scale-balanced"></i> Legal
+                            <i class="fa-solid fa-scale-balanced"></i> Legal & Guidelines
                         </div>
                         
                         <div class="settings-item" id="termsBtn">
@@ -706,6 +706,45 @@
                                 <div class="settings-item-text">
                                     <h4>Terms & Conditions</h4>
                                     <p>Read our terms of service</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right settings-item-arrow"></i>
+                        </div>
+
+                        <div class="settings-item" id="rentalRulesBtn">
+                            <div class="settings-item-info">
+                                <div class="settings-item-icon">
+                                    <i class="fa-solid fa-house-circle-check"></i>
+                                </div>
+                                <div class="settings-item-text">
+                                    <h4>Rules Related to Renting</h4>
+                                    <p>Guidelines for renting properties</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right settings-item-arrow"></i>
+                        </div>
+
+                        <div class="settings-item" id="legalContractBtn">
+                            <div class="settings-item-info">
+                                <div class="settings-item-icon">
+                                    <i class="fa-solid fa-file-signature"></i>
+                                </div>
+                                <div class="settings-item-text">
+                                    <h4>Legal Contract Guidelines</h4>
+                                    <p>Important legal information</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right settings-item-arrow"></i>
+                        </div>
+
+                        <div class="settings-item" id="codeOfConductBtn">
+                            <div class="settings-item-info">
+                                <div class="settings-item-icon">
+                                    <i class="fa-solid fa-users"></i>
+                                </div>
+                                <div class="settings-item-text">
+                                    <h4>Code of Conduct</h4>
+                                    <p>Community guidelines</p>
                                 </div>
                             </div>
                             <i class="fa-solid fa-chevron-right settings-item-arrow"></i>
@@ -750,68 +789,55 @@
         </div>
     
         <div class="terms-modal" id="termsModal">
-    <div class="terms-container">
-        <div class="terms-header">
+            <div class="terms-container">
+            <div class="terms-header">
             <h3><i class="fa-solid fa-file-contract me-2"></i> Terms & Conditions</h3>
             <button class="terms-close" id="closeTermsModal">
                 <i class="fa-solid fa-times"></i>
             </button>
-        </div>
+          </div>
         
         <div class="terms-content">
             <h1>Tenant Terms and Conditions</h1>
-            <p>Welcome to our <strong>Web-based Apartment Management Platform Incorporating Tenant and Landlord Features with Real-Time Communication and Locations Mapping</strong>. As a tenant using this system, you agree
-                to the following terms and responsibilities. Please read them carefully before using the platform.</p>
+            <p>Welcome to <strong>Map Aware Home</strong>. As a tenant, you agree to the following terms and responsibilities.</p>
 
             <section>
                 <h2>1. Tenant Information Collection</h2>
-                <p>Tenants must provide accurate and complete personal information, including full name, contact number, and
-                    rental preferences. This data ensures effective communication and management within the platform.</p>
-                <p>Your personal data will be handled according to applicable privacy laws. It will not be shared with third
-                    parties without your consent, except when required by law.</p>
+                <p>Tenants must provide accurate personal information including full name, contact number, and rental preferences. This ensures effective communication and management.</p>
+                <p>Your personal data is handled according to privacy laws and not shared without consent.</p>
             </section>
 
             <section>
                 <h2>2. Respect and Truthfulness</h2>
-                <p>Tenants must maintain respectful and truthful interactions with landlords and other users. False profiles,
-                    fake information, or offensive messages are strictly prohibited.</p>
-                <p>Harassment, discrimination, or any inappropriate behavior will result in account suspension or permanent
-                    removal from the platform.</p>
+                <p>Maintain respectful interactions with landlords. False profiles, fake information, or offensive messages are prohibited and will result in account suspension.</p>
             </section>
 
             <section>
                 <h2>3. Communication Policy</h2>
-                <p>The platform offers real-time chat to connect tenants and landlords easily. Tenants must use this feature
-                    responsibly and avoid sharing unnecessary personal or financial information.</p>
-                <p>All conversations are monitored for safety and compliance with our community guidelines.</p>
+                <p>Use real-time chat responsibly for property-related communication. Avoid sharing unnecessary personal or financial information.</p>
             </section>
 
             <section>
-                <h2>4. Location Mapping</h2>
-                <p>Tenants can use the map feature to view property pin locations. This feature is meant for
-                    informational purposes only and should not be used for tracking individuals or unrelated activities.</p>
+                <h2>4. Proximity Mapping & Safety</h2>
+                <p>Use the proximity mapping feature to verify property locations and assess surrounding safety. This feature is for informational and safety purposes only.</p>
             </section>
 
             <section>
                 <h2>5. Payment Reminders</h2>
-                <p>The system sends automatic reminders about upcoming rent payments to help tenants stay on schedule. However,
-                    the actual payment process must be completed directly between the tenant and landlord.</p>
-                <p>The platform does not process, store, or facilitate financial transactions.</p>
+                <p>Automatic rent payment reminders help you stay on schedule. Actual payments are completed directly with your landlord. Map Aware Home does not process transactions.</p>
             </section>
 
             <section>
                 <h2>6. System Usage</h2>
-                <p>Tenants must not attempt to access unauthorized areas, modify system data, or engage in actions that disrupt
-                    the platform's normal operation.</p>
+                <p>Do not attempt unauthorized access, modify system data, or disrupt platform operation.</p>
             </section>
 
             <section>
                 <h2>7. Updates to Terms</h2>
-                <p>We may update these terms at any time. Continued use of the platform means you agree to the latest version of
-                    these terms.</p>
+                <p>We may update these terms at any time. Continued use means agreement to the latest version.</p>
             </section>
 
-            <p><strong>Last Updated:</strong> November 2025</p>
+            <p><strong>Last Updated:</strong> December 2025</p>
         </div>
         
         <div class="terms-footer">
@@ -819,6 +845,277 @@
         </div>
     </div>
 </div>
+
+<!-- RENTAL RULES MODAL -->
+<div class="terms-modal" id="rentalRulesModal">
+    <div class="terms-container">
+        <div class="terms-header">
+            <h3><i class="fa-solid fa-house-circle-check me-2"></i> Rules Related to Renting</h3>
+            <button class="terms-close" onclick="document.getElementById('rentalRulesModal').classList.remove('active'); document.body.style.overflow = '';">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="terms-content">
+            <h1>Rules Related to Renting</h1>
+            <p><strong>Map Aware Home</strong> ensures fair and transparent rental practices for all users.</p>
+
+            <section>
+                <h2>Property Listings & Accuracy</h2>
+                <ul>
+                    <li>Landlords must provide accurate property information including location, amenities, rental price, and safety features</li>
+                    <li>Property photos must be recent and represent actual condition</li>
+                    <li>Safety features (emergency exits, fire alarms, security systems) must be clearly disclosed</li>
+                    <li>Proximity mapping coordinates must be accurate to ensure tenant safety</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Rental Agreements</h2>
+                <ul>
+                    <li>All rental agreements must comply with local housing laws</li>
+                    <li>Rental terms including payment schedule, security deposit, and lease duration must be clearly stated</li>
+                    <li>Both parties must agree to terms before proceeding</li>
+                    <li>The platform facilitates communication but does not create or enforce legal contracts</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Payment Rules</h2>
+                <ul>
+                    <li>Rent payments are handled directly between landlord and tenant</li>
+                    <li>Map Aware Home does not process, store, or facilitate financial transactions</li>
+                    <li>Payment reminders are provided as a courtesy service only</li>
+                    <li>Late payment terms must be agreed upon between parties</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Property Maintenance</h2>
+                <ul>
+                    <li>Landlords must maintain properties in safe and habitable condition</li>
+                    <li>Urgent safety issues must be addressed immediately</li>
+                    <li>Tenants must report maintenance issues promptly using the platform</li>
+                    <li>Property condition should align with safety protocols</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Tenant Rights</h2>
+                <ul>
+                    <li>Right to safe and habitable housing</li>
+                    <li>Privacy must be respected - landlords must provide notice before property visits</li>
+                    <li>Can use proximity mapping to verify property location and surrounding safety</li>
+                    <li>Discrimination based on protected classes is strictly prohibited</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Landlord Rights</h2>
+                <ul>
+                    <li>Right to screen tenants according to legal guidelines</li>
+                    <li>Properties must be used according to lease terms</li>
+                    <li>Can set reasonable house rules that comply with local laws</li>
+                    <li>Rental income and property management are landlord's responsibility</li>
+                </ul>
+            </section>
+
+            <p><strong>Last Updated:</strong> December 2025</p>
+        </div>
+        
+        <div class="terms-footer">
+            <button class="terms-accept-btn" onclick="document.getElementById('rentalRulesModal').classList.remove('active'); document.body.style.overflow = '';">I Understand</button>
+        </div>
+    </div>
+</div>
+
+<!-- LEGAL CONTRACT MODAL -->
+<div class="terms-modal" id="legalContractModal">
+    <div class="terms-container">
+        <div class="terms-header">
+            <h3><i class="fa-solid fa-file-signature me-2"></i> Legal Contract Guidelines</h3>
+            <button class="terms-close" onclick="document.getElementById('legalContractModal').classList.remove('active'); document.body.style.overflow = '';">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="terms-content">
+            <h1>Legal Contract Guidelines</h1>
+            <p>Important legal information for <strong>Map Aware Home</strong> users.</p>
+
+            <section>
+                <h2>Platform Role</h2>
+                <ul>
+                    <li>Map Aware Home is a property management and communication platform only</li>
+                    <li>We do not create, validate, or enforce rental contracts</li>
+                    <li>All legal agreements are the responsibility of the parties involved</li>
+                    <li>Users should consult legal professionals for contract creation and review</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Recommended Contract Elements</h2>
+                <p>While Map Aware Home does not provide legal contracts, we recommend rental agreements include:</p>
+                <ul>
+                    <li>Full legal names and contact information of all parties</li>
+                    <li>Complete property address with proximity mapping coordinates for verification</li>
+                    <li>Lease term (start date, end date, renewal options)</li>
+                    <li>Monthly rent amount and payment due dates</li>
+                    <li>Security deposit amount and return conditions</li>
+                    <li>Maintenance and repair responsibilities</li>
+                    <li>House rules and permitted uses</li>
+                    <li>Emergency contact procedures utilizing Map Aware Home's real-time communication</li>
+                    <li>Safety protocol acknowledgment (fire exits, emergency procedures)</li>
+                    <li>Termination and eviction procedures according to local law</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Legal Compliance</h2>
+                <ul>
+                    <li>All rental agreements must comply with local, state, and national housing laws</li>
+                    <li>Landlords must be aware of tenant protection laws in their jurisdiction</li>
+                    <li>Both parties are responsible for understanding their legal rights and obligations</li>
+                    <li>Map Aware Home recommends consulting legal professionals before signing contracts</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Dispute Resolution</h2>
+                <ul>
+                    <li>Map Aware Home is not responsible for disputes between landlords and tenants</li>
+                    <li>Communication records in the platform may be used as reference in disputes</li>
+                    <li>Users should seek legal counsel or mediation services for serious conflicts</li>
+                    <li>The platform's proximity mapping and communication logs can serve as documentation</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Liability Disclaimer</h2>
+                <ul>
+                    <li>Map Aware Home provides tools for property management but does not guarantee outcomes</li>
+                    <li>The platform is not liable for contract breaches, property damage, or personal disputes</li>
+                    <li>Users assume all risks associated with rental agreements</li>
+                    <li>Safety features (proximity mapping, emergency communication) are tools only, not guarantees</li>
+                </ul>
+            </section>
+
+            <p><strong>Last Updated:</strong> December 2025</p>
+        </div>
+        
+        <div class="terms-footer">
+            <button class="terms-accept-btn" onclick="document.getElementById('legalContractModal').classList.remove('active'); document.body.style.overflow = '';">I Understand</button>
+        </div>
+    </div>
+</div>
+
+<!-- CODE OF CONDUCT MODAL -->
+<div class="terms-modal" id="codeOfConductModal">
+    <div class="terms-container">
+        <div class="terms-header">
+            <h3><i class="fa-solid fa-users me-2"></i> Code of Conduct</h3>
+            <button class="terms-close" onclick="document.getElementById('codeOfConductModal').classList.remove('active'); document.body.style.overflow = '';">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="terms-content">
+            <h1>Code of Conduct</h1>
+            <p><strong>Map Aware Home</strong> Community Standards</p>
+
+            <section>
+                <h2>Respectful Communication</h2>
+                <ul>
+                    <li>All users must communicate respectfully and professionally</li>
+                    <li>Harassment, threats, hate speech, or discriminatory language is strictly prohibited</li>
+                    <li>Disagreements should be handled constructively</li>
+                    <li>Real-time messaging is for property-related communication only</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Honesty and Transparency</h2>
+                <ul>
+                    <li>Provide truthful information about properties, rental history, and personal details</li>
+                    <li>Do not misrepresent property conditions, safety features, or location</li>
+                    <li>Proximity mapping coordinates must accurately reflect property location</li>
+                    <li>False reviews or misleading information will result in account suspension</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Privacy and Data Protection</h2>
+                <ul>
+                    <li>Respect the privacy of other users</li>
+                    <li>Do not share personal information of others without consent</li>
+                    <li>Location data and proximity mapping should be used for safety purposes only</li>
+                    <li>Do not misuse tenant or landlord contact information</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Safety First</h2>
+                <ul>
+                    <li>Report safety hazards or dangerous conditions immediately</li>
+                    <li>Use proximity mapping to verify property locations and surrounding areas</li>
+                    <li>Emergency features should only be used for genuine emergencies</li>
+                    <li>Report suspicious activity or security concerns to administrators</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Prohibited Activities</h2>
+                <ul>
+                    <li>Creating fake accounts or impersonating others</li>
+                    <li>Posting properties you don't own or have authorization to list</li>
+                    <li>Using the platform for illegal activities</li>
+                    <li>Spamming, soliciting, or advertising non-rental services</li>
+                    <li>Attempting to bypass platform security or access unauthorized data</li>
+                    <li>Manipulating proximity mapping or location data</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Consequences for Violations</h2>
+                <ul>
+                    <li>First offense: Warning and temporary restriction</li>
+                    <li>Second offense: Account suspension for 30 days</li>
+                    <li>Severe or repeated violations: Permanent account termination</li>
+                    <li>Illegal activities will be reported to appropriate authorities</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Reporting Violations</h2>
+                <ul>
+                    <li>Report violations through the support system</li>
+                    <li>All reports are reviewed within 48 hours</li>
+                    <li>Reporters' identities are kept confidential</li>
+                    <li>False reports may result in penalties</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>Platform Etiquette</h2>
+                <ul>
+                    <li>Respond to messages within 24-48 hours when possible</li>
+                    <li>Keep conversations property-related and professional</li>
+                    <li>Use proximity mapping responsibly - it's a safety tool, not for surveillance</li>
+                    <li>Treat all users with dignity and respect</li>
+                </ul>
+            </section>
+
+            <p><strong>Map Aware Home reserves the right to review accounts, suspend violating users, modify guidelines, and cooperate with law enforcement when necessary.</strong></p>
+
+            <p><strong>Last Updated:</strong> December 2025</p>
+        </div>
+        
+        <div class="terms-footer">
+            <button class="terms-accept-btn" onclick="document.getElementById('codeOfConductModal').classList.remove('active'); document.body.style.overflow = '';">I Understand</button>
+        </div>
+    </div>
+</div>
+
 
         <!-- GLOBAL NOTIFICATION SYSTEM -->
         <?php if (isset($_SESSION['tenant_id'])): ?>
@@ -1006,7 +1303,28 @@
                     document.body.style.overflow = '';
                 }
             });
-        </script>
+
+            // Rental Rules modal
+            document.getElementById('rentalRulesBtn').addEventListener('click', () => {
+                settingsModal.classList.remove('active');
+                document.getElementById('rentalRulesModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Legal Contract modal
+            document.getElementById('legalContractBtn').addEventListener('click', () => {
+                settingsModal.classList.remove('active');
+                document.getElementById('legalContractModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+
+            // Code of Conduct modal
+            document.getElementById('codeOfConductBtn').addEventListener('click', () => {
+                settingsModal.classList.remove('active');
+                document.getElementById('codeOfConductModal').classList.add('active');
+                document.body.style.overflow = 'hidden';
+            });
+             </script>
         <script src="../js/chat-notifications.js?v=<?= time() ?>"></script>
     </body>
     </html>
