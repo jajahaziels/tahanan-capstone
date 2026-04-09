@@ -52,17 +52,28 @@ $stmt->close();
    CHECK EXISTING LEASE
 ========================= */
 $check = $conn->prepare("
-    SELECT ID FROM leasetbl 
+    SELECT ID, status, tenant_response 
+    FROM leasetbl 
     WHERE tenant_id = ? AND listing_id = ?
+    ORDER BY ID DESC
+    LIMIT 1
 ");
 $check->bind_param("ii", $request['tenant_id'], $listing_id);
 $check->execute();
-$check->store_result();
-
-if ($check->num_rows > 0) {
-    die("Lease already exists for this request.");
-}
+$existingLease = $check->get_result()->fetch_assoc();
 $check->close();
+
+// Block only if there's an active or pending (not yet responded) lease
+if ($existingLease) {
+    $blockedStatuses = ['active', 'pending'];
+    $isBlocked = in_array($existingLease['status'], $blockedStatuses)
+                 && $existingLease['tenant_response'] !== 'rejected';
+
+    if ($isBlocked) {
+        die("A lease already exists and is still active or awaiting tenant response.");
+    }
+    // Otherwise (terminated, cancelled, rejected) — allow creating a new one
+}
 
 /* =========================
    FORM SUBMIT

@@ -127,14 +127,14 @@ while ($row = $result->fetch_assoc()) {
             const bounds = new google.maps.LatLngBounds();
             const distanceService = new google.maps.DistanceMatrixService();
 
-            // Search bar
-            const searchDiv = document.createElement("div");
-            searchDiv.style.padding = "8px";
-            searchDiv.innerHTML = `
-        <input id="proximitySearch" class="form-control" placeholder="Enter location to check distance/time">
-        <button id="proximityBtn" class="btn btn-primary mt-1">Check</button>
-    `;
-            map.controls[google.maps.ControlPosition.TOP_LEFT].push(searchDiv);
+    //         // Search bar
+    //         const searchDiv = document.createElement("div");
+    //         searchDiv.style.padding = "8px";
+    //         searchDiv.innerHTML = `
+    //     <input id="proximitySearch" class="form-control" placeholder="Enter location to check distance/time">
+    //     <button id="proximityBtn" class="btn btn-primary mt-1">Check</button>
+    // `;
+    //         map.controls[google.maps.ControlPosition.TOP_LEFT].push(searchDiv);
 
             // Legend
             const legendDiv = document.createElement("div");
@@ -197,21 +197,21 @@ while ($row = $result->fetch_assoc()) {
             });
 
             // Flood polygons
-            const floodPolygons = {
-                "Landayan": [{ lat: 14.3577, lng: 121.071 }, { lat: 14.3555, lng: 121.0695 }, { lat: 14.354, lng: 121.064 }, { lat: 14.3523, lng: 121.0607 }, { lat: 14.3508, lng: 121.0589 }],
-                "Poblacion": [{ lat: 14.361, lng: 121.0545 }, { lat: 14.36, lng: 121.051 }, { lat: 14.358, lng: 121.0495 }, { lat: 14.357, lng: 121.0525 }],
-                "SanRoque": [{ lat: 14.3525, lng: 121.0625 }, { lat: 14.3515, lng: 121.0595 }, { lat: 14.35, lng: 121.058 }, { lat: 14.349, lng: 121.061 }],
-                "StoNino": [{ lat: 14.3495, lng: 121.059 }, { lat: 14.348, lng: 121.0565 }, { lat: 14.347, lng: 121.058 }, { lat: 14.3485, lng: 121.061 }],
-                "Cuyab": [{ lat: 14.3455, lng: 121.063 }, { lat: 14.3445, lng: 121.0595 }, { lat: 14.343, lng: 121.058 }, { lat: 14.342, lng: 121.061 }]
-            };
-            Object.values(floodPolygons).forEach(coords => {
-                new google.maps.Polygon({ paths: coords, strokeColor: "red", strokeOpacity: 0.7, strokeWeight: 2, fillColor: "red", fillOpacity: 0.25, map });
-            });
+            // const floodPolygons = {
+            //     "Landayan": [{ lat: 14.3577, lng: 121.071 }, { lat: 14.3555, lng: 121.0695 }, { lat: 14.354, lng: 121.064 }, { lat: 14.3523, lng: 121.0607 }, { lat: 14.3508, lng: 121.0589 }],
+            //     "Poblacion": [{ lat: 14.361, lng: 121.0545 }, { lat: 14.36, lng: 121.051 }, { lat: 14.358, lng: 121.0495 }, { lat: 14.357, lng: 121.0525 }],
+            //     "SanRoque": [{ lat: 14.3525, lng: 121.0625 }, { lat: 14.3515, lng: 121.0595 }, { lat: 14.35, lng: 121.058 }, { lat: 14.349, lng: 121.061 }],
+            //     "StoNino": [{ lat: 14.3495, lng: 121.059 }, { lat: 14.348, lng: 121.0565 }, { lat: 14.347, lng: 121.058 }, { lat: 14.3485, lng: 121.061 }],
+            //     "Cuyab": [{ lat: 14.3455, lng: 121.063 }, { lat: 14.3445, lng: 121.0595 }, { lat: 14.343, lng: 121.058 }, { lat: 14.342, lng: 121.061 }]
+            // };
+            // Object.values(floodPolygons).forEach(coords => {
+            //     new google.maps.Polygon({ paths: coords, strokeColor: "red", strokeOpacity: 0.7, strokeWeight: 2, fillColor: "red", fillOpacity: 0.25, map });
+            // });
 
-            // Fault line
-            new google.maps.Polyline({ path: [{ lat: 14.3635, lng: 121.052 }, { lat: 14.362, lng: 121.057 }, { lat: 14.361, lng: 121.062 }, { lat: 14.358, lng: 121.065 }], map, strokeColor: "orange", strokeOpacity: 0.8, strokeWeight: 3 });
+            // // Fault line
+            // new google.maps.Polyline({ path: [{ lat: 14.3635, lng: 121.052 }, { lat: 14.362, lng: 121.057 }, { lat: 14.361, lng: 121.062 }, { lat: 14.358, lng: 121.065 }], map, strokeColor: "orange", strokeOpacity: 0.8, strokeWeight: 3 });
 
-            if (listings.length > 0) map.fitBounds(bounds);
+            // if (listings.length > 0) map.fitBounds(bounds);
 
             // Proximity Search
             document.getElementById("proximityBtn").addEventListener("click", () => {
@@ -247,7 +247,7 @@ while ($row = $result->fetch_assoc()) {
         }
     </script>
 
-    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap"></script>
+    <script async src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap"></script>
 </body>
 
 </html>

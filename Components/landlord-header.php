@@ -239,13 +239,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <!-- NAV OVERLAY -->
     <div id="navOverlay"></div>
 
-    <!-- =============================================
-         HEADER
-    ============================================= -->
     <header>
         <!-- LOGO -->
         <a href="#" class="logo d-flex justify-content-center align-items-center">
-            <img src="../img/logo.png" alt="">Tahanan
+            <img src="../img/new_logo.png" alt="Logo" style="height: 2.5rem; width: auto; margin-right: 10px;">
+            Map Aware Home
         </a>
 
         <!-- NAV LINKS -->
@@ -257,10 +255,6 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <li><a href="support.php"             class="<?= $current_page == 'support.php'             ? 'active' : '' ?>">Support</a></li>
         </ul>
 
-        <!--
-            RIGHT CLUSTER — one flex row:
-            [User dropdown]  [Bell]  [Hamburger]
-        -->
         <div class="nav-icons">
 
             <!-- USER DROPDOWN -->
@@ -317,14 +311,20 @@ $current_page = basename($_SERVER['PHP_SELF']);
                         </div>
                         <i class="fa-solid fa-chevron-right settings-item-arrow"></i>
                     </div>
-                    <div class="settings-item" id="changePasswordBtn">
-                        <div class="settings-item-info">
-                            <div class="settings-item-icon"><i class="fa-solid fa-lock"></i></div>
-                            <div class="settings-item-text"><h4>Change Password</h4><p>Update your account password</p></div>
-                        </div>
-                        <i class="fa-solid fa-chevron-right settings-item-arrow"></i>
+                    <div class="settings-item" onclick="window.location.href='edit-account.php'">
+                            <div class="settings-item-info">
+                                <div class="settings-item-icon">
+                                    <i class="fa-solid fa-user-pen"></i>
+                                </div>
+                            <div class="settings-item-text">
+                                <h4>Edit Account</h4>
+                                <p>Update your profile information</p>
+                            </div>
+                            </div>
+                                <i class="fa-solid fa-chevron-right settings-item-arrow"></i>
+                            </div>
                     </div>
-                </div>
+
                 <div class="settings-section">
                     <div class="settings-section-title"><i class="fa-solid fa-scale-balanced"></i> Legal &amp; Guidelines</div>
                     <div class="settings-item" id="termsBtn">

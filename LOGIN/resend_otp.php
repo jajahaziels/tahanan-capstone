@@ -6,26 +6,26 @@ require '../vendor/autoload.php';
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-// ✅ Same SMTP credentials as login.php
+// my email cred
 $SMTP_USERNAME = 'jajasison07@gmail.com';
 $SMTP_PASSWORD = 'aebfllyitmpjvzqz';
 
 header('Content-Type: application/json');
 
-// ✅ Check if required session variables still exist
+//  Check if required session variables still exist
 if (!isset($_SESSION['otp_user_id'], $_SESSION['otp_device_hash'], $_SESSION['otp_role'], $_SESSION['otp_email'])) {
     echo json_encode(['success' => false, 'message' => 'Session expired. Please login again.']);
     exit();
 }
 
-// ✅ Generate new OTP and update session
+// Generate new OTP and update session
 $newOtp = rand(100000, 999999);
 $_SESSION['device_otp'] = $newOtp;
-$_SESSION['otp_expiry'] = time() + 600; // 10 minutes
+$_SESSION['otp_expiry'] = time() + 600; // 10 minutes from now
 
 $to = $_SESSION['otp_email'];
 
-// ✅ Send email using PHPMailer (same as login.php)
+// Send email using PHPMailer (same as login.php)
 $mail = new PHPMailer(true);
 try {
     $mail->isSMTP();

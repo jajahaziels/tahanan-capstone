@@ -10,7 +10,7 @@ $user_id = $_SESSION['user_id'];
 $conn = new mysqli("localhost", "root", "", "tahanandb");
 if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
-$stmt = $conn->prepare("SELECT * FROM landlordtbl WHERE ID=?");
+$stmt = $conn->prepare("SELECT * FROM tenanttbl WHERE ID=?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
@@ -41,7 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['change_password'])) {
         $pw_error = "New passwords do not match.";
     } else {
         $hashed = password_hash($new_password, PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("UPDATE landlordtbl SET password = ? WHERE ID = ?");
+        $stmt = $conn->prepare("UPDATE tenanttbl SET password = ? WHERE ID = ?");
         $stmt->bind_param("si", $hashed, $user_id);
         if ($stmt->execute()) {
             $_SESSION['success_message'] = "Password changed successfully!";
@@ -82,7 +82,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['change_password'])) {
     $gender     = $_POST['gender']     ?? $user['gender'];
     $username   = $_POST['userName']   ?? $user['username'];
 
-    $stmt = $conn->prepare("UPDATE landlordtbl SET 
+    $stmt = $conn->prepare("UPDATE tenanttbl SET 
         firstName=?, lastName=?, middleName=?, username=?, street=?, barangay=?, city=?, province=?, zipCode=?, phoneNum=?, email=?, birthday=?, gender=?, profilePic=?, verificationId=?, ID_image=? 
         WHERE ID=?");
     $stmt->bind_param("ssssssssssssssssi",

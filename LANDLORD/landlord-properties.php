@@ -129,19 +129,21 @@ $result = $stmt->get_result();
                                             <div class="status">
                                                 <?php if ($row['verification_status'] === 'pending'): ?>
                                                     <p style="background-color: #fbbf24; color: white; padding: 8px; border-radius: 20px;">
-                                                        ⏳ Pending Verification
+                                                        <i class="fas fa-clock"></i> Pending Verification
                                                     </p>
-                                                       <?php elseif ($row['verification_status'] === 'rejected'): ?>
+
+                                                <?php elseif ($row['verification_status'] === 'rejected'): ?>
                                                     <p style="background-color: #ef4444; color: white; padding: 8px; border-radius: 20px;">
-                                                        ❌ Rejected
+                                                        <i class="fas fa-times-circle"></i> Rejected
                                                     </p>
-                                                      <?php else: ?>
+
+                                                <?php else: ?>
                                                     <p class="<?= $isOccupied ? 'status-occupied' : 'status-available'; ?>">
+                                                        <i class="fas <?= $isOccupied ? 'fa-user-check' : 'fa-check-circle'; ?>"></i>
                                                         <?= $isOccupied ? "Occupied" : "Available"; ?>
                                                     </p>
                                                 <?php endif; ?>
                                             </div>
-
                                             <div class="price-tag">₱ <?= number_format($row['price']); ?></div>
                                         </div>
 

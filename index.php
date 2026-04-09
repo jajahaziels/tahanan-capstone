@@ -137,11 +137,11 @@ $result = $conn->query($sql);
                                         alt="Property Image"
                                         class="property-img"
                                         style="width:100%; max-height:200px; object-fit:cover;">
-
+                                    <!--
                                     <div class="labels">
                                         <div class="label"><i class="fa-regular fa-star"></i> Featured</div>
                                         <div class="label">Specials</div>
-                                    </div>
+                                    </div> -->
 
                                     <div class="price-tag">₱ <?= number_format($row['price']); ?></div>
                                 </div>
@@ -311,8 +311,9 @@ $result = $conn->query($sql);
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <div class="carousel-item">
+                    <div class="carousel-item">
                         <div class="row justify-content-center">
                             <div class="col-lg-8">
                                 <div class="review text-center p-4">
@@ -333,7 +334,7 @@ $result = $conn->query($sql);
                             </div>
                         </div>
 
-                    </div>
+                </div>
                     <div class="carousel-item">
                         <div class="row justify-content-center">
                             <div class="col-lg-8">
@@ -555,4 +556,5 @@ $result = $conn->query($sql);
 <!-- SCROLL REVEAL -->
 <script src="https://unpkg.com/scrollreveal"></script>
 
-</html>
+</html><?php
+require_once 'connection.php';

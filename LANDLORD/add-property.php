@@ -131,8 +131,7 @@ if (isset($_SESSION['property_submitted'])) {
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script async defer 
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4
-&callback=initMap">
+src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
 </script>
     <title>ADD PROPERTIES</title>
     <style>
@@ -346,8 +345,7 @@ function initMap() {
 }
 </script>
 <script async defer 
-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4
-&libraries=places&callback=initMap">
+    src="https://maps.googleapis.com/maps/api/js?key=&libraries=places&callback=initMap">
 </script>
 </body>
 

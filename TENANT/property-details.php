@@ -6,7 +6,6 @@ $listingID = intval($_GET['id'] ?? $_GET['ID'] ?? 0);
 if ($listingID <= 0)
     die("Invalid property ID.");
 
-/* --- Fetch listing ----- */
 $sql = "
 SELECT 
     l.ID AS listing_id,
@@ -40,17 +39,14 @@ $stmt->close();
 $images    = json_decode($property['images'], true) ?? [];
 $tenant_id = (int) ($_SESSION['tenant_id'] ?? 0);
 
-$requestStatus   = null;
-$requestId       = null;
+$requestStatus = null;
+$requestId     = null;
 
 if ($tenant_id > 0) {
     $checkSql = "
-        SELECT id, status
-        FROM requesttbl
-        WHERE tenant_id  = ?
-          AND listing_id = ?
-        ORDER BY id DESC
-        LIMIT 1
+        SELECT id, status FROM requesttbl
+        WHERE tenant_id = ? AND listing_id = ?
+        ORDER BY id DESC LIMIT 1
     ";
     $stmt = $conn->prepare($checkSql);
     $stmt->bind_param("ii", $tenant_id, $listingID);
@@ -63,39 +59,18 @@ if ($tenant_id > 0) {
     $stmt->close();
 }
 
-/* ── Check if tenant already has an ACTIVE lease on THIS listing ─
-   ✅ FIX: If the tenant has an active lease for THIS listing,
-   the "approved" status from requesttbl no longer blocks the button.
-   We check leasetbl directly instead of relying solely on requesttbl.
-──────────────────────────────────────────────────────────────── */
 $hasActiveLease = false;
-
 if ($tenant_id > 0) {
-    $leaseSql = "
-        SELECT ID FROM leasetbl
-        WHERE tenant_id  = ?
-          AND listing_id = ?
-          AND status     = 'active'
-        LIMIT 1
-    ";
-    $stmt = $conn->prepare($leaseSql);
+    $stmt = $conn->prepare("SELECT ID FROM leasetbl WHERE tenant_id=? AND listing_id=? AND status='active' LIMIT 1");
     $stmt->bind_param("ii", $tenant_id, $listingID);
     $stmt->execute();
     $hasActiveLease = $stmt->get_result()->num_rows > 0;
     $stmt->close();
 }
 
-/* ── Check if tenant has an active rent on ANY listing ─────── */
 $hasActiveRent = false;
-
 if ($tenant_id > 0) {
-    $sqlCheckRent = "
-        SELECT ID FROM renttbl
-        WHERE tenant_id    = ?
-          AND tenant_removed = 0
-        LIMIT 1
-    ";
-    $stmt = $conn->prepare($sqlCheckRent);
+    $stmt = $conn->prepare("SELECT ID FROM renttbl WHERE tenant_id=? AND tenant_removed=0 LIMIT 1");
     $stmt->bind_param("i", $tenant_id);
     $stmt->execute();
     $hasActiveRent = $stmt->get_result()->num_rows > 0;
@@ -105,15 +80,13 @@ if ($tenant_id > 0) {
 if ($hasActiveLease || $hasActiveRent) {
     $btnState = 'renting';
 } elseif ($requestStatus === 'pending') {
-    $btnState = 'pending';   // show Cancel Apply
+    $btnState = 'pending';
 } elseif ($requestStatus === 'approved' && !$hasActiveLease) {
-   
     $btnState = 'apply';
 } else {
     $btnState = 'apply';
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -121,14 +94,13 @@ if ($hasActiveLease || $hasActiveRent) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
-        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
     <title><?= htmlspecialchars($property['listingName']); ?> - Details</title>
 
     <style>
-        .tenant-page    { margin-top: 50px !important; }
+        .tenant-page { margin-top: 50px !important; }
 
         .prorperty-details {
             background-color: var(--bg-color);
@@ -138,36 +110,31 @@ if ($hasActiveLease || $hasActiveRent) {
         }
 
         .back-button { position: fixed; margin-top: 160px; }
-
         .price { font-size: 3rem; }
 
         .avatar {
-            width: 60px !important;
-            height: 60px !important;
+            width: 60px !important; height: 60px !important;
             border-radius: 50%;
             background: var(--main-color);
             color: var(--bg-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 20px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 20px;
         }
-        .avatar img {
-            width: 60px; height: 60px;
-            border-radius: 50%;
-            object-fit: cover;
-        }
+        .avatar img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
 
         #map { height: 400px; padding: 0; margin: auto; }
 
-        .carousel-inner      { height: 420px !important; }
-        #carouselExample     { max-width: 500px !important; margin: 0 auto !important; }
+        /* ── Carousel ── */
+        .carousel-inner { height: 420px !important; }
+        #carouselExample { max-width: 500px !important; margin: 0 auto !important; }
         #carouselExample img {
             height: 400px !important;
             object-fit: cover !important;
             border-radius: 20px !important;
+            cursor: zoom-in;
+            transition: transform 0.2s ease;
         }
+        #carouselExample img:hover { transform: scale(1.01); }
 
         .rent-warning-card {
             background: #fff6f6;
@@ -177,32 +144,125 @@ if ($hasActiveLease || $hasActiveRent) {
             box-shadow: 0 3px 8px rgba(0,0,0,0.08);
         }
         .warning-icon {
-            width: 40px; height: 40px;
-            border-radius: 50%;
-            background: var(--main-color);
-            color: white;
+            width: 40px; height: 40px; border-radius: 50%;
+            background: var(--main-color); color: white;
             display: flex; align-items: center; justify-content: center;
-            font-size: 18px;
-            margin-right: 12px;
+            font-size: 18px; margin-right: 12px;
         }
         .warning-text h6 { font-weight: 600; color: var(--main-color); }
         .warning-text p  { font-size: 0.9rem; color: #555; }
 
-        /* Cancel Apply button */
         .btn-cancel-apply {
             background: transparent;
             border: 2px solid var(--main-color);
             color: var(--main-color);
             border-radius: 25px;
             padding: 8px 20px;
-            font-weight: 600;
-            font-size: 0.9rem;
+            font-weight: 600; font-size: 0.9rem;
             transition: all 0.3s ease;
             cursor: pointer;
         }
-        .btn-cancel-apply:hover {
-            background: var(--main-color);
-            color: #fff;
+        .btn-cancel-apply:hover { background: var(--main-color); color: #fff; }
+
+        /* ── Lightbox ── */
+        .lightbox-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.93);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .lightbox-overlay.active { display: flex; }
+
+        .lightbox-img-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 92vw;
+            max-height: 78vh;
+        }
+        .lightbox-img-wrap img {
+            max-width: 92vw;
+            max-height: 78vh;
+            border-radius: 12px;
+            object-fit: contain;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+            user-select: none;
+            transition: opacity 0.18s ease;
+        }
+
+        .lightbox-close {
+            position: fixed;
+            top: 18px; right: 22px;
+            background: rgba(255,255,255,0.13);
+            border: none; color: #fff;
+            font-size: 1.7rem;
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+            z-index: 10001;
+        }
+        .lightbox-close:hover { background: rgba(255,255,255,0.28); }
+
+        .lightbox-nav {
+            position: fixed;
+            top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.13);
+            border: none; color: #fff;
+            font-size: 1.6rem;
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            transition: background 0.2s;
+            z-index: 10001;
+        }
+        .lightbox-nav:hover { background: rgba(255,255,255,0.28); }
+        .lightbox-prev { left: 16px; }
+        .lightbox-next { right: 16px; }
+
+        /* Hide nav buttons when only 1 image */
+        .lightbox-nav.hidden { display: none; }
+
+        .lightbox-counter {
+            color: rgba(255,255,255,0.75);
+            font-size: 0.85rem;
+            margin-top: 12px;
+            letter-spacing: 0.05em;
+        }
+
+        .lightbox-thumbnails {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90vw;
+        }
+        .lightbox-thumbnails img {
+            width: 54px; height: 40px;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: pointer;
+            opacity: 0.5;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .lightbox-thumbnails img.active,
+        .lightbox-thumbnails img:hover {
+            opacity: 1;
+            border-color: #fff;
+        }
+
+        /* ── Apply button wrapper — keeps consistent layout ── */
+        #applyBtnWrapper {
+            display: flex;
+            align-items: center;
         }
     </style>
 </head>
@@ -250,6 +310,18 @@ if ($hasActiveLease || $hasActiveRent) {
     </div>
 </div>
 
+<!-- Lightbox -->
+<div class="lightbox-overlay" id="lightbox">
+    <button class="lightbox-close" id="lightboxClose"><i class="fa-solid fa-xmark"></i></button>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev"><i class="fa-solid fa-chevron-left"></i></button>
+    <button class="lightbox-nav lightbox-next" id="lightboxNext"><i class="fa-solid fa-chevron-right"></i></button>
+    <div class="lightbox-img-wrap">
+        <img id="lightboxImg" src="" alt="Full Image">
+    </div>
+    <div class="lightbox-counter" id="lightboxCounter"></div>
+    <div class="lightbox-thumbnails" id="lightboxThumbs"></div>
+</div>
+
 <body>
     <?php include '../Components/tenant-header.php' ?>
 
@@ -275,7 +347,9 @@ if ($hasActiveLease || $hasActiveRent) {
                                                 <img src="../LANDLORD/uploads/<?= htmlspecialchars($img); ?>"
                                                     class="d-block w-100"
                                                     style="max-height:400px; object-fit:cover;"
-                                                    alt="Property Image">
+                                                    alt="Property Image"
+                                                    data-index="<?= $index ?>"
+                                                    onclick="openLightbox(<?= $index ?>)">
                                             </div>
                                         </div>
                                     </div>
@@ -324,30 +398,26 @@ if ($hasActiveLease || $hasActiveRent) {
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0 mt-0"><?= htmlspecialchars($property['listingName']); ?></h4>
 
-                        <!-- ✅ FIXED Button State Logic -->
-                        <?php if ($btnState === 'renting'): ?>
+                        <!-- Apply button wrapper — swapped dynamically by JS -->
+                        <div id="applyBtnWrapper" class="mx-5">
+                            <?php if ($btnState === 'renting'): ?>
+                                <button class="main-button" disabled>Already Renting</button>
 
-                            <button class="main-button mx-5" disabled>Already Renting</button>
+                            <?php elseif ($btnState === 'pending'): ?>
+                                <button class="btn-cancel-apply"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#cancelApplyModal">
+                                    <i class="fa-solid fa-xmark me-1"></i> Cancel Apply
+                                </button>
 
-                        <?php elseif ($btnState === 'pending'): ?>
-
-                            <!-- ✅ NEW: Cancel Apply button instead of disabled "Application Pending" -->
-                            <button class="btn-cancel-apply mx-5"
-                                data-listing="<?= $property['listing_id'] ?>"
-                                data-bs-toggle="modal"
-                                data-bs-target="#cancelApplyModal">
-                                <i class="fa-solid fa-xmark me-1"></i> Cancel Apply
-                            </button>
-
-                        <?php else: ?>
-
-                            <button class="main-button mx-5"
-                                data-bs-toggle="modal"
-                                data-bs-target="#applyConfirmModal">
-                                Apply
-                            </button>
-
-                        <?php endif; ?>
+                            <?php else: ?>
+                                <button class="main-button"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#applyConfirmModal">
+                                    Apply
+                                </button>
+                            <?php endif; ?>
+                        </div>
                     </div>
 
                     <h2 class="price">
@@ -406,12 +476,119 @@ if ($hasActiveLease || $hasActiveRent) {
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/scrollreveal"></script>
     <script src="../js/contact-landlord.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap" async defer></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap" async defer></script>
 
-    <!-- ✅ Cancel Apply Logic -->
+    <!-- ── Lightbox ── -->
+    <script>
+        const lightboxImages = <?= json_encode(array_values(array_map(
+            fn($img) => '../LANDLORD/uploads/' . $img,
+            $images
+        ))) ?>;
+
+        let currentIdx = 0;
+        let thumbsBuilt = false;
+
+        const lightbox     = document.getElementById('lightbox');
+        const lightboxImg  = document.getElementById('lightboxImg');
+        const lightboxCtr  = document.getElementById('lightboxCounter');
+        const lightboxPrev = document.getElementById('lightboxPrev');
+        const lightboxNext = document.getElementById('lightboxNext');
+        const lightboxThumbs = document.getElementById('lightboxThumbs');
+
+        function openLightbox(index) {
+            if (!lightboxImages.length) return;
+            currentIdx = index;
+            lightbox.classList.add('active');
+            document.body.style.overflow = 'hidden';
+
+            // Hide nav if only 1 image
+            if (lightboxImages.length <= 1) {
+                lightboxPrev.classList.add('hidden');
+                lightboxNext.classList.add('hidden');
+            }
+
+            if (!thumbsBuilt) buildThumbs();
+            renderLightbox();
+        }
+
+        function closeLightbox() {
+            lightbox.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function lightboxNav(dir) {
+            currentIdx = (currentIdx + dir + lightboxImages.length) % lightboxImages.length;
+            renderLightbox();
+        }
+
+        function renderLightbox() {
+            // Fade out → swap src → fade in
+            lightboxImg.style.opacity = '0';
+            setTimeout(() => {
+                lightboxImg.src = lightboxImages[currentIdx];
+                lightboxImg.style.opacity = '1';
+            }, 160);
+
+            lightboxCtr.textContent = (currentIdx + 1) + ' / ' + lightboxImages.length;
+
+            // Sync Bootstrap carousel
+            if (lightboxImages.length > 1) {
+                bootstrap.Carousel.getOrCreateInstance(
+                    document.getElementById('carouselExample')
+                ).to(currentIdx);
+            }
+
+            // Update thumb highlights
+            document.querySelectorAll('#lightboxThumbs img').forEach((t, i) => {
+                t.classList.toggle('active', i === currentIdx);
+            });
+        }
+
+        function buildThumbs() {
+            lightboxImages.forEach((src, i) => {
+                const img = document.createElement('img');
+                img.src = src;
+                img.alt = 'Thumb ' + (i + 1);
+                if (i === currentIdx) img.classList.add('active');
+                img.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    currentIdx = i;
+                    renderLightbox();
+                });
+                lightboxThumbs.appendChild(img);
+            });
+            thumbsBuilt = true;
+        }
+
+        // Close on backdrop click
+        lightbox.addEventListener('click', (e) => {
+            if (e.target === lightbox) closeLightbox();
+        });
+
+        document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+        lightboxPrev.addEventListener('click', (e) => { e.stopPropagation(); lightboxNav(-1); });
+        lightboxNext.addEventListener('click', (e) => { e.stopPropagation(); lightboxNav(1); });
+
+        // Keyboard
+        document.addEventListener('keydown', (e) => {
+            if (!lightbox.classList.contains('active')) return;
+            if (e.key === 'ArrowRight') lightboxNav(1);
+            if (e.key === 'ArrowLeft')  lightboxNav(-1);
+            if (e.key === 'Escape')     closeLightbox();
+        });
+
+        // Sync lightbox when carousel slides manually
+        document.getElementById('carouselExample').addEventListener('slid.bs.carousel', (e) => {
+            if (!lightbox.classList.contains('active')) return;
+            currentIdx = e.to;
+            renderLightbox();
+        });
+    </script>
+
+    <!-- ── Cancel Apply ── -->
     <script>
         document.getElementById('confirmCancelApply')?.addEventListener('click', function () {
-            const listingId = <?= $property['listing_id'] ?>;
+            const listingId = <?= (int)$property['listing_id'] ?>;
 
             fetch('cancel-apply.php', {
                 method: 'POST',
@@ -420,18 +597,18 @@ if ($hasActiveLease || $hasActiveRent) {
             })
             .then(res => res.json())
             .then(data => {
-                bootstrap.Modal.getInstance(document.getElementById('cancelApplyModal')).hide();
+                bootstrap.Modal.getInstance(
+                    document.getElementById('cancelApplyModal')
+                ).hide();
+
                 if (data.success) {
-                    // Swap Cancel Apply button back to Apply
-                    const btnWrapper = document.querySelector('.btn-cancel-apply')?.parentElement;
-                    if (btnWrapper) {
-                        btnWrapper.innerHTML = `
-                            <button class="main-button mx-5"
-                                data-bs-toggle="modal"
-                                data-bs-target="#applyConfirmModal">
-                                Apply
-                            </button>`;
-                    }
+                    // ✅ Swap the button back to Apply — targeting the wrapper div
+                    document.getElementById('applyBtnWrapper').innerHTML = `
+                        <button class="main-button"
+                            data-bs-toggle="modal"
+                            data-bs-target="#applyConfirmModal">
+                            Apply
+                        </button>`;
                 } else {
                     alert(data.message || 'Could not cancel application.');
                 }
@@ -440,6 +617,7 @@ if ($hasActiveLease || $hasActiveRent) {
         });
     </script>
 
+    <!-- ── Map ── -->
     <script>
         function initMap() {
             const lat = <?= $property['latitude']  ?: 14.3647 ?>;
@@ -461,7 +639,7 @@ if ($hasActiveLease || $hasActiveRent) {
                 icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
             });
 
-            const service   = new google.maps.places.PlacesService(map);
+            const service    = new google.maps.places.PlacesService(map);
             const infoWindow = new google.maps.InfoWindow();
 
             function getDistanceKM(lat1, lng1, lat2, lng2) {
@@ -480,7 +658,6 @@ if ($hasActiveLease || $hasActiveRent) {
                     : `${distance.toFixed(2)} km`;
             }
 
-            // Hospitals
             service.nearbySearch({
                 location: apartmentLocation, radius: 3000, type: "hospital"
             }, (results, status) => {
@@ -501,7 +678,6 @@ if ($hasActiveLease || $hasActiveRent) {
                 }
             });
 
-            // Evacuation Centers
             service.nearbySearch({
                 location: apartmentLocation, radius: 5000, keyword: "evacuation center"
             }, (results, status) => {

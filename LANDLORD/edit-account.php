@@ -201,6 +201,7 @@ $conn->close();
         .main-button {
             background: linear-gradient(135deg, #8d0b41, #a3154f);
             color: #fff;
+            box-sizing: border-box;
             border: none;
             padding: 12px 28px;
             border-radius: 50px;

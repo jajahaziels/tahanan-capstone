@@ -7,3 +7,7 @@ $client->setClientSecret("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");
 $client->setRedirectUri("http://localhost/TAHANAN/LOGIN/callback.php");
 $client->addScope("email");
 $client->addScope("profile");
+
+// Gmail account and app password for PHPMailer
+$SMTP_USERNAME = 'jajasison07@gmail.com';
+$SMTP_PASSWORD = 'aebfllyitmpjvzqz';

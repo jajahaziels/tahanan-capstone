@@ -3,6 +3,7 @@ session_start();
 include '../includes/db.php';
 
 $message = "";
+$messageType = "";
 
 // If form is submitted (verify OTP)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
@@ -15,16 +16,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
   }
 
   if ($enteredOtp != $_SESSION['device_otp'] || time() > $_SESSION['otp_expiry']) {
-    $message = "<p class='error' style='color:red; font-weight:bold;'>❌ Invalid or expired OTP.</p>";
+    $message = "Invalid or expired OTP. Please try again.";
+    $messageType = "error";
   } else {
-    // Mark device as trusted
     $stmt = $conn->prepare("
-            INSERT INTO trusted_devices (user_id, device_hash, last_ip, last_used, role)
-            VALUES (?, ?, ?, NOW(), ?)
-            ON DUPLICATE KEY UPDATE last_ip=VALUES(last_ip), last_used=NOW()
-        ");
-    $stmt->bind_param(
-      "isss",
+      INSERT INTO trusted_devices (user_id, device_hash, last_ip, last_used, role)
+      VALUES (?, ?, ?, NOW(), ?)
+      ON DUPLICATE KEY UPDATE last_ip=VALUES(last_ip), last_used=NOW()
+    ");
+    $stmt->bind_param("isss",
       $_SESSION['otp_user_id'],
       $_SESSION['otp_device_hash'],
       $_SERVER['REMOTE_ADDR'],
@@ -32,30 +32,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
     );
     $stmt->execute();
 
-    $_SESSION['user_id'] = $_SESSION['otp_user_id'];
-    $_SESSION['username'] = $_SESSION['otp_username'] ?? $_SESSION['otp_name']; // Use username if available, fallback to name
-    $_SESSION['full_name'] = $_SESSION['otp_name']; // Keep full name separately
+    $_SESSION['user_id']   = $_SESSION['otp_user_id'];
+    $_SESSION['username']  = $_SESSION['otp_username'] ?? $_SESSION['otp_name'];
+    $_SESSION['full_name'] = $_SESSION['otp_name'];
     $_SESSION['user_type'] = $_SESSION['otp_role'];
 
-    // CRITICAL: Set tenant_id or landlord_id
     if ($_SESSION['otp_role'] === 'tenant') {
       $_SESSION['tenant_id'] = $_SESSION['otp_user_id'];
     } elseif ($_SESSION['otp_role'] === 'landlord') {
       $_SESSION['landlord_id'] = $_SESSION['otp_user_id'];
     }
 
-    // Get redirect URL BEFORE clearing session
-    $redirect = $_SESSION['otp_redirect'] ?? ($_SESSION['otp_role'] === 'landlord' 
-      ? '/TAHANAN/LANDLORD/landlord-properties.php' 
+    $redirect = $_SESSION['otp_redirect'] ?? ($_SESSION['otp_role'] === 'landlord'
+      ? '/TAHANAN/LANDLORD/landlord-properties.php'
       : '/TAHANAN/TENANT/tenant.php');
 
-    // Clear OTP session variables
     unset(
-      $_SESSION['device_otp'], 
-      $_SESSION['otp_user_id'], 
-      $_SESSION['otp_device_hash'], 
-      $_SESSION['otp_role'], 
-      $_SESSION['otp_expiry'], 
+      $_SESSION['device_otp'],
+      $_SESSION['otp_user_id'],
+      $_SESSION['otp_device_hash'],
+      $_SESSION['otp_role'],
+      $_SESSION['otp_expiry'],
       $_SESSION['otp_name'],
       $_SESSION['otp_username'],
       $_SESSION['otp_email'],
@@ -67,261 +64,398 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['otp'])) {
   }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
-  <title>Verify Email</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Email — Tahanan</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
-
     :root {
-      --bg-color: #fafafa;
-      --bg-alt-color: #dfdfdf;
-      --main-color: #8D0B41;
-      --text-color: #42505A;
-      --text-alt-color: #647887;
+      --main:        #8D0B41;
+      --main-hover:  #b30d4f;
+      --main-light:  #fce8f0;
+      --main-ring:   rgba(141,11,65,0.15);
+      --bg:          #fafafa;
+      --bg-alt:      #f0f0f0;
+      --text:        #42505A;
+      --muted:       #647887;
+      --border:      #dde3e8;
+      --white:       #ffffff;
+      --success-bg:  #eaf3de;
+      --success-txt: #3b6d11;
+      --success-bdr: #97c459;
+      --error-bg:    #fcebeb;
+      --error-txt:   #a32d2d;
+      --error-bdr:   #f09595;
+      --radius:      12px;
+      --radius-sm:   8px;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Montserrat", sans-serif;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      font-family: 'Montserrat', sans-serif;
+      background: linear-gradient(135deg, #fafafa 0%, #f0e8ed 50%, #dfdfdf 100%);
       min-height: 100vh;
-      background: linear-gradient(90deg, var(--bg-color), var(--bg-alt-color));
-      color: var(--text-color);
-    }
-
-    .verify-wrapper {
-      width: 500px;
-      height: 80vh;
-      padding: 40px;
-      background: #fff;
-      border-radius: 20px;
-      box-shadow: 0 0 25px rgba(0, 0, 0, 0.15);
-      text-align: center;
+      display: flex;
       align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
     }
 
-    .verify-wrapper h1 {
-      padding-top: 8px;
-      font-size: 28px;
+    .card {
+      background: var(--white);
+      border-radius: 24px;
+      box-shadow: 0 8px 40px rgba(141,11,65,0.08), 0 2px 8px rgba(0,0,0,0.06);
+      padding: 2.5rem 2.25rem;
+      width: 100%;
+      max-width: 460px;
+      text-align: center;
+      animation: slideUp 0.4s ease;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .icon-wrap {
+      width: 72px; height: 72px;
+      background: var(--main-light);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1.5rem;
+    }
+    .icon-wrap svg { width: 32px; height: 32px; }
+
+    h1 {
+      font-size: 26px;
       font-weight: 800;
-      margin-bottom: 10px;
-      color: var(--main-color);
+      color: var(--main);
+      margin-bottom: 0.5rem;
     }
 
-    .verify-wrapper h2 {
-      font-size: 17px;
-      font-weight: 400;
-      color: var(--text-alt-color);
-      margin-bottom: 30px;
-      line-height: 1.4;
-      padding-top: 13px;
-    }
-
-    .verify-wrapper p {
+    .subtitle {
       font-size: 14px;
-      margin-bottom: 10px;
-      color: var(--text-color);
+      color: var(--muted);
+      line-height: 1.65;
+      margin-bottom: 2rem;
+    }
+    .subtitle strong { color: var(--text); font-weight: 600; }
+
+    /* ── Alert ── */
+    .alert {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
       font-weight: 600;
+      margin-bottom: 1.25rem;
       text-align: left;
-      padding-top: 30px;
-      padding-left: 20px;
+      animation: fadeIn 0.3s ease;
     }
+    @keyframes fadeIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:none; } }
+    .alert-error   { background: var(--error-bg);   color: var(--error-txt);   border: 1px solid var(--error-bdr); }
+    .alert-success { background: var(--success-bg); color: var(--success-txt); border: 1px solid var(--success-bdr); }
+    .alert svg { flex-shrink: 0; width: 16px; height: 16px; }
 
-    .verify-wrapper h4 {
-      font-size: 14px;
+    /* ── OTP Boxes ── */
+    .otp-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-align: left;
       margin-bottom: 10px;
-      color: var(--text-color);
-      font-weight: 600;
+    }
+
+    .otp-boxes {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 6px;
+    }
+
+    .otp-box {
+      width: 58px;
+      height: 64px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      background: var(--bg-alt);
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text);
       text-align: center;
-      padding-top: 10px;
-      padding-left: 20px;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s, background 0.2s;
+      outline: none;
+      font-family: 'Montserrat', sans-serif;
+    }
+    .otp-box:focus {
+      border-color: var(--main);
+      box-shadow: 0 0 0 3px var(--main-ring);
+      background: var(--white);
+      transform: scale(1.06) translateY(-2px);
+    }
+    .otp-box.filled {
+      border-color: var(--main);
+      background: var(--white);
+    }
+    .otp-box.error {
+      border-color: #e24b4a;
+      background: var(--error-bg);
+      box-shadow: 0 0 0 3px rgba(226,75,74,0.12);
+    }
+    .otp-box.shake {
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-6px); }
+      40%      { transform: translateX(6px); }
+      60%      { transform: translateX(-4px); }
+      80%      { transform: translateX(4px); }
     }
 
-    .verify-wrapper h5 {
-      font-size: 14px;
-      margin-bottom: 10px;
-      color: var(--text-color);
-      font-weight: 600;
-      text-align: center;
-      padding-top: 40px;
-      padding-left: 20px;
+    /* ── Progress bar ── */
+    .progress-wrap {
+      height: 3px;
+      background: var(--bg-alt);
+      border-radius: 99px;
+      overflow: hidden;
+      margin: 10px 0 1.5rem;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--main);
+      border-radius: 99px;
+      width: 0%;
+      transition: width 0.25s ease;
     }
 
-    .verify-wrapper h6 {
-      font-size: 14px;
-      margin-bottom: 10px;
-      color: var(--text-alt-color);
-      font-weight: 600;
-      text-align: center;
-      padding-top: 20px;
-      padding-left: 20px;
-    }
-
-    .input-box {
-      margin: 15px 0 25px 0;
-    }
-
-    .input-box input {
-      width: 95%;
-      padding: 15px;
-      background: var(--bg-alt-color);
-      border-radius: 15px;
-      border: none;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--text-color);
-      text-align: center;
-    }
-
-    .input-box input::placeholder {
-      color: var(--text-alt-color);
-      font-weight: 500;
-    }
-
+    /* ── Button ── */
     .btn {
-      width: 95%;
+      width: 100%;
       padding: 15px;
-      background: var(--main-color);
-      color: var(--bg-color);
-      font-size: 16px;
-      font-weight: 600;
+      background: var(--main);
+      color: #fff;
       border: none;
-      border-radius: 15px;
+      border-radius: var(--radius-sm);
+      font-size: 15px;
+      font-weight: 700;
+      font-family: 'Montserrat', sans-serif;
       cursor: pointer;
-      transition: 0.3s ease;
+      transition: background 0.2s, transform 0.1s, opacity 0.2s;
+      margin-bottom: 1rem;
+      letter-spacing: 0.3px;
     }
+    .btn:hover:not(:disabled) { background: var(--main-hover); }
+    .btn:active:not(:disabled) { transform: scale(0.98); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
-    .btn:hover {
-      background: #b30d4f;
+    /* ── Resend ── */
+    .resend-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
     }
-
-    .resend-text {
-      margin-top: 20px;
-      font-size: 14px;
-      color: var(--text-alt-color);
+    .resend-btn {
+      background: none;
+      border: none;
+      color: var(--main);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Montserrat', sans-serif;
+      cursor: pointer;
+      transition: color 0.2s;
+      padding: 0;
     }
+    .resend-btn:hover:not(:disabled) { color: var(--main-hover); text-decoration: underline; }
+    .resend-btn:disabled { color: var(--muted); cursor: not-allowed; }
 
-    .resend-text a {
-      color: var(--main-color);
+    /* ── Divider + Links ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0.5rem 0 1.25rem;
+    }
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-text { font-size: 12px; color: var(--muted); }
+
+    .link-row {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 2;
+    }
+    .link-row a {
+      color: var(--main);
       text-decoration: none;
-      font-weight: 500;
+      font-weight: 600;
     }
-
-    .resend-text a:hover {
-      color: #b30d4f;
-    }
-
-    .back-link {
-      margin-top: 10px;
-      font-size: 14px;
-    }
-
-    .back-link a {
-      color: var(--main-color);
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .login-link a {
-      color: var(--main-color);
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .back-link a:hover {
-      color: #b30d4f;
-    }
+    .link-row a:hover { color: var(--main-hover); text-decoration: underline; }
   </style>
 </head>
-
 <body>
-  <div class="verify-wrapper">
-    <h1>Verify your email</h1>
-    <h2>We've sent a verification code to your email address. Please enter it below.</h2>
 
-    <?= $message ?>
+<div class="card">
 
-    <p>Verification Code</p>
-    <form method="POST" action="">
-      <div class="input-box">
-        <input type="text" name="otp" placeholder="Enter 6-digit code" required>
-      </div>
-      <button type="submit" class="btn">Verify Email</button>
-    </form>
-
-    <h4 class="resend-text">
-      Didn't receive the code?
-      <a href="#" id="resend-link">Resend</a>
-      <span id="timer"></span>
-    </h4>
-    <h5 class="back-link"><a href="signup.php">Back to Signup</a></h5>
-    <h6 class="back-link"><a href="login.php">Already have an account? Login</a></h6>
+  <div class="icon-wrap">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#8D0B41" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+      <polyline points="22,6 12,13 2,6"/>
+    </svg>
   </div>
 
-  <script>
-    const resendLink = document.getElementById('resend-link');
-    const timerSpan = document.getElementById('timer');
-    let countdown = 30;
-    let timer;
+  <h1>Verify your email</h1>
+  <p class="subtitle">
+    We sent a 6-digit verification code to your email address.<br>
+    Enter it below to activate your account.
+  </p>
 
-    function startTimer() {
-      resendLink.style.pointerEvents = 'none';
-      resendLink.style.opacity = '0.5';
-      timerSpan.textContent = ` (Wait ${countdown}s)`;
+  <?php if (!empty($message)): ?>
+  <div class="alert alert-<?= $messageType === 'error' ? 'error' : 'success' ?>">
+    <?php if ($messageType === 'error'): ?>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    <?php else: ?>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="9,12 11,14 15,10"/></svg>
+    <?php endif; ?>
+    <?= htmlspecialchars($message) ?>
+  </div>
+  <?php endif; ?>
 
-      timer = setInterval(() => {
-        countdown--;
-        timerSpan.textContent = ` (Wait ${countdown}s)`;
-        if (countdown <= 0) {
-          clearInterval(timer);
-          resendLink.style.pointerEvents = 'auto';
-          resendLink.style.opacity = '1';
-          timerSpan.textContent = '';
-          countdown = 30;
-        }
-      }, 1000);
-    }
+  <p class="otp-label">Verification code</p>
 
-    resendLink.addEventListener('click', function (e) {
-      e.preventDefault();
+  <form method="POST" action="" id="otp-form">
+    <!-- Hidden field that holds the assembled OTP -->
+    <input type="hidden" name="otp" id="otp-hidden">
 
-      fetch('resend_otp.php', {
-        method: 'GET'
-      })
-        .then(response => response.json())
-        .then(data => {
-          const msgBox = document.createElement('p');
-          msgBox.style.marginTop = '15px';
-          msgBox.style.fontWeight = '600';
+    <div class="otp-boxes" id="otp-boxes">
+      <?php for ($i = 0; $i < 6; $i++): ?>
+        <input class="otp-box" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="<?= $i === 0 ? 'one-time-code' : 'off' ?>" <?= $i === 0 ? 'autofocus' : '' ?>>
+      <?php endfor; ?>
+    </div>
 
-          if (data.success) {
-            msgBox.style.color = 'green';
-          } else {
-            msgBox.style.color = 'red';
-          }
+    <div class="progress-wrap"><div class="progress-fill" id="progress"></div></div>
 
-          msgBox.textContent = data.message;
-          document.querySelector('.verify-wrapper').appendChild(msgBox);
+    <button type="submit" class="btn" id="submit-btn" disabled>Verify email</button>
+  </form>
 
-          startTimer();
-        })
-        .catch(error => {
-          console.error('Error:', error);
-        });
+  <div class="resend-row">
+    Didn't receive the code?
+    <button class="resend-btn" id="resend-btn" onclick="resendCode()">Resend</button>
+    <span id="resend-timer"></span>
+  </div>
+
+  <div class="divider">
+    <div class="divider-line"></div>
+    <div class="divider-text">or</div>
+    <div class="divider-line"></div>
+  </div>
+
+  <div class="link-row">
+    <a href="signup.php">Back to Signup</a><br>
+    <a href="login.php">Already have an account? Login</a>
+  </div>
+
+</div>
+
+<script>
+  const boxes     = document.querySelectorAll('.otp-box');
+  const hidden    = document.getElementById('otp-hidden');
+  const progress  = document.getElementById('progress');
+  const submitBtn = document.getElementById('submit-btn');
+
+  boxes.forEach((box, i) => {
+    box.addEventListener('input', e => {
+      box.value = box.value.replace(/\D/g, '').slice(-1);
+      box.classList.toggle('filled', !!box.value);
+      if (box.value && i < boxes.length - 1) boxes[i + 1].focus();
+      updateState();
     });
-  </script>
-</body>
 
+    box.addEventListener('keydown', e => {
+      if (e.key === 'Backspace' && !box.value && i > 0) {
+        boxes[i - 1].value = '';
+        boxes[i - 1].classList.remove('filled');
+        boxes[i - 1].focus();
+        updateState();
+      }
+    });
+
+    box.addEventListener('paste', e => {
+      e.preventDefault();
+      const txt = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+      boxes.forEach((b, j) => {
+        b.value = txt[j] || '';
+        b.classList.toggle('filled', !!b.value);
+      });
+      const last = Math.min(txt.length, boxes.length) - 1;
+      if (last >= 0) boxes[last].focus();
+      updateState();
+    });
+  });
+
+  function updateState() {
+    const filled = [...boxes].filter(b => b.value).length;
+    progress.style.width = (filled / boxes.length * 100) + '%';
+    const code = [...boxes].map(b => b.value).join('');
+    hidden.value = code;
+    submitBtn.disabled = filled < boxes.length;
+  }
+
+  <?php if ($messageType === 'error'): ?>
+  // Shake boxes on page load if there was an error
+  window.addEventListener('DOMContentLoaded', () => {
+    boxes.forEach(b => {
+      b.classList.add('error', 'shake');
+      setTimeout(() => b.classList.remove('shake'), 500);
+    });
+  });
+  <?php endif; ?>
+
+  // Resend OTP with cooldown
+  let resendCooldown;
+  function resendCode() {
+    const btn   = document.getElementById('resend-btn');
+    const timer = document.getElementById('resend-timer');
+    btn.disabled = true;
+    let secs = 30;
+    timer.textContent = '(' + secs + 's)';
+
+    fetch('resend_otp.php')
+      .then(r => r.json())
+      .then(data => {
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-' + (data.success ? 'success' : 'error');
+        alert.innerHTML = data.success
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:16px;height:16px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><polyline points="9,12 11,14 15,10"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="width:16px;height:16px;flex-shrink:0"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+        alert.innerHTML += ' ' + data.message;
+        document.querySelector('.card').insertBefore(alert, document.querySelector('.otp-label'));
+        setTimeout(() => alert.remove(), 4000);
+      })
+      .catch(() => {});
+
+    resendCooldown = setInterval(() => {
+      secs--;
+      if (secs <= 0) {
+        clearInterval(resendCooldown);
+        btn.disabled = false;
+        timer.textContent = '';
+      } else {
+        timer.textContent = '(' + secs + 's)';
+      }
+    }, 1000);
+  }
+</script>
+
+</body>
 </html>
