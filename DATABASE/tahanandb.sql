@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 26, 2026 at 10:04 AM
+-- Generation Time: Apr 09, 2026 at 04:22 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -20,25 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `tahanandb`
 --
-
-DELIMITER $$
---
--- Procedures
---
-CREATE DEFINER=`root`@`localhost` PROCEDURE `GetLandlordRatingStats` (IN `p_landlord_id` INT)   BEGIN
-    SELECT 
-        COUNT(*) as total_reviews,
-        AVG(rating) as average_rating,
-        SUM(CASE WHEN rating = 5 THEN 1 ELSE 0 END) as five_stars,
-        SUM(CASE WHEN rating = 4 THEN 1 ELSE 0 END) as four_stars,
-        SUM(CASE WHEN rating = 3 THEN 1 ELSE 0 END) as three_stars,
-        SUM(CASE WHEN rating = 2 THEN 1 ELSE 0 END) as two_stars,
-        SUM(CASE WHEN rating = 1 THEN 1 ELSE 0 END) as one_star
-    FROM reviews
-    WHERE landlord_id = p_landlord_id;
-END$$
-
-DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -143,7 +124,10 @@ CREATE TABLE `conversations` (
 
 INSERT INTO `conversations` (`id`, `type`, `title`, `created_at`) VALUES
 (13, 'private', 'Chat about STUDIO TYPE APARTMENT', '2026-02-08 20:12:06'),
-(14, 'private', 'Chat about Magandang bahay hehe', '2026-02-08 20:12:14');
+(14, 'private', 'Chat about Magandang bahay hehe', '2026-02-08 20:12:14'),
+(15, 'private', 'Chat about Bahay sa san pedro', '2026-03-26 10:51:25'),
+(16, 'private', 'Chat about STUDIO TYPE APARTMENT', '2026-03-27 10:52:23'),
+(17, 'private', 'Chat about STUDION TYPE APARTMENT', '2026-03-27 11:00:03');
 
 -- --------------------------------------------------------
 
@@ -190,7 +174,13 @@ INSERT INTO `conversation_members` (`id`, `conversation_id`, `user_type`, `user_
 (25, 13, 'tenant', 2, '2026-02-08 20:12:06', NULL),
 (26, 13, 'landlord', 1, '2026-02-08 20:12:06', NULL),
 (27, 14, 'tenant', 2, '2026-02-08 20:12:14', NULL),
-(28, 14, 'landlord', 2, '2026-02-08 20:12:14', NULL);
+(28, 14, 'landlord', 2, '2026-02-08 20:12:14', NULL),
+(29, 15, 'tenant', 3, '2026-03-26 10:51:25', NULL),
+(30, 15, 'landlord', 2, '2026-03-26 10:51:25', NULL),
+(31, 16, 'tenant', 1, '2026-03-27 10:52:23', NULL),
+(32, 16, 'landlord', 1, '2026-03-27 10:52:23', NULL),
+(33, 17, 'tenant', 3, '2026-03-27 11:00:03', NULL),
+(34, 17, 'landlord', 1, '2026-03-27 11:00:03', NULL);
 
 -- --------------------------------------------------------
 
@@ -254,9 +244,9 @@ CREATE TABLE `landlordtbl` (
 --
 
 INSERT INTO `landlordtbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `phoneNum`, `verificationId`, `birthday`, `street`, `barangay`, `city`, `province`, `zipCode`, `country`, `gender`, `profilePic`, `status`, `created_at`, `verification_status`, `ID_image`, `valid_id`, `proof_of_ownership`, `landlord_insurance`, `gas_safety_cert`, `electric_safety_cert`, `lease_agreement`, `admin_rejection_reason`, `submission_date`, `verified_date`) VALUES
-(1, NULL, 'Jahaziel', 'Sison', 'Bautista', 'jajasison07@gmail.com', '$2y$10$yeBWZM7FROJnfP6aYivI1.nrDbtaSR5MqSf3molFn6Y1aADSfmiia', '', NULL, '2004-08-07', 'Blk 2 Lot 6 Phase 1B, Sta. Ana St.', 'Pacita 1', 'San Pedro', 'Laguna', 4023, NULL, 'Female', '1772716430_profile_ll1.png', 'active', '2025-11-08 00:52:24', 'verified', 'uploads/ids/1762563197_stock-vector-driver-license-with-male-photo-identification-or-id-card-template-vector-illustration-1227173818.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(1, NULL, 'Jahaziel', 'Sison', 'Bautista', 'jajasison07@gmail.com', '$2y$10$yeBWZM7FROJnfP6aYivI1.nrDbtaSR5MqSf3molFn6Y1aADSfmiia', '09932273303', NULL, '2004-08-07', 'Blk 2 Lot 6 Phase 1B, Sta. Ana St.', 'Pacita 1', 'San Pedro', 'Laguna', 4023, NULL, 'Female', '1772716430_profile_ll1.png', 'active', '2025-11-08 00:52:24', 'verified', 'uploads/ids/1762563197_stock-vector-driver-license-with-male-photo-identification-or-id-card-template-vector-illustration-1227173818.jpg', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
 (2, 'sam landlord', 'samuel', 'alcazar', '', 'psalmuelalcazar30@gmail.com', '$2y$10$DVIKRPqbvwyhl5FGA6f1PuR7bhe.hBAXoJbVk9NAg83D18BDPvHuW', '', NULL, '0000-00-00', '', '', '', '', 0, NULL, 'Male', '1770581747_profile_be7cff0e3f0046dc8d36d24201af422cH3000W3000_464_464.jpg', 'pending', '2026-02-08 16:23:50', 'verified', NULL, 'uploads/verification/2_valid_id_1770568334.jpg', 'uploads/verification/2_proof_of_ownership_1770568334.jpg', 'uploads/verification/2_landlord_insurance_1770568334.jpg', 'uploads/verification/2_gas_safety_cert_1770568334.jpg', 'uploads/verification/2_electric_safety_cert_1770568334.jpg', 'uploads/verification/2_lease_agreement_1770568334.docx', NULL, '2026-02-09 00:32:14', '2026-02-09 00:32:26'),
-(3, NULL, 'Jahaziel', 'Sison', NULL, 'sisonja07@gmail.com', '$2y$10$leees7FBy3s/ki6IZPj50.D/uflLvNVGnF0tluvPeoCJQRE9yAMC6', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2026-03-05 13:28:08', 'rejected', NULL, 'uploads/verification/3_valid_id_1772718364.pdf', 'uploads/verification/3_proof_of_ownership_1772718364.pdf', 'uploads/verification/3_landlord_insurance_1772718364.pdf', 'uploads/verification/3_gas_safety_cert_1772718364.pdf', 'uploads/verification/3_electric_safety_cert_1772718364.pdf', 'uploads/verification/3_lease_agreement_1772718364.pdf', 'Sudmit a accurate docs', '2026-03-05 21:46:04', NULL);
+(10, 'Jaja', '', NULL, NULL, 'sisonja07@gmail.com', '$2y$10$lNiMPFNzel/NdDd0RnJ73uUda.ChHSoVAq3ZURwJswrJ2VdMidwHy', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'pending', '2026-03-31 14:18:56', 'not_submitted', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -317,22 +307,17 @@ CREATE TABLE `leasetbl` (
   `tenant_response` enum('pending','accepted','rejected') NOT NULL DEFAULT 'pending',
   `lease_status` enum('active','terminated','renewed') DEFAULT 'active',
   `visible_to_tenant` tinyint(1) NOT NULL DEFAULT 1,
-  `rent_due_day` int(11) NOT NULL
+  `rent_due_day` int(11) NOT NULL,
+  `request_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `leasetbl`
 --
 
-INSERT INTO `leasetbl` (`ID`, `listing_id`, `tenant_id`, `landlord_id`, `start_date`, `end_date`, `rent`, `deposit`, `terms`, `created_at`, `status`, `pdf_path`, `tenant_response`, `lease_status`, `visible_to_tenant`, `rent_due_day`) VALUES
-(168, 4, 1, 1, '2026-02-13', '2026-06-02', 1500.00, 40000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No subleasing without landlord approval.\",\"No karaoke at past 10 in the midnight\",\"No parking\"]', '2026-02-07 03:46:00', 'terminated', '../LANDLORD/leases/lease_168.pdf', 'accepted', 'terminated', 1, 0),
-(169, 12, 2, 2, '0000-00-00', '0000-00-00', 213131.00, 1123123.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No subleasing without landlord approval.\",\"No pets allowed.\"]', '2026-02-08 20:20:06', 'active', '../LANDLORD/leases/lease_169.pdf', 'accepted', 'active', 1, 0),
-(170, 11, 3, 1, '2026-03-06', '2026-10-20', 40000.00, 60000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No subleasing without landlord approval.\",\"No karaoke at past 10 in the midnight\"]', '2026-03-05 13:12:27', 'terminated', '../LANDLORD/leases/lease_170.pdf', 'accepted', 'terminated', 1, 4),
-(171, 13, 2, 2, '2026-03-06', '2026-03-07', 30000.00, 123.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\"]', '2026-03-05 14:48:48', 'active', '../LANDLORD/leases/lease_171.pdf', 'accepted', 'active', 1, 30),
-(172, 11, 1, 1, '2026-04-01', '2026-11-13', 40000.00, 45000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No karaoke at past 10 in the midnight\"]', '2026-03-26 07:29:38', 'pending', '../LANDLORD/leases/lease_172.pdf', 'pending', 'active', 1, 1),
-(173, 2, 1, 1, '2026-03-31', '2026-10-05', 12000.00, 7800.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No subleasing without landlord approval.\"]', '2026-03-26 07:34:02', 'terminated', '../LANDLORD/leases/lease_173.pdf', 'rejected', 'active', 1, 30),
-(174, 5, 1, 1, '2026-04-04', '2026-08-26', 15000.00, 20000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No karaoke at past 10 in the midnight\"]', '2026-03-26 07:36:52', 'terminated', '../LANDLORD/leases/lease_174.pdf', 'rejected', 'active', 1, 20),
-(175, 8, 3, 1, '2026-03-30', '2026-07-01', 34000.00, 40000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No subleasing without landlord approval.\",\"No karaoke at past 10 in the midnight\"]', '2026-03-26 07:40:07', 'active', '../LANDLORD/leases/lease_175.pdf', 'accepted', 'active', 1, 5);
+INSERT INTO `leasetbl` (`ID`, `listing_id`, `tenant_id`, `landlord_id`, `start_date`, `end_date`, `rent`, `deposit`, `terms`, `created_at`, `status`, `pdf_path`, `tenant_response`, `lease_status`, `visible_to_tenant`, `rent_due_day`, `request_id`) VALUES
+(206, 15, 1, 1, '2026-04-01', '2026-07-07', 20000.00, 3000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No subleasing without landlord approval.\"]', '2026-03-31 12:44:03', 'active', '../LANDLORD/leases/lease_206.pdf', 'accepted', 'active', 1, 6, NULL),
+(207, 4, 3, 1, '2026-04-01', '2026-08-18', 1500.00, 3000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No subleasing without landlord approval.\"]', '2026-04-01 13:59:13', 'active', '../LANDLORD/leases/lease_207.pdf', 'accepted', 'active', 1, 4, NULL);
 
 -- --------------------------------------------------------
 
@@ -365,19 +350,9 @@ CREATE TABLE `lease_terminationstbl` (
   `terminated_at` datetime NOT NULL DEFAULT current_timestamp(),
   `landlord_status` enum('pending','approved','rejected') DEFAULT 'pending',
   `landlord_response` text DEFAULT NULL,
-  `responded_at` datetime DEFAULT NULL
+  `responded_at` datetime DEFAULT NULL,
+  `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `lease_terminationstbl`
---
-
-INSERT INTO `lease_terminationstbl` (`ID`, `lease_id`, `terminated_by`, `reason`, `terminated_at`, `landlord_status`, `landlord_response`, `responded_at`) VALUES
-(1, 170, 'tenant', 'emergency', '2026-03-26 13:53:59', 'rejected', NULL, '2026-03-26 14:20:19'),
-(2, 168, 'tenant', 'NEED LANG TLAGA. 500 LANFG', '2026-03-26 14:41:14', 'rejected', NULL, '2026-03-26 14:41:50'),
-(3, 168, 'tenant', 'Please terminate me', '2026-03-26 14:52:02', 'rejected', NULL, '2026-03-26 14:52:21'),
-(4, 168, 'tenant', 'emergency, I need to work from another place', '2026-03-26 14:58:09', 'approved', NULL, '2026-03-26 14:58:28'),
-(5, 170, 'tenant', 'fgdfgf', '2026-03-26 15:07:36', 'pending', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -414,17 +389,16 @@ CREATE TABLE `listingtbl` (
 --
 
 INSERT INTO `listingtbl` (`ID`, `listingName`, `price`, `listingDesc`, `images`, `address`, `barangay`, `rooms`, `listingDate`, `category`, `landlord_id`, `latitude`, `longitude`, `availability`, `verification_status`, `verification_notes`, `verified_by`, `verified_date`, `rejection_reason`, `admin_visit_scheduled`, `admin_visit_completed`) VALUES
-(2, 'Sunny Studio Apartment', 12000, 'Description\r\nArguably the best accommodation in Santa Rosa Laguna. Stay with us and be part of our family. We provide more than the basics. We have free Wi-Fi, a lounge area, a kitchen and a big backyard for you to hang out with and get to know your fellow boarders. We accept male and female tenants.\r\n\r\nP1, 950/month per head all-in\r\nGood for 8-people\r\n*RATES ARE SUBJECT TO CHANGE WITHOUT PRIOR NOTICE*\r\nSpacious room with own cabinet and tables. Toilet separate from bath\r\n\r\nWe are located along the Old National Highway, walkable from Balibago Complex and 1 ride to most offices.\r\n\r\nAmenities:\r\n24 hour security\r\nCCTV cameras\r\nFire alarm system\r\nPrivate toilet & bath per room\r\nToilet separate from shower\r\nCooking area\r\nLaundry cages', '[\"1769830724_697d79445232b_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJhMTQ1LTVlMGItNzEyOC04ZjQ3LWI1ZWE2MDA3NjQwMC8wMTliYTE0Ny1hMTZlLTcxNGMtOGVhNS0zODkyMTdjN2Q4YjAuanBnIiwiYnJhbmQiOiJsYW11Z.webp\",\"1769830724_697d794454cd5_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJhMTQ1LTVlMGItNzEyOC04ZjQ3LWI1ZWE2MDA3NjQwMC8wMTliYTE0Ny1hMmFlLTcyNTgtYjAxNi0xOGJjNGYwNDhkMGIuanBnIiwiYnJhbmQiOiJsYW11Z.webp\",\"1769830724_697d794456724_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJhMTQ1LTVlMGItNzEyOC04ZjQ3LWI1ZWE2MDA3NjQwMC8wMTliYTE0Ny1hMzgzLTcyM2YtOThlMi1jZWM5MGFhZTIwMDAuanBnIiwiYnJhbmQiOiJsYW11Z.webp\"]', '123 Rizal St., San Pedro, Laguna', 'San Antonio', 3, '2025-11-08', 'Apartment complex', 1, 14.3450160, 121.0178471, 'available', 'approved', '', 1, '2026-03-26 13:57:08', NULL, NULL, 0),
-(4, 'STUDION TYPE APARTMENT', 1500, 'House type: Apartment\r\nOffer type: For Rent\r\nUsable area: 25 sqm\r\n21 Mar 2025 - Published by Casita Santa Rosa\r\n₱ 1,950/month\r\nDescription\r\nMale Bed space for Rent at Sta. Rosa, Laguna\r\nEnjoy a clean environment, spacious room, and a comfortable set-up for only P1,950 a month inclusive of water and electricity.\r\n\r\n\r\nRate includes:\r\n- Free Wi-Fi\r\n- 24/7 security guard\r\n- cctv Protected\r\n- With\r\n-Furnished -Bed with mattress, built-in cabinet with lock, study desk with chairs, wall fans. Spacious room for eight people\r\nRoom has its own separate toilet and bathroom\r\n-Fire Detection & Alarm System\r\n-Lounge with LCD cable TV\r\n-Pantry with stove & microwave free of used\r\n-Laundry cage and Parking space at the back\r\n\r\nFor more information, you can text or call View Phone Whatsapp / WhatsApp.\r\n\r\nAddress:\r\nPurok #6, 1669 National Highway\r\nDila, Sta. Rosa Laguna\r\nAlong highway, Near Complex Balibago', '[\"1769874773_697e25559e2bd_617003593_1309577377576796_5793339414094449268_n.jpg\",\"1769874773_697e25559f5d5_619661220_1309577387576795_8602374495345039408_n.jpg\",\"1769874773_697e2555a07c7_619694282_1309577434243457_5342415326550166753_n.jpg\",\"1769874773_697e2555a1cdf_620008726_1309577430910124_4106903204621638308_n.jpg\",\"1769874773_697e2555a2b6f_621606639_1309577540910113_3689565198174649248_n.jpg\",\"1769874773_697e2555a381c_623365942_1309577364243464_1553094445443937069_n.jpg\",\"1769874773_697e2555a4580_623503654_1309577357576798_6462543165614109993_n.jpg\"]', 'Blk 6 Lot 8, P. Burgos Street, gsis 1, S.P.L', 'Poblacion', 4, '2025-11-08', 'Low-rise apartment', 1, 14.3496102, 121.0407162, 'available', 'approved', '', 1, '2026-03-26 13:57:28', NULL, NULL, 0),
-(5, 'Serene Villa', 15000, 'Private villa with garden and pool.', '[\"1774504890_69c4cbba543b2_174C22~1.WEB\",\"1774504890_69c4cbba5647e_1769874773_697e25559e2bd_617003593_1309577377576796_5793339414094449268_n.jpg\",\"1774504890_69c4cbba58fc4_1769874773_697e25559f5d5_619661220_1309577387576795_8602374495345039408_n.jpg\",\"1774504890_69c4cbba5ba02_177277~2.WEB\",\"1774504890_69c4cbba5cba8_175BB4~1.WEB\"]', '12 Palm Grove, San Pedro, Laguna', 'Fatima', 4, '2025-11-08', 'Apartment complex', 1, 14.3584866, 121.0443687, 'available', 'approved', '', 1, '2026-03-26 14:11:23', NULL, NULL, 0),
-(7, 'Cozy Loft Condo', 20000, 'Perfect for young professionals, with amenities.', '[\"1774504948_69c4cbf45234d_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wY2ZmLTcyODUtOWM0ZS0wYjFiYWEzNzQwYmMuanBnIiwi - Copy.webp\",\"1774504948_69c4cbf456f67_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wYjk0LTcyZjgtYTVjOC1hZjUxNmIwMWQyMGEuanBnIiwi - Copy.webp\",\"1774504948_69c4cbf45868f_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wYmU5LTcxYTMtYjEwYy1mZDg3NzllNTQzYzIuanBnIiwiY.webp\",\"1774504948_69c4cbf45a0b5_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wYTI5LTcyMDctYThkZS1lY2U1ZGY1NTg4ODguanBnIiwiY.webp\",\"1774504948_69c4cbf45b9d2_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wYzM2LTcwYWYtOTcyNi0xNjVlMzFkMWQyYjEuanBnIiwi - Copy.webp\"]', '9 Horizon St., San Pedro, Laguna', 'Pacita 1', 4, '2025-11-08', 'High-rise apartment', 1, 14.3617548, 121.0560799, 'available', 'pending', NULL, NULL, NULL, NULL, NULL, 0),
+(2, 'Single-Family House for Rent – 1 Bedroom', 4500, 'Cozy single-family house available for rent, perfect for individuals or small families looking for a private and peaceful home.\r\n\r\n1 Bedroom\r\nLiving area\r\nKitchen space\r\nPrivate bathroom\r\n\r\nFeatures:\r\nQuiet and family-friendly environment\r\nIdeal for 1–2 occupants\r\nEasy to maintain', '[\"1774640161_69c6dc2190d85_FB_IMG_1774531689693.jpg\",\"1774640161_69c6dc2194367_FB_IMG_1774531692164.jpg\",\"1774640161_69c6dc2196264_FB_IMG_1774531695541.jpg\",\"1774640161_69c6dc2198164_FB_IMG_1774531697993.jpg\",\"1774640161_69c6dc219a140_FB_IMG_1774531700387.jpg\",\"1774640161_69c6dc219bffc_FB_IMG_1774531702688.jpg\",\"1774640161_69c6dc219da80_FB_IMG_1774531705000.jpg\"]', '123 Rizal St., San Vicente, San Pedro, Laguna', 'San Vicente', 1, '2025-11-08', 'Single-family home', 1, 14.3464895, 121.0263443, 'available', 'approved', '', 1, '2026-03-26 13:57:08', NULL, NULL, 0),
+(4, 'STUDION TYPE APARTMENT', 1500, 'House type: Apartment\r\n₱ 3500/month\r\nDescription\r\nMale Bed space for Rent at Magsaysay, S.P.L\r\n\r\n\r\nAddress:\r\nPurok #6, 1669 National Highway\r\nMagsaysay, San Pedro, Laguna\r\nAlong highway, Near SM', '[\"1769874773_697e25559e2bd_617003593_1309577377576796_5793339414094449268_n.jpg\",\"1769874773_697e25559f5d5_619661220_1309577387576795_8602374495345039408_n.jpg\",\"1769874773_697e2555a07c7_619694282_1309577434243457_5342415326550166753_n.jpg\",\"1769874773_697e2555a1cdf_620008726_1309577430910124_4106903204621638308_n.jpg\",\"1769874773_697e2555a2b6f_621606639_1309577540910113_3689565198174649248_n.jpg\",\"1769874773_697e2555a381c_623365942_1309577364243464_1553094445443937069_n.jpg\",\"1769874773_697e2555a4580_623503654_1309577357576798_6462543165614109993_n.jpg\"]', 'Blk 6 Lot 8, P. Burgos Street, Magsaysay, S.P.L', 'Magsaysay', 4, '2025-11-08', 'Studio Unit', 1, 14.3682090, 121.0469066, 'available', 'approved', '', 1, '2026-03-26 13:57:28', NULL, NULL, 0),
+(5, 'Townhouse for Rent Comfortable Family Living', 10000, 'Property Features:\r\n\r\n2 Bedrooms\r\n1 Bathroom\r\nLiving area\r\nKitchen and dining space\r\nParking space\r\n\r\n📍 Why Choose a Townhouse:\r\n\r\nMore affordable than detached houses\r\nLocated in organized communities or subdivisions\r\nShared walls but still offers good privacy\r\nEfficient use of space\r\n\r\nPerfect For:\r\nSmall families, couples, or professionals looking for a secure and budget-friendly home with a modern layout.', '[\"1774504890_69c4cbba543b2_174C22~1.WEB\",\"1774504890_69c4cbba5647e_1769874773_697e25559e2bd_617003593_1309577377576796_5793339414094449268_n.jpg\",\"1774504890_69c4cbba58fc4_1769874773_697e25559f5d5_619661220_1309577387576795_8602374495345039408_n.jpg\",\"1774504890_69c4cbba5ba02_177277~2.WEB\",\"1774504890_69c4cbba5cba8_175BB4~1.WEB\"]', '12 Palm Grove, San Pedro, Laguna', 'Pacita 2', 2, '2025-11-08', 'Townhouse', 1, 14.3482859, 121.0483027, 'available', 'approved', '', 1, '2026-03-26 14:11:23', NULL, NULL, 0),
+(7, 'Cozy Loft Condo', 20000, 'Perfect for young professionals, with amenities.', '[\"1774504948_69c4cbf45234d_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wY2ZmLTcyODUtOWM0ZS0wYjFiYWEzNzQwYmMuanBnIiwi - Copy.webp\",\"1774504948_69c4cbf456f67_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wYjk0LTcyZjgtYTVjOC1hZjUxNmIwMWQyMGEuanBnIiwi - Copy.webp\",\"1774504948_69c4cbf45868f_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wYmU5LTcxYTMtYjEwYy1mZDg3NzllNTQzYzIuanBnIiwiY.webp\",\"1774504948_69c4cbf45a0b5_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wYTI5LTcyMDctYThkZS1lY2U1ZGY1NTg4ODguanBnIiwiY.webp\",\"1774504948_69c4cbf45b9d2_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWJkZjRiLTRkMzktNzFiZC1iOGFmLWE1ZDhiZDhlMzQ0Zi8wMTliZGY1Zi0wYzM2LTcwYWYtOTcyNi0xNjVlMzFkMWQyYjEuanBnIiwi - Copy.webp\"]', '9 Horizon St., San Pedro, Laguna', 'Pacita 1', 4, '2025-11-08', 'High-rise apartment', 1, 14.3617548, 121.0560799, 'available', 'approved', '', 1, '2026-03-26 17:43:15', NULL, NULL, 0),
 (8, 'Laguna Hills Townhouse', 34000, 'Townhouse with modern interiors and parking.', '[\"1774504739_69c4cb2322a8f_1769874411_697e23ebb3f8d_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzk1YmQzM2YwLTZlZWUtMTFlZC05ZDczLWI3OWViZDRhYjc3Ny8wMTliYmFmYi00MTc2LTcxMTgtYmQ2MS0 - Copy.webp\",\"1774504739_69c4cb2324bbf_176987~1.WEB\",\"1774504739_69c4cb2326b7c_1769874411_697e23ebb051f_623503654_1309577357576798_6462543165614109993_n.jpg\"]', '33 Del Pilar St., San Pedro, Laguna', 'Maharlika', 5, '2025-11-08', 'Condominium', 1, 14.3556710, 121.0537624, 'available', 'approved', 'all g', 1, '2026-03-26 13:59:36', NULL, NULL, 0),
 (9, 'Gardenview Condo', 32000, 'Condo with garden view and gym access.', '[\"1774504982_69c4cc16d0ca7_590269974_837360282358204_5073854959907903242_n.jpg\",\"1774504982_69c4cc16d368f_590412492_818810960979420_6540923996156771945_n.jpg\",\"1774504982_69c4cc16d93eb_590953653_2107270670043159_7098658162033819033_n.jpg\",\"1774504982_69c4cc16dc0a6_591916959_2320551888410801_4076471974660158441_n.jpg\",\"1774504982_69c4cc16df157_592133209_696054726908885_5177470230404901730_n.jpg\",\"1774504982_69c4cc16e1be9_592952375_1924518878134274_7257499523061647961_n.jpg\"]', '10 Banay-Banay Rd., San Pedro, Laguna', 'Calendola', 3, '2025-11-08', 'Condominium', 1, 14.3641522, 121.0592556, 'available', 'pending', NULL, NULL, NULL, NULL, NULL, 0),
-(10, 'APARTMENT27', 4500, 'EXAMPLE', '[\"1774505031_69c4cc47cd9ee_1769874773_697e2555a1cdf_620008726_1309577430910124_4106903204621638308_n.jpg\",\"1774505031_69c4cc47d041e_1769874773_697e2555a2b6f_621606639_1309577540910113_3689565198174649248_n.jpg\",\"1774505031_69c4cc47d2e9a_1769874773_697e2555a07c7_619694282_1309577434243457_5342415326550166753_n.jpg\"]', 'Blk 6 Lot 8, P. Burgos Street, Pacita 1, S.P.L', 'Landayan', 1, '2025-11-08', 'Low-rise apartment', 1, 14.3437149, 121.0577178, 'available', 'pending', NULL, NULL, NULL, NULL, NULL, 0),
-(11, 'STUDIO TYPE APARTMENT', 40000, 'House type: Apartment\r\nOffer type: For Rent\r\nCar parks: 2\r\nContract duration: 1 Years\r\nUsable area: 250 sqm\r\nProperty Floor: 2\r\n6 Jan 2026 - Published by DPI Properties\r\n₱ 40,000/month\r\nDescription\r\nFOR RENT: Furnished 2 storey house and lot at Concorde Village Parañaque.\r\n\r\nLot area: 260sqm\r\nFloor area: 250sqm\r\n\r\n- 6 Bedrooms\r\n- 1 Office room\r\n- Washing machine included\r\n- Air conditioned all rooms\r\n- Dining table and chairs included\r\n- Rooms with cabinets\r\n- Water heater\r\n- Wifi included\r\n\r\nRental rate: ₱40,000/month\r\n2 months advance, 2 months security deposit.\r\n\r\nDirect tenants only.\r\nFor inquiries call: View Phone Whatsapp Viber DPI PROPERTIES\r\nDetails\r\nGarage\r\nAir conditioning\r\nAlarm\r\nElectricity\r\nFully fenced\r\nEntertainment room\r\nInternet\r\nBalcony\r\nBuilt-in wardrobe\r\nCellar\r\nWifi\r\nView more\r\nCommunity characteristics\r\nSecurity\r\nGrill\r\nGreen area\r\n24 hours security\r\nGarden\r\nGuardhouse\r\nBasketball court', '[\"1769875585_697e2881da010_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zY2EyLTcyZWUtYjRmOS05MDkzNTA0OGRkNjAuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881dacb7_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zY2U0LTcxNzAtYmE3Yi1kZTI3ZGI3NTJlNGQuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881db828_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYmE0LTczODktYTkyZi02NWExYjk0ODk1YWIuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881de246_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYmYzLTcxNmEtOTM3My1jOWRiZTFiZDExOWIuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881deba7_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYTZlLTcxODItOWEzMi1kY2UyZmFiMTNjNGUuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881df47c_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYzJjLTcwYmYtYmE0ZC1iMTMxMjYyNmZlNTQuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881dfd81_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYzYzLTcwNWItYjM1MC1lYzQwN2NlMjlmN2QuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881e0765_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zZDA5LTcwOGMtOWY4OS1iZjQwYTRhMWRhNzAuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881e1472_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zZTQ0LTczYTktODQxYy0xNGExYWRmMjNjYzEuanBnIiwiYnJhbmQiOiJsYW.webp\"]', '123 Rizal St., San Pedro, Laguna', 'Pacita 2', 4, '2026-01-31', 'Single-family home', 1, 14.3670574, 121.0606474, 'available', 'approved', '', 1, '2026-03-26 13:57:45', NULL, NULL, 0),
-(12, 'Magandang bahay hehe', 213131, '123', '[\"1770568366_6988baaedae6a_ab67616d0000b27301cb2e736602194466522135.jfif\"]', '12312312', 'Bagong Silang', 0, '2026-02-08', 'Apartment complex', 2, 14.3640809, 121.0385227, 'available', 'pending', NULL, NULL, NULL, NULL, NULL, 0),
-(13, 'apt complex', 30000, '1233', '[\"1772722025_69a99769abb65_78d52cd1dd13a404215f43dea4487f56.jpg\"]', '12312', 'Chrysanthemum', 0, '2026-03-05', 'Apartment complex', 2, 14.3492689, 121.0442734, 'available', 'approved', 'ang galing', 1, '2026-03-26 11:41:16', NULL, '2026-03-26 01:41:00', 0),
-(14, 'Bahay sa san pedro', 3000, 'malaking bahay', '[\"1774495253_69c4a615305f3_How-To-Salute-Like-A-Soldier.webp\"]', 'BLK 21 LOT 3 RAINFOREST ESTATE HOMES BRGY LANGKIWA BINAN LAGUNA', 'Bagong Silang', 1, '2026-03-26', 'Condominium', 2, 14.3658971, 121.0519660, 'available', 'approved', '', 1, '2026-03-26 11:42:03', NULL, NULL, 0);
+(10, 'Studio Type for Rent – Landayan, San Pedro, Laguna', 3500, 'Affordable studio-type unit available in Landayan, San Pedro, Laguna, perfect for solo renters or students looking for a budget-friendly place.\r\n\r\nDetails:\r\n\r\nOpen space (bedroom + living area)\r\nSmall kitchen area\r\nPrivate bathroom\r\n\r\n📍 Location: Near stores, public transport, and ROB GAL\r\n\r\nRent: ₱3,000/month\r\n\r\nBest for: Students, workers, or individuals looking for a simple and low-cost space.', '[\"1774505031_69c4cc47cd9ee_1769874773_697e2555a1cdf_620008726_1309577430910124_4106903204621638308_n.jpg\",\"1774505031_69c4cc47d041e_1769874773_697e2555a2b6f_621606639_1309577540910113_3689565198174649248_n.jpg\",\"1774505031_69c4cc47d2e9a_1769874773_697e2555a07c7_619694282_1309577434243457_5342415326550166753_n.jpg\"]', 'Purok 8, South Fairway, Landayan 1, S.P.L', 'Landayan', 1, '2025-11-08', 'Studio Unit', 1, 14.3519496, 121.0725838, 'available', 'approved', '', 1, '2026-03-26 20:43:07', NULL, NULL, 0),
+(11, 'STUDIO TYPE APARTMENT', 20000, 'House type: Apartment\r\nOffer type: For Rent\r\nCar parks: 2\r\nContract duration: 1 Years\r\nUsable area: 250 sqm\r\nProperty Floor: 2\r\n6 Jan 2026 - Published by DPI Properties\r\n₱ 40,000/month\r\nDescription\r\nFOR RENT: Furnished 2 storey house and lot at Concorde Village Parañaque.\r\n\r\nLot area: 260sqm\r\nFloor area: 250sqm\r\n\r\n- 6 Bedrooms\r\n- 1 Office room\r\n- Washing machine included\r\n- Air conditioned all rooms\r\n- Dining table and chairs included\r\n- Rooms with cabinets\r\n- Water heater\r\n- Wifi included\r\n\r\nRental rate: ₱40,000/month\r\n2 months advance, 2 months security deposit.', '[\"1769875585_697e2881da010_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zY2EyLTcyZWUtYjRmOS05MDkzNTA0OGRkNjAuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881dacb7_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zY2U0LTcxNzAtYmE3Yi1kZTI3ZGI3NTJlNGQuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881db828_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYmE0LTczODktYTkyZi02NWExYjk0ODk1YWIuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881de246_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYmYzLTcxNmEtOTM3My1jOWRiZTFiZDExOWIuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881deba7_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYTZlLTcxODItOWEzMi1kY2UyZmFiMTNjNGUuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881df47c_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYzJjLTcwYmYtYmE0ZC1iMTMxMjYyNmZlNTQuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881dfd81_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zYzYzLTcwNWItYjM1MC1lYzQwN2NlMjlmN2QuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881e0765_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zZDA5LTcwOGMtOWY4OS1iZjQwYTRhMWRhNzAuanBnIiwiYnJhbmQiOiJsYW.webp\",\"1769875585_697e2881e1472_eyJidWNrZXQiOiJwcmQtbGlmdWxsY29ubmVjdC1iYWNrZW5kLWIyYi1pbWFnZXMiLCJrZXkiOiJwcm9wZXJ0aWVzLzAxOWI5MWRjLTUzYzYtNzFiYS1iNTk4LTJhYjc1OGQ1NjE4Yy8wMTliOTFlMC0zZTQ0LTczYTktODQxYy0xNGExYWRmMjNjYzEuanBnIiwiYnJhbmQiOiJsYW.webp\"]', '123 Rizal St., San Pedro, Laguna', 'San Roque', 4, '2026-01-31', 'Single-family home', 1, 14.3670574, 121.0606474, 'available', 'approved', '', 1, '2026-03-26 13:57:45', NULL, NULL, 0),
+(12, 'Magandang bahay hehe', 213131, '123', '[\"1770568366_6988baaedae6a_ab67616d0000b27301cb2e736602194466522135.jfif\"]', '12312312', 'Bagong Silang', 0, '2026-02-08', 'Apartment complex', 2, 14.3640809, 121.0385227, 'available', 'approved', '', 1, '2026-03-28 12:32:28', NULL, NULL, 0),
+(15, 'Isang buong bahat', 20000, 'Experience comfort, privacy, and convenience in this spacious whole house located in Pacita 1, San Pedro, Laguna, ideal for families looking for a peaceful yet accessible place to call home.\r\n\r\nThis property offers a complete living space, giving you the freedom and privacy that apartments cannot provide. The house features a well-designed layout with a cozy living area, a functional kitchen, and comfortable bedrooms perfect for family living.\r\n\r\nProperty Features:\r\n\r\n3 Bedrooms (ideal for small to medium-sized families)\r\n2 Bathrooms\r\nSpacious Living Area\r\nDining Area & Kitchen\r\nParking Space Available\r\nSmall outdoor space / yard \r\n\r\n📍 Prime Location:\r\nSituated in Pacita 1, San Pedro, Laguna, the house is located in a safe and established residential community. It is conveniently close to:\r\n\r\nSupermarkets and local markets\r\nSchools and learning centers\r\nHospitals and clinics\r\nPublic transportation (easy access to Manila and nearby cities)\r\nMalls such as Pacita Complex\r\n\r\nWhy You’ll Love It:\r\n\r\nFull house rental – no shared spaces\r\nPeaceful and family-friendly neighborhood\r\nAccessible location for work, school, and daily needs\r\nIdeal for long-term stay\r\n\r\nPerfect For:\r\nFamilies, working professionals, or anyone looking for a comfortable and secure home environment in Laguna.', '[\"1774637801_69c6d2e9e151c_FB_IMG_1774532022280.jpg\",\"1774637801_69c6d2e9e7aa9_FB_IMG_1774532027136.jpg\",\"1774637801_69c6d2e9eaf92_FB_IMG_1774532031832.jpg\",\"1774637801_69c6d2e9eee8a_FB_IMG_1774532036920.jpg\",\"1774637801_69c6d2e9f36b2_FB_IMG_1774532041586.jpg\",\"1774637802_69c6d2ea02184_FB_IMG_1774532045997.jpg\",\"1774637802_69c6d2ea043f2_FB_IMG_1774532051187.jpg\",\"1774637802_69c6d2ea06654_FB_IMG_1774532055432.jpg\",\"1774637802_69c6d2ea085c9_FB_IMG_1774532060447.jpg\",\"1774637802_69c6d2ea0b4ba_FB_IMG_1774532065088.jpg\",\"1774637802_69c6d2ea0d221_FB_IMG_1774532068931.jpg\",\"1774637802_69c6d2ea0fd26_FB_IMG_1774532073428.jpg\"]', 'Blk 2 Lot 6 Phase 1B, Sta. Ana St. Pacita 1, S.P.L', 'Pacita 1', 3, '2026-03-27', 'Single-family home', 1, 14.3482226, 121.0612699, 'available', 'approved', '', 1, '2026-03-28 02:57:56', NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -472,9 +446,7 @@ CREATE TABLE `maintenance_requeststbl` (
 --
 
 INSERT INTO `maintenance_requeststbl` (`id`, `lease_id`, `tenant_id`, `landlord_id`, `title`, `description`, `photo_path`, `category`, `priority`, `status`, `requested_date`, `scheduled_date`, `completed_date`, `landlord_remarks`, `created_at`, `updated_at`, `landlord_response`, `response_date`, `maintenance_status`) VALUES
-(11, 169, 2, 2, 'sira cr', '123', '../uploads/maintenance/maintenance_1770611494_698963269b990.gif', 'Plumbing', 'Urgent', 'Completed', '2026-02-09', NULL, '2026-02-09', NULL, '2026-02-09 04:31:34', '2026-02-09 04:31:49', NULL, NULL, 'Pending'),
-(12, 170, 3, 1, 'roof damage', 'need to fix asap', NULL, 'Structural', 'High', 'Completed', '2026-03-05', NULL, '2026-03-26', NULL, '2026-03-05 13:17:26', '2026-03-26 08:21:48', 'oki na', NULL, 'Pending'),
-(13, 170, 3, 1, 'Broken faucet', 'URGENT!', '../uploads/maintenance/maintenance_1772716948_69a9839470988.jpg', 'Plumbing', 'Urgent', 'Completed', '2026-03-05', NULL, '2026-03-26', NULL, '2026-03-05 13:22:28', '2026-03-26 08:22:02', '', NULL, 'Pending');
+(19, 206, 1, 1, 'yuuu', 'yow', NULL, 'Appliances', 'Urgent', 'Completed', '2026-03-31', NULL, '2026-03-31', NULL, '2026-03-31 12:50:23', '2026-03-31 12:51:30', 'okiii na', NULL, 'Pending');
 
 -- --------------------------------------------------------
 
@@ -494,6 +466,7 @@ CREATE TABLE `messages` (
   `content_type` enum('text','image','file') NOT NULL DEFAULT 'text',
   `status` enum('active','deleted') NOT NULL DEFAULT 'active',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `read_at` datetime DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
   `is_read` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -502,22 +475,35 @@ CREATE TABLE `messages` (
 -- Dumping data for table `messages`
 --
 
-INSERT INTO `messages` (`id`, `conversation_id`, `sender_id`, `sender_type`, `content`, `file_path`, `file_type`, `file_size`, `content_type`, `status`, `created_at`, `updated_at`, `is_read`) VALUES
-(16, 13, 2, 'tenant', 'Hi! I\'m interested in your property: STUDIO TYPE APARTMENT.', NULL, NULL, NULL, 'text', 'active', '2026-02-08 20:12:06', NULL, 0),
-(17, 14, 2, 'tenant', 'Hi! I\'m interested in your property: Magandang bahay hehe.', NULL, NULL, NULL, 'text', 'active', '2026-02-08 20:12:14', NULL, 0),
-(18, 14, 2, 'tenant', 'hey', NULL, NULL, NULL, 'text', 'active', '2026-02-08 20:12:18', NULL, 0),
-(19, 14, 2, 'landlord', 'yo', NULL, NULL, NULL, 'text', 'active', '2026-02-08 20:12:28', NULL, 0),
-(20, 14, 2, 'landlord', '123', NULL, NULL, NULL, 'text', 'active', '2026-03-05 14:48:27', NULL, 0),
-(21, 14, 2, 'tenant', '123213', NULL, NULL, NULL, 'text', 'active', '2026-03-25 16:05:54', NULL, 0),
-(22, 14, 2, 'tenant', 'yo', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:17:47', NULL, 0),
-(23, 14, 2, 'tenant', 'hey', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:20:31', NULL, 0),
-(24, 14, 2, 'landlord', 'yo', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:20:47', NULL, 0),
-(25, 14, 2, 'landlord', 'sup', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:20:54', NULL, 0),
-(26, 14, 2, 'tenant', 'yo', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:21:02', NULL, 0),
-(27, 14, 2, 'tenant', 'sup', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:35:25', NULL, 0),
-(28, 14, 2, 'landlord', 'hey', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:35:28', NULL, 0),
-(29, 14, 2, 'tenant', 'yo', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:47:06', NULL, 0),
-(30, 14, 2, 'landlord', 'hoy', NULL, NULL, NULL, 'text', 'active', '2026-03-26 02:51:11', NULL, 0);
+INSERT INTO `messages` (`id`, `conversation_id`, `sender_id`, `sender_type`, `content`, `file_path`, `file_type`, `file_size`, `content_type`, `status`, `created_at`, `read_at`, `updated_at`, `is_read`) VALUES
+(16, 13, 2, 'tenant', 'Hi! I\'m interested in your property: STUDIO TYPE APARTMENT.', NULL, NULL, NULL, 'text', 'active', '2026-02-08 20:12:06', NULL, NULL, 0),
+(17, 14, 2, 'tenant', 'Hi! I\'m interested in your property: Magandang bahay hehe.', NULL, NULL, NULL, 'text', 'active', '2026-02-08 20:12:14', '2026-03-28 11:11:00', '2026-03-28 03:11:00', 0),
+(18, 14, 2, 'tenant', 'hey', NULL, NULL, NULL, 'text', 'active', '2026-02-08 20:12:18', '2026-03-28 11:11:00', '2026-03-28 03:11:00', 0),
+(19, 14, 2, 'landlord', 'yo', NULL, NULL, NULL, 'text', 'active', '2026-02-08 20:12:28', NULL, NULL, 0),
+(20, 14, 2, 'landlord', '123', NULL, NULL, NULL, 'text', 'active', '2026-03-05 14:48:27', NULL, NULL, 0),
+(21, 14, 2, 'tenant', '123213', NULL, NULL, NULL, 'text', 'active', '2026-03-25 16:05:54', '2026-03-28 11:11:00', '2026-03-28 03:11:00', 0),
+(22, 14, 2, 'tenant', 'yo', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:17:47', '2026-03-28 11:11:00', '2026-03-28 03:11:00', 0),
+(23, 14, 2, 'tenant', 'hey', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:20:31', '2026-03-28 11:11:00', '2026-03-28 03:11:00', 0),
+(24, 14, 2, 'landlord', 'yo', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:20:47', NULL, NULL, 0),
+(25, 14, 2, 'landlord', 'sup', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:20:54', NULL, NULL, 0),
+(26, 14, 2, 'tenant', 'yo', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:21:02', '2026-03-28 11:11:00', '2026-03-28 03:11:00', 0),
+(27, 14, 2, 'tenant', 'sup', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:35:25', '2026-03-28 11:11:00', '2026-03-28 03:11:00', 0),
+(28, 14, 2, 'landlord', 'hey', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:35:28', NULL, NULL, 0),
+(29, 14, 2, 'tenant', 'yo', NULL, NULL, NULL, 'text', 'active', '2026-03-25 17:47:06', '2026-03-28 11:11:00', '2026-03-28 03:11:00', 0),
+(30, 14, 2, 'landlord', 'hoy', NULL, NULL, NULL, 'text', 'active', '2026-03-26 02:51:11', NULL, NULL, 0),
+(31, 15, 3, 'tenant', 'Hi! I\'m interested in your property: Bahay sa san pedro.', NULL, NULL, NULL, 'text', 'active', '2026-03-26 10:51:25', '2026-03-28 11:10:52', '2026-03-28 03:10:52', 0),
+(32, 15, 3, 'tenant', 'hi', NULL, NULL, NULL, 'text', 'active', '2026-03-26 11:26:13', '2026-03-28 11:10:52', '2026-03-28 03:10:52', 0),
+(33, 16, 1, 'tenant', 'Hi! I\'m interested in your property: STUDIO TYPE APARTMENT.', NULL, NULL, NULL, 'text', 'active', '2026-03-27 10:52:23', '2026-03-27 18:59:07', '2026-03-27 10:59:07', 0),
+(34, 15, 3, 'tenant', 'hey', NULL, NULL, NULL, 'text', 'active', '2026-03-27 10:58:38', '2026-03-28 11:10:52', '2026-03-28 03:10:52', 0),
+(35, 17, 3, 'tenant', 'Hi! I\'m interested in your property: STUDION TYPE APARTMENT.', NULL, NULL, NULL, 'text', 'active', '2026-03-27 11:00:03', '2026-03-27 19:00:49', '2026-03-27 11:00:49', 0),
+(36, 17, 1, 'landlord', 'oki', NULL, NULL, NULL, 'text', 'active', '2026-03-27 11:01:04', '2026-03-27 19:01:28', '2026-03-27 11:01:28', 0),
+(37, 16, 1, 'tenant', 'more details', NULL, NULL, NULL, 'text', 'active', '2026-03-27 21:03:37', '2026-03-28 05:03:58', '2026-03-27 21:03:58', 0),
+(38, 16, 1, 'landlord', 'okay', NULL, NULL, NULL, 'text', 'active', '2026-03-27 21:04:23', '2026-03-28 09:06:08', '2026-03-28 01:06:08', 0),
+(39, 16, 1, 'tenant', 'hi', NULL, NULL, NULL, 'text', 'active', '2026-03-28 01:06:30', '2026-03-28 12:30:19', '2026-03-28 04:30:19', 0),
+(40, 14, 2, 'landlord', '.', NULL, NULL, NULL, 'text', 'active', '2026-03-28 03:12:16', NULL, NULL, 0),
+(41, 14, 2, 'landlord', '.', NULL, NULL, NULL, 'text', 'active', '2026-03-28 03:12:21', NULL, NULL, 0),
+(42, 14, 2, 'landlord', '.', NULL, NULL, NULL, 'text', 'active', '2026-03-28 03:12:26', NULL, NULL, 0),
+(43, 16, 1, 'tenant', 'hey, i have issue', NULL, NULL, NULL, 'text', 'active', '2026-03-28 04:30:02', '2026-03-28 12:30:19', '2026-03-28 04:30:19', 0);
 
 -- --------------------------------------------------------
 
@@ -530,13 +516,14 @@ CREATE TABLE `paymentstbl` (
   `lease_id` int(11) NOT NULL,
   `tenant_id` int(11) NOT NULL,
   `landlord_id` int(11) NOT NULL,
-  `payment_type` enum('Rent','Security Deposit','Advance Rent','Utility','Penalty','Other') NOT NULL,
+  `payment_type` enum('rent','deposit','penalty','Security Deposit','Advance Rent','Utility','Other') NOT NULL,
   `amount` decimal(10,2) NOT NULL,
-  `due_date` date NOT NULL,
+  `due_date` date DEFAULT NULL,
   `paid_date` date DEFAULT NULL,
   `payment_method` enum('Cash','Bank Transfer','GCash','PayMaya','Cheque','Other') DEFAULT NULL,
-  `status` enum('Pending','Paid','Overdue','Cancelled') DEFAULT 'Pending',
+  `status` enum('Pending','Paid','Overdue','Cancelled','pending_verification','rejected','partial') DEFAULT 'Pending',
   `reference_no` varchar(100) DEFAULT NULL,
+  `proof_path` varchar(255) DEFAULT NULL,
   `remarks` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
@@ -546,8 +533,9 @@ CREATE TABLE `paymentstbl` (
 -- Dumping data for table `paymentstbl`
 --
 
-INSERT INTO `paymentstbl` (`id`, `lease_id`, `tenant_id`, `landlord_id`, `payment_type`, `amount`, `due_date`, `paid_date`, `payment_method`, `status`, `reference_no`, `remarks`, `created_at`, `updated_at`) VALUES
-(1, 175, 3, 1, 'Rent', 35000.00, '0000-00-00', '2026-03-26', 'GCash', 'Paid', '', 'March Payment', '2026-03-26 08:26:01', '2026-03-26 08:26:01');
+INSERT INTO `paymentstbl` (`id`, `lease_id`, `tenant_id`, `landlord_id`, `payment_type`, `amount`, `due_date`, `paid_date`, `payment_method`, `status`, `reference_no`, `proof_path`, `remarks`, `created_at`, `updated_at`) VALUES
+(56, 206, 1, 1, 'rent', 3000.00, '2026-03-06', '2026-03-31', 'Cash', 'Paid', '', NULL, '', '2026-03-31 12:54:20', '2026-03-31 12:56:26'),
+(57, 207, 3, 1, 'rent', 1500.00, '2026-04-04', '2026-04-09', 'Cash', 'Paid', '', NULL, 'EFRFDR', '2026-04-09 14:21:50', '2026-04-09 14:22:05');
 
 -- --------------------------------------------------------
 
@@ -607,9 +595,9 @@ CREATE TABLE `renttbl` (
 --
 
 INSERT INTO `renttbl` (`ID`, `lease_id`, `date`, `status`, `landlord_id`, `tenant_id`, `listing_id`, `start_date`, `end_date`, `tenant_request`, `request_status`, `tenant_removed`) VALUES
-(66, 169, '0000-00-00', '', 2, 2, 12, '0000-00-00', '0000-00-00', 'none', 'pending', 0),
-(68, 171, '0000-00-00', '', 2, 2, 13, '2026-03-06', '2026-03-07', 'none', 'pending', 0),
-(69, 175, '0000-00-00', 'approved', 1, 3, 8, '2026-03-30', '2026-07-01', 'none', 'pending', 0);
+(66, NULL, '0000-00-00', '', 2, 2, 12, '0000-00-00', '0000-00-00', 'none', 'pending', 0),
+(91, 206, '0000-00-00', 'approved', 1, 1, 15, '2026-04-01', '2026-07-07', 'none', 'pending', 0),
+(92, 207, '0000-00-00', 'approved', 1, 3, 4, '2026-04-01', '2026-08-18', 'none', 'pending', 0);
 
 -- --------------------------------------------------------
 
@@ -644,7 +632,8 @@ CREATE TABLE `reportstbl` (
 --
 
 INSERT INTO `reportstbl` (`ID`, `tenant_id`, `is_anonymous`, `landlord_id`, `listing_id`, `category`, `subject`, `description`, `incident_date`, `priority`, `evidence_files`, `status`, `admin_notes`, `admin_action`, `reviewed_by`, `reviewed_at`, `resolution_details`, `created_at`, `updated_at`) VALUES
-(1, 2, 0, 2, NULL, 'Scamming/Fraud', 'skamer', '123123123133121232213213122132112321123323213212332132323131321321312', '2026-01-22', 'medium', NULL, 'pending', NULL, NULL, NULL, NULL, NULL, '2026-03-25 16:55:52', '2026-03-25 16:55:52');
+(1, 2, 0, 2, NULL, 'Scamming/Fraud', 'skamer', '123123123133121232213213122132112321123323213212332132323131321321312', '2026-01-22', 'medium', NULL, 'pending', NULL, NULL, NULL, NULL, NULL, '2026-03-25 16:55:52', '2026-03-25 16:55:52'),
+(2, 3, 1, 1, NULL, 'Illegal Activities', 'ggg', 'plklljkjkhjhplplplplplplplplplplplplplplplplplplpo', '2026-03-03', 'high', NULL, 'pending', NULL, NULL, NULL, NULL, NULL, '2026-03-28 04:44:06', '2026-03-28 04:44:06');
 
 -- --------------------------------------------------------
 
@@ -666,7 +655,8 @@ CREATE TABLE `report_actions_log` (
 --
 
 INSERT INTO `report_actions_log` (`ID`, `report_id`, `admin_username`, `action_type`, `action_details`, `created_at`) VALUES
-(1, 1, 'SYSTEM', 'report_created', 'Report submitted by tenant', '2026-03-25 16:55:52');
+(1, 1, 'SYSTEM', 'report_created', 'Report submitted by tenant', '2026-03-25 16:55:52'),
+(2, 2, 'SYSTEM', 'report_created', 'Report submitted by tenant', '2026-03-28 04:44:06');
 
 -- --------------------------------------------------------
 
@@ -680,16 +670,19 @@ CREATE TABLE `requesttbl` (
   `tenant_id` int(11) DEFAULT NULL,
   `listing_id` int(11) DEFAULT NULL,
   `status` enum('pending','waiting_tenant','approved','rejected') NOT NULL DEFAULT 'pending',
-  `lease_id` int(11) DEFAULT NULL
+  `lease_id` int(11) DEFAULT NULL,
+  `is_removed` tinyint(1) DEFAULT 0,
+  `tenant_action` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `requesttbl`
 --
 
-INSERT INTO `requesttbl` (`ID`, `date`, `tenant_id`, `listing_id`, `status`, `lease_id`) VALUES
-(72, '2026-03-26', 3, 8, 'approved', NULL),
-(73, '2026-03-26', 1, 5, 'pending', NULL);
+INSERT INTO `requesttbl` (`ID`, `date`, `tenant_id`, `listing_id`, `status`, `lease_id`, `is_removed`, `tenant_action`) VALUES
+(126, '2026-03-31', 1, 8, 'pending', NULL, 0, NULL),
+(128, '2026-03-31', 1, 15, 'approved', NULL, 0, NULL),
+(129, '2026-04-01', 3, 4, 'approved', NULL, 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -703,6 +696,13 @@ CREATE TABLE `reset_password` (
   `token` varchar(255) NOT NULL,
   `expires_at` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `reset_password`
+--
+
+INSERT INTO `reset_password` (`id`, `email`, `token`, `expires_at`) VALUES
+(0, 'jajasison07@gmail.com', '803761', '2026-03-28 21:00:15');
 
 -- --------------------------------------------------------
 
@@ -726,7 +726,8 @@ CREATE TABLE `reviews` (
 
 INSERT INTO `reviews` (`id`, `landlord_id`, `tenant_id`, `rating`, `review_text`, `created_at`, `updated_at`) VALUES
 (1, 1, 7, 5, '676767676767676767sixseven', '2026-02-05 08:35:23', '2026-02-05 08:35:36'),
-(0, 1, 1, 5, 'DSDFDFSDFSDGDGSDGFGDFGDFGDF', '2026-02-06 04:59:11', NULL);
+(0, 1, 1, 5, 'DSDFDFSDFSDGDGSDGFGDFGDFGDF', '2026-02-06 04:59:11', NULL),
+(0, 1, 3, 5, 'ang galing neto pramis hehehehehe', '2026-03-28 03:10:01', NULL);
 
 --
 -- Triggers `reviews`
@@ -777,9 +778,9 @@ CREATE TABLE `tenanttbl` (
 --
 
 INSERT INTO `tenanttbl` (`ID`, `username`, `firstName`, `lastName`, `middleName`, `email`, `password`, `verificationId`, `birthday`, `gender`, `profilePic`, `created_at`, `status`, `phoneNum`) VALUES
-(1, 'Jaja', 'Jahaziel', 'Sison', 'Bautusta', 'jahaziel.sison@cdsp.edu.ph', '$2y$10$PaxpUKQNdWKjJJXnBWfK1OonMOtoguy1iNaouAototdAtrxtXmqhK', NULL, '2004-08-07', 'Female', '1770343112_profile_551246401_1344915943899367_5892129137320406716_n.jpg', '2025-11-08 00:54:25', 'active', 2147483647),
+(1, 'Jaja', 'Jahaziel', 'Sison', 'Bautusta', 'jahaziel.sison@cdsp.edu.ph', '$2y$10$9gP2NL8makGt36JSUa3p2e/YFG/VdTC1oMzOcfBMA/WoCYs9rj/ua', NULL, '2004-08-07', 'Female', '1770343112_profile_551246401_1344915943899367_5892129137320406716_n.jpg', '2025-11-08 00:54:25', 'active', 2147483647),
 (2, 'sam tenant', 'sam', 'tenant', '', 'minceydicey@gmail.com', '$2y$10$mTxwsCZP.OBGEHALwVh/HOt7US7RYoFOU8CzDP2r1CLOFla/qT80m', NULL, '0000-00-00', 'Male', '1770568510_profile_12902a631d6c4afd9f75b0b432158954.gif', '2026-02-08 16:24:07', 'pending', 0),
-(3, 'jo-sison', 'Joyce Diane', 'Sison', '', 'sisonjoycediane29@gmail.com', '$2y$10$XY18/qC9RNF9tE36khMeBuA4fa8uaXXqMYWfXXKrGQDKVEHXQ.gxG', NULL, '2000-09-21', 'Female', '1772716551_profile_b7fc43d3-a8cb-4f56-8e54-70d67615dd70_0f474745.webp', '2026-03-05 13:08:57', 'active', 99322789);
+(3, 'jo-sison', 'Joyce Diane', 'Sison', '', 'sisonjoycediane29@gmail.com', '$2y$10$OCh2X7FHE4psYM4Vhl3riufVU9zSl3JN2UgQYe7163759EtFVntse', NULL, '2000-09-21', 'Female', '1774610670_profile_b7fc43d3-a8cb-4f56-8e54-70d67615dd70_0f474745.webp', '2026-03-05 13:08:57', 'active', 99322789);
 
 -- --------------------------------------------------------
 
@@ -808,7 +809,12 @@ INSERT INTO `trusted_devices` (`ID`, `user_id`, `device_hash`, `last_ip`, `last_
 (5, 3, 'ae19a203e0cfff11e538a46111a5ca11ec04ce8b6c32637852772ad9ac5b5078', '::1', '2026-03-05 21:40:22', 'landlord'),
 (6, 2, 'bdb869440c8a2109a4697a93e1e98705d766e3a6695c7c6f89ed62327a1126d6', '::1', '2026-03-25 23:58:23', 'landlord'),
 (7, 2, 'bdb869440c8a2109a4697a93e1e98705d766e3a6695c7c6f89ed62327a1126d6', '::1', '2026-03-26 00:05:32', 'tenant'),
-(8, 1, '5b43de8f7990ebd39b7f81d2a7febbc144fc308ede43c5371ed5a7d30cdf5eba', '::1', '2026-03-26 13:41:27', 'landlord');
+(8, 1, '5b43de8f7990ebd39b7f81d2a7febbc144fc308ede43c5371ed5a7d30cdf5eba', '::1', '2026-03-26 13:41:27', 'landlord'),
+(9, 2, '5b43de8f7990ebd39b7f81d2a7febbc144fc308ede43c5371ed5a7d30cdf5eba', '::1', '2026-03-26 20:06:45', 'landlord'),
+(10, 3, '5b43de8f7990ebd39b7f81d2a7febbc144fc308ede43c5371ed5a7d30cdf5eba', '::1', '2026-03-27 19:19:34', 'tenant'),
+(11, 1, '5b43de8f7990ebd39b7f81d2a7febbc144fc308ede43c5371ed5a7d30cdf5eba', '::1', '2026-03-29 02:58:33', 'tenant'),
+(12, 9, '5b43de8f7990ebd39b7f81d2a7febbc144fc308ede43c5371ed5a7d30cdf5eba', '::1', '2026-03-31 22:16:39', 'landlord'),
+(13, 10, '5b43de8f7990ebd39b7f81d2a7febbc144fc308ede43c5371ed5a7d30cdf5eba', '::1', '2026-03-31 22:19:47', 'landlord');
 
 -- --------------------------------------------------------
 
@@ -946,7 +952,8 @@ ALTER TABLE `maintenance_requeststbl`
 -- Indexes for table `messages`
 --
 ALTER TABLE `messages`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_messages_read_at` (`conversation_id`,`read_at`);
 
 --
 -- Indexes for table `paymentstbl`
@@ -1005,7 +1012,20 @@ ALTER TABLE `reset_password`
   ADD UNIQUE KEY `email_5` (`email`),
   ADD UNIQUE KEY `email_6` (`email`),
   ADD UNIQUE KEY `email_7` (`email`),
-  ADD UNIQUE KEY `email_8` (`email`);
+  ADD UNIQUE KEY `email_8` (`email`),
+  ADD UNIQUE KEY `email_9` (`email`),
+  ADD UNIQUE KEY `email_10` (`email`),
+  ADD UNIQUE KEY `email_11` (`email`),
+  ADD UNIQUE KEY `email_12` (`email`),
+  ADD UNIQUE KEY `email_13` (`email`),
+  ADD UNIQUE KEY `email_14` (`email`),
+  ADD UNIQUE KEY `email_15` (`email`),
+  ADD UNIQUE KEY `email_16` (`email`),
+  ADD UNIQUE KEY `email_17` (`email`),
+  ADD UNIQUE KEY `email_18` (`email`),
+  ADD UNIQUE KEY `email_19` (`email`),
+  ADD UNIQUE KEY `email_20` (`email`),
+  ADD UNIQUE KEY `email_21` (`email`);
 
 --
 -- Indexes for table `tenanttbl`
@@ -1048,13 +1068,13 @@ ALTER TABLE `cancel_requesttbl`
 -- AUTO_INCREMENT for table `conversations`
 --
 ALTER TABLE `conversations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `conversation_members`
 --
 ALTER TABLE `conversation_members`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- AUTO_INCREMENT for table `extension_requesttbl`
@@ -1066,7 +1086,7 @@ ALTER TABLE `extension_requesttbl`
 -- AUTO_INCREMENT for table `landlordtbl`
 --
 ALTER TABLE `landlordtbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `landlord_warnings`
@@ -1078,7 +1098,7 @@ ALTER TABLE `landlord_warnings`
 -- AUTO_INCREMENT for table `leasetbl`
 --
 ALTER TABLE `leasetbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=176;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=208;
 
 --
 -- AUTO_INCREMENT for table `lease_renewaltbl`
@@ -1090,13 +1110,13 @@ ALTER TABLE `lease_renewaltbl`
 -- AUTO_INCREMENT for table `lease_terminationstbl`
 --
 ALTER TABLE `lease_terminationstbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `listingtbl`
 --
 ALTER TABLE `listingtbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `maintenance_attachmentstbl`
@@ -1108,43 +1128,43 @@ ALTER TABLE `maintenance_attachmentstbl`
 -- AUTO_INCREMENT for table `maintenance_requeststbl`
 --
 ALTER TABLE `maintenance_requeststbl`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT for table `paymentstbl`
 --
 ALTER TABLE `paymentstbl`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=58;
 
 --
 -- AUTO_INCREMENT for table `renttbl`
 --
 ALTER TABLE `renttbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=93;
 
 --
 -- AUTO_INCREMENT for table `reportstbl`
 --
 ALTER TABLE `reportstbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `report_actions_log`
 --
 ALTER TABLE `report_actions_log`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `requesttbl`
 --
 ALTER TABLE `requesttbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=130;
 
 --
 -- AUTO_INCREMENT for table `tenanttbl`
@@ -1156,7 +1176,7 @@ ALTER TABLE `tenanttbl`
 -- AUTO_INCREMENT for table `trusted_devices`
 --
 ALTER TABLE `trusted_devices`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- Constraints for dumped tables

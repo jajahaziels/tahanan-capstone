@@ -4,3 +4,5 @@
 # Ignore uploads folder
 LANDLORD/uploads/
 
+.env
+
