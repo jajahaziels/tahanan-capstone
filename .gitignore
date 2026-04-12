@@ -1,2 +1,4 @@
 # Ignore Composer vendor folder
 /vendor/
+
+.DS_Store
