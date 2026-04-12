@@ -137,11 +137,6 @@ $result = $conn->query($sql);
                                         alt="Property Image"
                                         class="property-img"
                                         style="width:100%; max-height:200px; object-fit:cover;">
-                                    <!--
-                                    <div class="labels">
-                                        <div class="label"><i class="fa-regular fa-star"></i> Featured</div>
-                                        <div class="label">Specials</div>
-                                    </div> -->
 
                                     <div class="price-tag">₱ <?= number_format($row['price']); ?></div>
                                 </div>
@@ -211,14 +206,14 @@ $result = $conn->query($sql);
                 <div class="col-lg-6 col-sm-12">
                     <?php
                     $sql = "
-                        SELECT ID AS listing_id, listingName, latitude, longitude 
-                        FROM listingtbl 
-                        WHERE latitude IS NOT NULL 
-                        AND longitude IS NOT NULL
-                        AND ID NOT IN (
-                            SELECT listing_id FROM renttbl WHERE status = 'approved'
-                        )
-                    ";
+    SELECT ID AS listing_id, listingName, latitude, longitude, price 
+    FROM listingtbl 
+    WHERE latitude IS NOT NULL 
+    AND longitude IS NOT NULL
+    AND ID NOT IN (
+        SELECT listing_id FROM renttbl WHERE status = 'approved'
+    )
+";
                     $result = $conn->query($sql);
 
                     $listings = [];
@@ -226,11 +221,9 @@ $result = $conn->query($sql);
                         $listings[] = $row;
                     }
                     ?>
-                    <!-- Only one actual map div -->
                     <div id="map"></div>
                 </div>
                 <div class="col-lg-6 col-sm-12">
-                    <!-- Only one actual map div -->
                     <h3 class="mb-2">Explore Listings in San Pedro, Laguna</h3>
                     <p>Discover a variety of rental properties in San Pedro, Laguna. Our listings include</p>
                     <div class="d-flex">
@@ -333,14 +326,14 @@ $result = $conn->query($sql);
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                </div>
                     <div class="carousel-item">
                         <div class="row justify-content-center">
                             <div class="col-lg-8">
                                 <div class="review text-center p-4">
                                     <i class="fa-regular fa-message mb-4 mt-5"></i>
-                                    <p>"Collecting rent used to be a hassle, but now it’s effortless. The platform’s payment system is reliable and secure, making the entire process smooth for both tenants and management. It’s a win-win!"</p>
+                                    <p>"Collecting rent used to be a hassle, but now it's effortless. The platform's payment system is reliable and secure, making the entire process smooth for both tenants and management. It's a win-win!"</p>
                                     <div class="person mt-5">
                                         <img src="../TAHANAN/img/sam.png" alt="" width="10%">
                                         <h5 class="mt-3">Salmuel Whyette Alcazar</h5>
@@ -362,7 +355,7 @@ $result = $conn->query($sql);
                             <div class="col-lg-8">
                                 <div class="review text-center p-4">
                                     <i class="fa-regular fa-message mb-4 mt-5"></i>
-                                    <p>"This apartment management platform has elevated the way we operate. It gives off a professional, modern feel that tenants notice and appreciate. It’s not just a tool—it’s part of delivering excellent service."</p>
+                                    <p>"This apartment management platform has elevated the way we operate. It gives off a professional, modern feel that tenants notice and appreciate. It's not just a tool—it's part of delivering excellent service."</p>
                                     <div class="person mt-5">
                                         <img src="../TAHANAN/img/gio.jpg" alt="" width="10%">
                                         <h5 class="mt-3">Giorj Allen Gonzales</h5>
@@ -388,14 +381,12 @@ $result = $conn->query($sql);
                     <span class="visually-hidden">Next</span>
                 </button>
             </div>
-
         </div>
     </section>
     <!-- FOOTER -->
     <footer id="footer">
         <div class="container m-auto">
             <div class="footer-top">
-                <!-- START NG ROW -->
                 <div class="row justify-content-center gy-5">
                     <div class="col-lg-4 col-sm-12">
                         <a href="#" class="logo"><i class="fa-solid fa-house"></i>Map Aware Home</a>
@@ -415,45 +406,23 @@ $result = $conn->query($sql);
                     <div class="col-lg-2 col-sm-12">
                         <div class="lead">For Tenants </div>
                         <div class="mt-4">
-                            <a href="#home-listing" rel="noopener noreferrer">
-                                <p>Browse Rentals</p>
-                            </a>
-                            <a href="#home-listing" rel="noopener noreferrer">
-                                <p>Filter Location</p>
-                            </a>
-                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer">
-                                <p>Verified Listings</p>
-                            </a>
-                            <a href="#map-section" rel="noopener noreferrer">
-                                <p>Location Map</p>
-                            </a>
-                            <a href="tenantRights.html" rel="noopener noreferrer">
-                                <p>Tenant Rights</p>
-                            </a>
-                            <a href="tenantFAQs.html" rel="noopener noreferrer">
-                                <p>Tenant FAQs</p>
-                            </a>
+                            <a href="#home-listing" rel="noopener noreferrer"><p>Browse Rentals</p></a>
+                            <a href="#home-listing" rel="noopener noreferrer"><p>Filter Location</p></a>
+                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer"><p>Verified Listings</p></a>
+                            <a href="#map-section" rel="noopener noreferrer"><p>Location Map</p></a>
+                            <a href="tenantRights.html" rel="noopener noreferrer"><p>Tenant Rights</p></a>
+                            <a href="tenantFAQs.html" rel="noopener noreferrer"><p>Tenant FAQs</p></a>
                         </div>
                     </div>
 
                     <div class="col-lg-2 col-sm-12">
                         <div class="lead">For Landlord</div>
                         <div class="mt-4">
-                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer">
-                                <p>List Your Properties</p>
-                            </a>
-                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer">
-                            <p>Verification Process</p>
-                            </a>
-                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer">
-                            <p>Update Property Information</p>
-                            </a>
-                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer">
-                            <p>Rental Reminders & Notifications</p>
-                            </a>
-                            <a href="landlordFAQs.html" rel="noopener noreferrer">
-                            <p>Landlords FAQs</p>
-                            </a>
+                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer"><p>List Your Properties</p></a>
+                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer"><p>Verification Process</p></a>
+                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer"><p>Update Property Information</p></a>
+                            <a href="../Tahanan/LOGIN/login.php" rel="noopener noreferrer"><p>Rental Reminders & Notifications</p></a>
+                            <a href="landlordFAQs.html" rel="noopener noreferrer"><p>Landlords FAQs</p></a>
                         </div>
                     </div>
 
@@ -473,9 +442,7 @@ $result = $conn->query($sql);
                         <p>Mon - Fri: 8:00 AM - 9:00 PM</p>
                         <p>Sat - Sun: 10:00 AM - 5:00 PM</p>
                     </div>
-
                 </div>
-                <!-- END NG ROW -->
             </div>
         </div>
 
@@ -489,64 +456,82 @@ $result = $conn->query($sql);
     </footer>
 </body>
 
-<!-- GOOGLE MAPS -->
 <script>
     const listings = <?php echo json_encode($listings); ?>;
 </script>
 
-<script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDWEGYpvzU62c47VL2_FCiMCtlNRk7VKl4&callback=initMap"
-    async defer>
-</script>
-
 <script>
-    function initMap() {
+    function getPriceColor(price) {
+        if (price <= 10000) return "green";
+        if (price <= 20000) return "orange";
+        return "purple";
+    }
 
-        const centerLocation = {
-            lat: 14.3595,
-            lng: 121.0473
-        };
+    function initMap() {
+        const centerLocation = { lat: 14.3595, lng: 121.0473 };
 
         const map = new google.maps.Map(document.getElementById("map"), {
             zoom: 13,
-            center: centerLocation
+            center: centerLocation,
+            mapId: "DEMO_MAP_ID"
         });
 
-        if (!listings || listings.length === 0) {
-            console.log("No listings found.");
-            return;
-        }
+        if (!listings || listings.length === 0) return;
 
         listings.forEach(listing => {
-
             if (!listing.latitude || !listing.longitude) return;
 
-            const marker = new google.maps.Marker({
+            const pinColor = getPriceColor(listing.price);
+            const pinElement = document.createElement("div");
+            pinElement.style.cssText = `
+                width: 20px;
+                height: 20px;
+                background-color: ${pinColor};
+                border-radius: 50% 50% 50% 0;
+                transform: rotate(-45deg);
+                border: 2px solid white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            `;
+
+            const marker = new google.maps.marker.AdvancedMarkerElement({
                 position: {
                     lat: parseFloat(listing.latitude),
                     lng: parseFloat(listing.longitude)
                 },
                 map: map,
-                title: listing.listingName
+                title: listing.listingName,
+                content: pinElement
             });
 
             const infoWindow = new google.maps.InfoWindow({
                 content: `
-        <div style="width:200px">
-            <h4>${listing.listingName}</h4>
-            <a href="property-details.php?id=${listing.listing_id}">
-                View Property
-            </a>
-        </div>
-        `
+                    <div style="width:200px; text-align:center;">
+                        <h4>${listing.listingName}</h4>
+                        <p style="color:${pinColor}; font-weight:bold;">₱ ${Number(listing.price).toLocaleString()}</p>
+                        <button onclick="location.href='LOGIN/signup.php'" 
+                            style="padding:4px 10px; background:#8B0000; color:white; border:none; border-radius:5px; cursor:pointer; margin:2px;">
+                            View
+                        </button>
+                        <button onclick="window.open('https://www.google.com/maps/dir/?api=1&destination=${listing.latitude},${listing.longitude}','_blank')" 
+                            style="padding:4px 10px; background:#8B0000; color:white; border:none; border-radius:5px; cursor:pointer; margin:2px;">
+                            Directions
+                        </button>
+                    </div>
+                `
             });
 
             marker.addListener("click", () => {
                 infoWindow.open(map, marker);
             });
-
         });
     }
+</script>
+
+<!-- STEP 3: Load Google Maps AFTER initMap is defined -->
+ 
+<script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCZ3GIqm75W_KKyz1dfW_Pvjw1PeJDpEJU&callback=initMap&libraries=marker&loading=async"
+    async defer>
 </script>
 
 <!-- MAIN JS -->
@@ -556,5 +541,4 @@ $result = $conn->query($sql);
 <!-- SCROLL REVEAL -->
 <script src="https://unpkg.com/scrollreveal"></script>
 
-</html><?php
-require_once 'connection.php';
+</html>

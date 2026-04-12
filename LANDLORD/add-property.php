@@ -488,7 +488,7 @@ if (isset($_SESSION['property_submitted'])) {
             });
         }
     </script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=&libraries=places&callback=initMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCZ3GIqm75W_KKyz1dfW_Pvjw1PeJDpEJU&libraries=places&callback=initMap"></script>
 
     <!-- House Rules JS -->
     <script>
