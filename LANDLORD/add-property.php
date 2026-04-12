@@ -36,6 +36,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
     $latitude     = $_POST['latitude'] ?? null;
     $longitude    = $_POST['longitude'] ?? null;
 
+    // House Rules / Terms
+    $terms = $_POST['terms'] ?? [];
+    $terms = array_values(array_filter(array_map('trim', $terms)));
+
     if ($listingName === '') $errors[] = "Listing name is required.";
     if ($address === '') $errors[] = "Address is required.";
     if ($barangay === '') $errors[] = "Barangay is required.";
@@ -60,7 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
             $error   = $_FILES['image']['error'][$key];
 
             if ($error === UPLOAD_ERR_OK && !empty($tmpName)) {
-                $newName = time() . "_" . uniqid() . "_" . basename($name);
+                $newName    = time() . "_" . uniqid() . "_" . basename($name);
                 $targetFile = $targetDir . $newName;
 
                 if (move_uploaded_file($tmpName, $targetFile)) {
@@ -74,15 +78,16 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
 
     if (empty($errors)) {
         $imagesJson = json_encode($uploadedImages);
+        $termsJson  = json_encode($terms);
 
         $stmt = $conn->prepare("
             INSERT INTO listingtbl 
-            (listingName, address, barangay, price, rooms, category, listingDesc, images, listingDate, latitude, longitude, landlord_id, verification_status)  
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+            (listingName, address, barangay, price, rooms, category, listingDesc, terms, images, listingDate, latitude, longitude, landlord_id, verification_status)  
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
         ");
 
         $stmt->bind_param(
-            "sssiissssddi",
+            "sssiisssssddi",
             $listingName,
             $address,
             $barangay,
@@ -90,6 +95,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && empty($errors)) {
             $rooms,
             $category,
             $listingDesc,
+            $termsJson,
             $imagesJson,
             $listingDate,
             $latitude,
@@ -128,15 +134,12 @@ if (isset($_SESSION['property_submitted'])) {
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script async defer 
-src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
-</script>
     <title>ADD PROPERTIES</title>
     <style>
         .landlord-page {
             margin-top: 140px !important;
+            margin-bottom: 80px !important;
         }
 
         form {
@@ -159,16 +162,133 @@ src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
             background: var(--bg-alt-color);
         }
 
+        textarea {
+            height: 120px;
+            resize: vertical;
+        }
+
         #map {
             height: 300px;
             padding: 0 !important;
             margin: auto;
+            border-radius: 10px;
+        }
+
+        /* ── House Rules Section ── */
+        .rules-section {
+            background: var(--bg-alt-color);
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 12px;
+            padding: 18px 20px;
+        }
+
+        .rules-section .section-label {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--main-color);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rule-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            animation: slideIn 0.2s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .rule-row .form-control {
+            border-radius: 8px;
+        }
+
+        .rule-row .remove-rule-btn {
+            flex-shrink: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1.5px solid #dc3545;
+            background: transparent;
+            color: #dc3545;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.85rem;
+        }
+
+        .rule-row .remove-rule-btn:hover {
+            background: #dc3545;
+            color: #fff;
+        }
+
+        .add-rule-btn {
+            background: transparent;
+            border: 1.5px dashed var(--main-color);
+            color: var(--main-color);
+            border-radius: 8px;
+            padding: 6px 16px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .add-rule-btn:hover {
+            background: var(--main-color);
+            color: #fff;
+            border-style: solid;
+        }
+
+        .rules-hint {
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 8px;
         }
     </style>
 </head>
 
 <body>
     <?php include '../Components/landlord-header.php'; ?>
+
+    <?php if (!empty($errors)): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Please fix the following:',
+                    html: `<ul style="text-align:left"><?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?></ul>`,
+                    confirmButtonColor: 'var(--main-color)'
+                });
+            });
+        </script>
+    <?php endif; ?>
+
+    <?php if ($showPendingModal): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Property Submitted!',
+                    text: 'Your property is pending admin approval.',
+                    confirmButtonColor: 'var(--main-color)'
+                }).then(() => {
+                    window.location.href = 'landlord-properties.php';
+                });
+            });
+        </script>
+    <?php endif; ?>
 
     <div class="landlord-page">
         <div class="container m-auto">
@@ -177,12 +297,15 @@ src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
                 <div class="col-lg-6">
                     <form id="property-form" method="POST" enctype="multipart/form-data" action="add-property.php">
 
+                        <!-- Listing Name -->
                         <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Listing Name</label>
                                 <input type="text" name="listing_name" class="form-control" required>
                             </div>
                         </div>
+
+                        <!-- Address -->
                         <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Address</label>
@@ -190,6 +313,7 @@ src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
                             </div>
                         </div>
 
+                        <!-- Barangay / City / Province -->
                         <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Barangay</label>
@@ -234,6 +358,7 @@ src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
                             </div>
                         </div>
 
+                        <!-- Price / Rooms / Category -->
                         <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Price</label>
@@ -268,6 +393,7 @@ src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
                             </div>
                         </div>
 
+                        <!-- Description -->
                         <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Description</label>
@@ -275,6 +401,36 @@ src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
                             </div>
                         </div>
 
+                        <!-- ── HOUSE RULES / TERMS ── -->
+                        <div class="row mb-3">
+                            <div class="col">
+                                <div class="rules-section">
+                                    <div class="section-label">
+                                        <i class="fa-solid fa-clipboard-list"></i>
+                                        House Rules &amp; Terms
+                                    </div>
+                                    <div id="rulesContainer">
+                                        <div class="rule-row">
+                                            <input type="text" name="terms[]" class="form-control"
+                                                placeholder="e.g. No pets allowed">
+                                            <button type="button" class="remove-rule-btn" title="Remove rule">
+                                                <i class="fa-solid fa-xmark"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="add-rule-btn mt-1" id="addRuleBtn">
+                                        <i class="fa-solid fa-plus"></i> Add Rule
+                                    </button>
+                                    <p class="rules-hint">
+                                        <i class="fa-solid fa-circle-info"></i>
+                                        Specify occupancy limits, pet policies, curfews, visitor rules, etc.
+                                        Tenants will see these before applying.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Images -->
                         <div class="row mb-1">
                             <div class="col">
                                 <label class="form-label">Images (Select multiple)</label>
@@ -283,6 +439,7 @@ src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
                             </div>
                         </div>
 
+                        <!-- Map -->
                         <div class="row mb-3">
                             <div class="col">
                                 <label class="form-label">Pin Location on Map</label>
@@ -292,7 +449,8 @@ src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
                                 <small class="text-muted">Click on the map to pin your property location</small>
                             </div>
                         </div>
-                        
+
+                        <!-- Buttons -->
                         <div class="mb-1">
                             <button type="submit" class="main-button mx-2">
                                 <i class="fas fa-plus"></i> Submit Property
@@ -310,43 +468,57 @@ src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap">
     <script src="../js/script.js" defer></script>
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/scrollreveal"></script>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-   <script>
-function initMap() {
-    // Default location (San Pedro)
-    const defaultLocation = { lat: 14.3647, lng: 121.0556 };
 
-    const map = new google.maps.Map(document.getElementById("map"), {
-        zoom: 15,
-        center: defaultLocation,
-    });
-
-    let marker;
-
-    map.addListener("click", function (event) {
-        const lat = event.latLng.lat();
-        const lng = event.latLng.lng();
-
-        // Remove old marker
-        if (marker) {
-            marker.setMap(null);
+    <!-- Google Maps -->
+    <script>
+        function initMap() {
+            const defaultLocation = { lat: 14.3647, lng: 121.0556 };
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 15,
+                center: defaultLocation,
+            });
+            let marker;
+            map.addListener("click", function (event) {
+                const lat = event.latLng.lat();
+                const lng = event.latLng.lng();
+                if (marker) marker.setMap(null);
+                marker = new google.maps.Marker({ position: { lat, lng }, map });
+                document.getElementById("latitude").value  = lat;
+                document.getElementById("longitude").value = lng;
+            });
         }
+    </script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=&libraries=places&callback=initMap"></script>
 
-        // Add new marker
-        marker = new google.maps.Marker({
-            position: { lat, lng },
-            map: map,
+    <!-- House Rules JS -->
+    <script>
+        const rulesContainer = document.getElementById('rulesContainer');
+
+        document.getElementById('addRuleBtn').addEventListener('click', function () {
+            const row = document.createElement('div');
+            row.className = 'rule-row';
+            row.innerHTML = `
+                <input type="text" name="terms[]" class="form-control"
+                       placeholder="e.g. Maximum 5 occupants">
+                <button type="button" class="remove-rule-btn" title="Remove rule">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>`;
+            rulesContainer.appendChild(row);
+            row.querySelector('input').focus();
         });
 
-        // Set hidden inputs
-        document.getElementById("latitude").value = lat;
-        document.getElementById("longitude").value = lng;
-    });
-}
-</script>
-<script async defer 
-    src="https://maps.googleapis.com/maps/api/js?key=&libraries=places&callback=initMap">
-</script>
+        rulesContainer.addEventListener('click', function (e) {
+            const btn = e.target.closest('.remove-rule-btn');
+            if (!btn) return;
+            const rows = rulesContainer.querySelectorAll('.rule-row');
+            if (rows.length === 1) {
+                // Keep at least one row — just clear the value
+                rows[0].querySelector('input').value = '';
+                rows[0].querySelector('input').focus();
+            } else {
+                btn.closest('.rule-row').remove();
+            }
+        });
+    </script>
 </body>
-
 </html>

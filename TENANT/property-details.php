@@ -8,17 +8,8 @@ if ($listingID <= 0)
 
 $sql = "
 SELECT 
+    l.*,
     l.ID AS listing_id,
-    l.listingName,
-    l.address,
-    l.barangay,
-    l.category,
-    l.rooms,
-    l.price,
-    l.listingDesc,
-    l.images,
-    l.latitude,
-    l.longitude,
     ld.ID          AS landlord_id,
     ld.firstName   AS landlord_fname,
     ld.lastName    AS landlord_lname,
@@ -36,7 +27,10 @@ if ($res->num_rows === 0) die("Property not found.");
 $property = $res->fetch_assoc();
 $stmt->close();
 
-$images    = json_decode($property['images'], true) ?? [];
+$images    = json_decode($property['images'] ?? '[]', true) ?? [];
+$terms     = isset($property['terms']) && !empty($property['terms'])
+             ? (json_decode($property['terms'], true) ?? [])
+             : [];
 $tenant_id = (int) ($_SESSION['tenant_id'] ?? 0);
 
 $requestStatus = null;
@@ -138,7 +132,6 @@ if ($hasActiveLease || $hasActiveRent) {
 
         .rent-warning-card {
             background: #fff6f6;
-            border-left: 5px solid var(--main-color);
             border-radius: 15px;
             padding: 15px 18px;
             box-shadow: 0 3px 8px rgba(0,0,0,0.08);
@@ -163,6 +156,54 @@ if ($hasActiveLease || $hasActiveRent) {
             cursor: pointer;
         }
         .btn-cancel-apply:hover { background: var(--main-color); color: #fff; }
+
+        /* ── House Rules Card ── */
+        .house-rules-card {
+            background: #fff8f0;
+            border: 1px solid #ffe0b2;
+            border-radius: 14px;
+            padding: 20px 22px;
+            margin-top: 24px;
+        }
+
+        .house-rules-card h5 {
+            color: var(--main-color);
+            font-weight: 700;
+            margin-bottom: 14px;
+            font-size: 1.05rem;
+        }
+
+        .rules-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .rules-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px dashed #f0d9c0;
+            font-size: 0.95rem;
+            color: #444;
+        }
+
+        .rules-list li:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .rules-list li:first-child {
+            padding-top: 0;
+        }
+
+        .rule-icon {
+            color: var(--main-color);
+            margin-top: 2px;
+            flex-shrink: 0;
+            font-size: 0.9rem;
+        }
 
         /* ── Lightbox ── */
         .lightbox-overlay {
@@ -225,8 +266,6 @@ if ($hasActiveLease || $hasActiveRent) {
         .lightbox-nav:hover { background: rgba(255,255,255,0.28); }
         .lightbox-prev { left: 16px; }
         .lightbox-next { right: 16px; }
-
-        /* Hide nav buttons when only 1 image */
         .lightbox-nav.hidden { display: none; }
 
         .lightbox-counter {
@@ -259,7 +298,6 @@ if ($hasActiveLease || $hasActiveRent) {
             border-color: #fff;
         }
 
-        /* ── Apply button wrapper — keeps consistent layout ── */
         #applyBtnWrapper {
             display: flex;
             align-items: center;
@@ -398,18 +436,15 @@ if ($hasActiveLease || $hasActiveRent) {
                     <div class="d-flex justify-content-between align-items-center">
                         <h4 class="mb-0 mt-0"><?= htmlspecialchars($property['listingName']); ?></h4>
 
-                        <!-- Apply button wrapper — swapped dynamically by JS -->
                         <div id="applyBtnWrapper" class="mx-5">
                             <?php if ($btnState === 'renting'): ?>
                                 <button class="main-button" disabled>Already Renting</button>
-
                             <?php elseif ($btnState === 'pending'): ?>
                                 <button class="btn-cancel-apply"
                                     data-bs-toggle="modal"
                                     data-bs-target="#cancelApplyModal">
                                     <i class="fa-solid fa-xmark me-1"></i> Cancel Apply
                                 </button>
-
                             <?php else: ?>
                                 <button class="main-button"
                                     data-bs-toggle="modal"
@@ -438,7 +473,7 @@ if ($hasActiveLease || $hasActiveRent) {
                         </div>
                         <div class="info flex-grow-1 mt-2">
                             <h1 class="mb-0">
-                                <?= htmlspecialchars(ucwords(strtolower($property['landlord_fname'].' '.$property['landlord_lname']))); ?>
+                                <?= htmlspecialchars(ucwords(strtolower($property['landlord_fname'] . ' ' . $property['landlord_lname']))); ?>
                             </h1>
                             <p class="text-muted">Landlord</p>
                         </div>
@@ -463,8 +498,25 @@ if ($hasActiveLease || $hasActiveRent) {
                         <li><strong>Rooms:</strong> <?= htmlspecialchars($property['rooms']); ?> Bedroom(s)</li>
                     </ul>
 
+                    <!-- ── HOUSE RULES CARD ── -->
+                    <?php if (!empty($terms)): ?>
+                        <div class="house-rules-card">
+                            <h5>
+                                <i class="fa-solid fa-clipboard-list me-2"></i>House Rules &amp; Terms
+                            </h5>
+                            <ul class="rules-list">
+                                <?php foreach ($terms as $rule): ?>
+                                    <li>
+                                        <i class="fa-solid fa-circle-check rule-icon"></i>
+                                        <?= htmlspecialchars($rule) ?>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endif; ?>
+
                     <!-- Map -->
-                    <div id="map"></div>
+                    <div id="map" class="mt-4"></div>
                 </div>
             </div>
         </div>
@@ -478,7 +530,7 @@ if ($hasActiveLease || $hasActiveRent) {
     <script src="../js/contact-landlord.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap" async defer></script>
 
-    <!-- ── Lightbox ── -->
+    <!-- Lightbox -->
     <script>
         const lightboxImages = <?= json_encode(array_values(array_map(
             fn($img) => '../LANDLORD/uploads/' . $img,
@@ -488,11 +540,11 @@ if ($hasActiveLease || $hasActiveRent) {
         let currentIdx = 0;
         let thumbsBuilt = false;
 
-        const lightbox     = document.getElementById('lightbox');
-        const lightboxImg  = document.getElementById('lightboxImg');
-        const lightboxCtr  = document.getElementById('lightboxCounter');
-        const lightboxPrev = document.getElementById('lightboxPrev');
-        const lightboxNext = document.getElementById('lightboxNext');
+        const lightbox       = document.getElementById('lightbox');
+        const lightboxImg    = document.getElementById('lightboxImg');
+        const lightboxCtr    = document.getElementById('lightboxCounter');
+        const lightboxPrev   = document.getElementById('lightboxPrev');
+        const lightboxNext   = document.getElementById('lightboxNext');
         const lightboxThumbs = document.getElementById('lightboxThumbs');
 
         function openLightbox(index) {
@@ -500,13 +552,10 @@ if ($hasActiveLease || $hasActiveRent) {
             currentIdx = index;
             lightbox.classList.add('active');
             document.body.style.overflow = 'hidden';
-
-            // Hide nav if only 1 image
             if (lightboxImages.length <= 1) {
                 lightboxPrev.classList.add('hidden');
                 lightboxNext.classList.add('hidden');
             }
-
             if (!thumbsBuilt) buildThumbs();
             renderLightbox();
         }
@@ -522,23 +571,17 @@ if ($hasActiveLease || $hasActiveRent) {
         }
 
         function renderLightbox() {
-            // Fade out → swap src → fade in
             lightboxImg.style.opacity = '0';
             setTimeout(() => {
                 lightboxImg.src = lightboxImages[currentIdx];
                 lightboxImg.style.opacity = '1';
             }, 160);
-
             lightboxCtr.textContent = (currentIdx + 1) + ' / ' + lightboxImages.length;
-
-            // Sync Bootstrap carousel
             if (lightboxImages.length > 1) {
                 bootstrap.Carousel.getOrCreateInstance(
                     document.getElementById('carouselExample')
                 ).to(currentIdx);
             }
-
-            // Update thumb highlights
             document.querySelectorAll('#lightboxThumbs img').forEach((t, i) => {
                 t.classList.toggle('active', i === currentIdx);
             });
@@ -560,24 +603,16 @@ if ($hasActiveLease || $hasActiveRent) {
             thumbsBuilt = true;
         }
 
-        // Close on backdrop click
-        lightbox.addEventListener('click', (e) => {
-            if (e.target === lightbox) closeLightbox();
-        });
-
+        lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
         document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
         lightboxPrev.addEventListener('click', (e) => { e.stopPropagation(); lightboxNav(-1); });
         lightboxNext.addEventListener('click', (e) => { e.stopPropagation(); lightboxNav(1); });
-
-        // Keyboard
         document.addEventListener('keydown', (e) => {
             if (!lightbox.classList.contains('active')) return;
             if (e.key === 'ArrowRight') lightboxNav(1);
             if (e.key === 'ArrowLeft')  lightboxNav(-1);
             if (e.key === 'Escape')     closeLightbox();
         });
-
-        // Sync lightbox when carousel slides manually
         document.getElementById('carouselExample').addEventListener('slid.bs.carousel', (e) => {
             if (!lightbox.classList.contains('active')) return;
             currentIdx = e.to;
@@ -585,11 +620,10 @@ if ($hasActiveLease || $hasActiveRent) {
         });
     </script>
 
-    <!-- ── Cancel Apply ── -->
+    <!-- Cancel Apply -->
     <script>
         document.getElementById('confirmCancelApply')?.addEventListener('click', function () {
             const listingId = <?= (int)$property['listing_id'] ?>;
-
             fetch('cancel-apply.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -600,9 +634,7 @@ if ($hasActiveLease || $hasActiveRent) {
                 bootstrap.Modal.getInstance(
                     document.getElementById('cancelApplyModal')
                 ).hide();
-
                 if (data.success) {
-                    // ✅ Swap the button back to Apply — targeting the wrapper div
                     document.getElementById('applyBtnWrapper').innerHTML = `
                         <button class="main-button"
                             data-bs-toggle="modal"
@@ -617,7 +649,7 @@ if ($hasActiveLease || $hasActiveRent) {
         });
     </script>
 
-    <!-- ── Map ── -->
+    <!-- Map -->
     <script>
         function initMap() {
             const lat = <?= $property['latitude']  ?: 14.3647 ?>;
