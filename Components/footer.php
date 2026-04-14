@@ -23,7 +23,7 @@
                     <!-- START NG ROW -->
                     <div class="row justify-content-center gy-5">
                         <div class="col-lg-4 col-sm-12">
-                            <a href="#" class="logo"><i class="fa-solid fa-house"></i>Tahanan</a>
+                           <a href="#" class="logo"><img src="../img/new_logo.png" alt="MapAware Home Logo"> MapAware Home</a>
                             <p>Our platform makes house searching simple and worry-free. You can easily search for verified and secure rental homes or list your own apartment with confidence.</p>
                             <div class="d-flex">
                                 <div class="mt-4 mx-1 footer-box"><i class="fa-solid fa-user-check"></i> Verified Listing</div>
