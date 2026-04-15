@@ -19,7 +19,7 @@ if (!$user_id || !in_array($user_type, ['landlord', 'tenant'])) {
 
 // Return last 20 notifications (unread first, then recent read ones)
 $stmt = $conn->prepare("
-    SELECT id, message, type, is_read, created_at
+    SELECT id, message, type, link, is_read, created_at
     FROM notifications
     WHERE user_id = ? AND user_type = ?
     ORDER BY is_read ASC, created_at DESC
@@ -37,6 +37,7 @@ while ($row = $result->fetch_assoc()) {
         'id'         => (int)$row['id'],
         'message'    => $row['message'],
         'type'       => $row['type'],
+        'link'       => $row['link'] ?? null,
         'is_read'    => (bool)$row['is_read'],
         'created_at' => $row['created_at'],
         'time_ago'   => getTimeAgo($row['created_at']),

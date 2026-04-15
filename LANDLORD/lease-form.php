@@ -261,6 +261,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $req->execute();
     $req->close();
 
+    $tenant_id_notif = $request['tenant_id'];
+    $listing_name    = $request['listingName'];
+    $landlord_name   = $request['landlord_first'] . ' ' . $request['landlord_last'];
+    $user_type       = 'tenant';
+    $type            = 'rental';
+    $message         = "📄 Your application for \"" . $listing_name . "\" has been approved! "
+                    . $landlord_name . " has sent you a lease agreement. Please review and respond.";
+    
+    $link = "tenant-rental.php";
+
+    $notif = $conn->prepare("
+        INSERT INTO notifications (user_id, user_type, message, type, is_read, created_at)
+        VALUES (?, ?, ?, ?, 0, NOW())
+    ");
+    $notif->bind_param("isss", $tenant_id_notif, $user_type, $message, $type);
+    $notif->execute();
+    $notif->close();
+
 
     echo "<script>
     alert('✅ Lease of Agreement is sent to the tenant!');

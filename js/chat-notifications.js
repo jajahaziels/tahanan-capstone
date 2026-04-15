@@ -1,29 +1,26 @@
 // ============================================
-// CHAT + LISTING NOTIFICATION SYSTEM
-// Handles both chat messages AND listing status
-// notifications (approved / rejected / etc.)
+// CHAT + LISTING + RENTAL NOTIFICATION SYSTEM
 // ============================================
 
 class ChatNotificationSystem {
     constructor() {
-        this.unreadMessages      = new Map();
+        this.unreadMessages         = new Map();
         this.notificationPermission = 'default';
-        this.isPageVisible       = true;
-        this.currentConversationId = null;
-        this.seenMessages        = this.loadSeenMessages();
-        this.seenNotifications   = this.loadSeenNotifications(); // ← NEW: tracks system notifications
-        this.apiBasePath         = this.detectApiPath();
-        this.initialized         = false;
-
+        this.isPageVisible          = true;
+        this.currentConversationId  = null;
+        this.seenMessages           = this.loadSeenMessages();
+        this.seenNotifications      = this.loadSeenNotifications();
+        this.apiBasePath            = this.detectApiPath();
+        this.initialized            = false;
         this.init();
     }
 
-    // ── Persistence helpers ──────────────────────────────────────────────────
+    // ── Persistence ──────────────────────────────────────────────────────────
 
     loadSeenMessages() {
         try {
-            const stored = localStorage.getItem('chatSeenMessages');
-            return stored ? new Set(JSON.parse(stored)) : new Set();
+            const s = localStorage.getItem('chatSeenMessages');
+            return s ? new Set(JSON.parse(s)) : new Set();
         } catch { return new Set(); }
     }
 
@@ -33,8 +30,8 @@ class ChatNotificationSystem {
 
     loadSeenNotifications() {
         try {
-            const stored = localStorage.getItem('seenSystemNotifications');
-            return stored ? new Set(JSON.parse(stored)) : new Set();
+            const s = localStorage.getItem('seenSystemNotifications');
+            return s ? new Set(JSON.parse(s)) : new Set();
         } catch { return new Set(); }
     }
 
@@ -52,7 +49,6 @@ class ChatNotificationSystem {
         console.log('🔔 Notification system starting…');
         this.requestNotificationPermission();
         this.setupVisibilityTracking();
-
         setTimeout(() => {
             this.initialized = true;
             this.startNotificationPolling();
@@ -77,7 +73,7 @@ class ChatNotificationSystem {
         } catch {}
     }
 
-    // ── Browser + visibility ─────────────────────────────────────────────────
+    // ── Browser permission + visibility ──────────────────────────────────────
 
     async requestNotificationPermission() {
         if ('Notification' in window && Notification.permission === 'default') {
@@ -106,12 +102,6 @@ class ChatNotificationSystem {
 
     // ── Toast ────────────────────────────────────────────────────────────────
 
-    /**
-     * @param {string} message        - Body text
-     * @param {string} senderName     - Displayed name
-     * @param {string|null} href      - Where to go on click (null = no navigation)
-     * @param {string} iconClass      - Font Awesome icon class
-     */
     showToastNotification(message, senderName, href = null, iconClass = 'fa-solid fa-comment-dots') {
         const existing = document.querySelector('.chat-toast-notification');
         if (existing) existing.remove();
@@ -160,12 +150,8 @@ class ChatNotificationSystem {
         }
     }
 
-    // ── Dropdown list ────────────────────────────────────────────────────────
+    // ── Dropdown ─────────────────────────────────────────────────────────────
 
-    /**
-     * Rebuilds the full notification dropdown from an array returned by
-     * get_notifications.php, replacing the old "No notifications" placeholder.
-     */
     renderNotificationDropdown(notifications) {
         const list = document.getElementById('notificationList');
         if (!list) return;
@@ -176,19 +162,34 @@ class ChatNotificationSystem {
         }
 
         list.innerHTML = notifications.map(n => {
-            const icon = n.type === 'system'
-                ? (n.message.startsWith('✅') ? 'fa-circle-check text-success' : 'fa-circle-xmark text-danger')
-                : 'fa-comment-dots text-primary';
+            // ── Pick icon based on type and message emoji ──
+            let icon;
+            if (n.type === 'rental') {
+                icon = n.message.startsWith('🏠')
+                    ? 'fa-house text-warning'
+                    : 'fa-file-contract text-success';
+            } else if (n.type === 'system') {
+                icon = n.message.startsWith('✅')
+                    ? 'fa-circle-check text-success'
+                    : 'fa-circle-xmark text-danger';
+            } else {
+                icon = 'fa-comment-dots text-primary';
+            }
+
+            const href = n.link ? n.link : '#';
+
             return `
                 <li>
-                    <span class="dropdown-item notification-item d-flex align-items-start gap-2 py-2 ${n.is_read ? '' : 'fw-semibold'}"
-                          style="white-space:normal; font-size:13px; ${!n.is_read ? 'background:rgba(141,11,65,0.07);' : ''}">
+                    <a class="dropdown-item notification-item d-flex align-items-start gap-2 py-2 text-decoration-none ${n.is_read ? '' : 'fw-semibold'}"
+                       style="white-space:normal; font-size:13px; cursor:pointer; ${!n.is_read ? 'background:rgba(141,11,65,0.07);' : ''}"
+                       href="${href}"
+                       onclick="window.markNotificationRead(${n.id})">
                         <i class="fa-solid ${icon} mt-1 flex-shrink-0"></i>
                         <span>
                             <span>${this.escapeHtml(n.message.substring(0, 80))}${n.message.length > 80 ? '…' : ''}</span>
                             <br><small class="text-muted">${n.time_ago}</small>
                         </span>
-                    </span>
+                    </a>
                 </li>`;
         }).join('');
     }
@@ -211,6 +212,18 @@ class ChatNotificationSystem {
         while (list.children.length > 15) list.removeChild(list.lastChild);
     }
 
+    // ── Mark single notification as read ─────────────────────────────────────
+
+    async markNotificationRead(notificationId) {
+        try {
+            await fetch(`${this.apiBasePath}/mark_notifications_read.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `user_id=${window.currentUser.id}&user_type=${window.currentUser.type}&notification_id=${notificationId}`
+            });
+        } catch {}
+    }
+
     // ── Polling ──────────────────────────────────────────────────────────────
 
     startNotificationPolling() {
@@ -221,11 +234,8 @@ class ChatNotificationSystem {
 
         console.log('✅ Starting notification polling for:', window.currentUser.id, window.currentUser.type);
 
-        // Immediate first run
         setTimeout(() => this.pollAll(), 1000);
-
-        // Chat: every 5 s  |  System notifications: every 10 s
-        this.chatInterval   = setInterval(() => this.pollChatMessages(), 5000);
+        this.chatInterval   = setInterval(() => this.pollChatMessages(),        5000);
         this.systemInterval = setInterval(() => this.pollSystemNotifications(), 10000);
     }
 
@@ -234,14 +244,13 @@ class ChatNotificationSystem {
         await this.pollSystemNotifications();
     }
 
-    // ── Chat polling (unchanged logic) ───────────────────────────────────────
+    // ── Chat polling ─────────────────────────────────────────────────────────
 
     async pollChatMessages() {
         try {
             const url  = `${this.apiBasePath}/get_conversations.php?user_id=${window.currentUser.id}&user_type=${window.currentUser.type}`;
             const resp = await fetch(url);
             if (!resp.ok) return;
-
             const data = await resp.json();
             if (data.success && data.conversations) {
                 await this.checkForNewChatMessages(data.conversations);
@@ -254,7 +263,6 @@ class ChatNotificationSystem {
             try {
                 const resp = await fetch(`${this.apiBasePath}/get_messages.php?conversation_id=${conv.conversation_id}`);
                 if (!resp.ok) continue;
-
                 const data = await resp.json();
                 if (!data.success || !data.messages?.length) continue;
 
@@ -271,19 +279,17 @@ class ChatNotificationSystem {
                 }
             } catch {}
         }
-
         await this.updateBadgeFromDatabase();
     }
 
     handleNewChatMessage(message, senderName, messageId, conversationId) {
         this.seenMessages.add(messageId);
         this.saveSeenMessages();
-
         this.playNotificationSound();
 
-        const text      = message.content || message.message || 'New message';
-        const userType  = window.currentUser.type;
-        const href      = `${userType === 'tenant' ? 'tenant-messages.php' : 'landlord-message.php'}?conversation_id=${conversationId}`;
+        const text     = message.content || message.message || 'New message';
+        const userType = window.currentUser.type;
+        const href     = `${userType === 'tenant' ? 'tenant-messages.php' : 'landlord-message.php'}?conversation_id=${conversationId}`;
 
         this.showToastNotification(text, senderName, href, 'fa-solid fa-comment-dots');
         this.showBrowserNotification(`New message from ${senderName}`, text);
@@ -300,43 +306,50 @@ class ChatNotificationSystem {
         } catch {}
     }
 
-    // ── System / listing notifications ───────────────────────────────────────
+    // ── System / rental notifications ────────────────────────────────────────
 
     async pollSystemNotifications() {
         try {
             const url  = `${this.apiBasePath}/get_notifications.php?user_id=${window.currentUser.id}&user_type=${window.currentUser.type}`;
             const resp = await fetch(url);
             if (!resp.ok) return;
-
             const data = await resp.json();
             if (!data.success) return;
 
-            // Re-render dropdown with fresh data
             this.renderNotificationDropdown(data.notifications);
 
-            // Add unread count from system notifications on top of chat unread count
-            // (badge is managed separately by updateBadgeFromDatabase for chat;
-            //  here we just make sure system unreads bump the badge too)
-            const chatBadge = parseInt(document.querySelector('.count')?.textContent || '0');
+            const chatBadge   = parseInt(document.querySelector('.count')?.textContent || '0');
             const totalUnread = data.unread_count + (isNaN(chatBadge) ? 0 : chatBadge);
             this.updateNotificationBadge(totalUnread);
 
-            // Toast any newly arrived unread system notifications
+            // Toast new unread notifications
             for (const n of data.notifications) {
-                if (n.is_read) continue;                          // already read
-                if (this.seenNotifications.has(n.id)) continue;  // already toasted
+                if (n.is_read) continue;
+                if (this.seenNotifications.has(n.id)) continue;
 
                 this.seenNotifications.add(n.id);
                 this.saveSeenNotifications();
-
                 this.playNotificationSound();
 
-                const icon = n.message.startsWith('✅')
-                    ? 'fa-solid fa-circle-check'
-                    : 'fa-solid fa-circle-xmark';
+                // Pick icon + label based on type and message
+                let icon, label;
+                if (n.type === 'rental') {
+                    if (n.message.startsWith('🏠')) {
+                        icon  = 'fa-solid fa-house';
+                        label = 'New Application';
+                    } else {
+                        icon  = 'fa-solid fa-file-contract';
+                        label = 'Lease Agreement';
+                    }
+                } else {
+                    icon  = n.message.startsWith('✅') ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark';
+                    label = 'Property Update';
+                }
 
-                this.showToastNotification(n.message, 'Property Update', null, icon);
-                this.showBrowserNotification('Property Update', n.message);
+                // Toast is clickable if notification has a link
+                const href = n.link || null;
+                this.showToastNotification(n.message, label, href, icon);
+                this.showBrowserNotification(label, n.message);
             }
         } catch (e) { console.error('System notification poll error:', e); }
     }
@@ -355,7 +368,6 @@ class ChatNotificationSystem {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `conversation_id=${conversationId}`
             });
-
             const resp = await fetch(`${this.apiBasePath}/get_messages.php?conversation_id=${conversationId}`);
             if (resp.ok) {
                 const data = await resp.json();
@@ -378,12 +390,15 @@ class ChatNotificationSystem {
 
 // ── Bootstrap ────────────────────────────────────────────────────────────────
 console.log('🚀 Loading notification system…');
-const chatNotifications    = new ChatNotificationSystem();
-window.chatNotifications   = chatNotifications;
+const chatNotifications  = new ChatNotificationSystem();
+window.chatNotifications = chatNotifications;
 
-// ── Clear all button: also marks system notifications as read ─────────────────
+// ── Expose markNotificationRead globally for onclick in HTML ─────────────────
+window.markNotificationRead = (id) => chatNotifications.markNotificationRead(id);
+
+// ── Clear all button ─────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-    const clearBtn = document.getElementById('clearNotifications'); // ← THIS LINE IS MISSING
+    const clearBtn = document.getElementById('clearNotifications');
     if (clearBtn) {
         clearBtn.addEventListener('click', async () => {
             document.getElementById('notificationList').innerHTML =
@@ -391,7 +406,6 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelector('.count') && (document.querySelector('.count').style.display = 'none');
 
             if (window.currentUser) {
-                console.log('Clearing for:', window.currentUser.id, window.currentUser.type);
                 try {
                     const resp = await fetch(`${chatNotifications.apiBasePath}/mark_notifications_read.php`, {
                         method: 'POST',
@@ -399,12 +413,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         body: `user_id=${window.currentUser.id}&user_type=${window.currentUser.type}&mark_all=1`
                     });
                     const data = await resp.json();
-                    console.log('Mark read response:', data);
+                    console.log('Notifications cleared:', data);
                 } catch(e) { console.error(e); }
             }
         });
     }
 });
+
 // ── CSS ───────────────────────────────────────────────────────────────────────
 const style = document.createElement('style');
 style.textContent = `
@@ -442,10 +457,11 @@ style.textContent = `
 .toast-content { flex: 1; }
 .toast-sender  { font-weight: 600; color: #2d3748; margin-bottom: 4px; font-size: 14px; }
 .toast-message { color: #4a5568; font-size: 13px; line-height: 1.4; margin: 0; }
-.toast-close   {
+.toast-close {
     background: none; border: none; color: #a0aec0; cursor: pointer;
     padding: 4px; width: 24px; height: 24px; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.2s;
 }
 .toast-close:hover { background: #f7fafc; color: #2d3748; }
 
