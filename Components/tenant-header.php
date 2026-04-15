@@ -682,7 +682,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         if (!window.currentUser || !window.currentUser.id) return;
         
         try {
-            const response = await fetch(`../api/alerts/fetch_alerts.php?last_check=${lastAlertCheck}&_=${Date.now()}`);
+            const response = await fetch(`../API/alerts/fetch_alerts.php?last_check=${lastAlertCheck}&_=${Date.now()}`);
             const data = await response.json();
             
             if (data.success && data.alerts && data.alerts.length > 0) {
@@ -779,7 +779,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     // Mark alert as read in database
     async function markEmergencyAlertRead(alertId) {
         try {
-            await fetch('../api/alerts/mark_read.php', {
+            await fetch('../API/alerts/mark_read.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ alert_id: alertId })
