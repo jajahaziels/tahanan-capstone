@@ -387,7 +387,7 @@ if ($hasActiveLease || $hasActiveRent) {
                                                     style="max-height:400px; object-fit:cover;"
                                                     alt="Property Image"
                                                     data-index="<?= $index ?>"
-                                                    onclick="openLightbox(<?= $index ?>)">
+                                                    onclick="event.stopPropagation(); openLightbox(<?= $index ?>)">
                                             </div>
                                         </div>
                                     </div>
@@ -547,6 +547,36 @@ if ($hasActiveLease || $hasActiveRent) {
         const lightboxNext   = document.getElementById('lightboxNext');
         const lightboxThumbs = document.getElementById('lightboxThumbs');
 
+        // ── FIX: Pause carousel transitions while lightbox is open ──
+        function pauseCarousel() {
+            const carouselEl = document.getElementById('carouselExample');
+            const carouselInstance = bootstrap.Carousel.getOrCreateInstance(carouselEl);
+            carouselInstance.pause();
+            // Disable slide animation to prevent blink behind lightbox
+            carouselEl.querySelectorAll('.carousel-item').forEach(item => {
+                item.style.transition = 'none';
+            });
+        }
+
+        // ── FIX: Resume carousel and sync to current lightbox index on close ──
+        function resumeCarousel() {
+            const carouselEl = document.getElementById('carouselExample');
+            const carouselInstance = bootstrap.Carousel.getOrCreateInstance(carouselEl);
+            // Re-enable transitions
+            carouselEl.querySelectorAll('.carousel-item').forEach(item => {
+                item.style.transition = '';
+            });
+            // Silently jump carousel to the last viewed image without animation
+            if (lightboxImages.length > 1) {
+                // Manually set active class without triggering slide event
+                const items = carouselEl.querySelectorAll('.carousel-item');
+                items.forEach((item, i) => {
+                    item.classList.toggle('active', i === currentIdx);
+                });
+            }
+            carouselInstance.cycle();
+        }
+
         function openLightbox(index) {
             if (!lightboxImages.length) return;
             currentIdx = index;
@@ -558,11 +588,15 @@ if ($hasActiveLease || $hasActiveRent) {
             }
             if (!thumbsBuilt) buildThumbs();
             renderLightbox();
+            // ── FIX: Stop carousel from animating behind the lightbox ──
+            pauseCarousel();
         }
 
         function closeLightbox() {
             lightbox.classList.remove('active');
             document.body.style.overflow = '';
+            // ── FIX: Sync carousel position silently then resume ──
+            resumeCarousel();
         }
 
         function lightboxNav(dir) {
@@ -577,11 +611,10 @@ if ($hasActiveLease || $hasActiveRent) {
                 lightboxImg.style.opacity = '1';
             }, 160);
             lightboxCtr.textContent = (currentIdx + 1) + ' / ' + lightboxImages.length;
-            if (lightboxImages.length > 1) {
-                bootstrap.Carousel.getOrCreateInstance(
-                    document.getElementById('carouselExample')
-                ).to(currentIdx);
-            }
+
+            // ── FIX: Do NOT sync carousel while lightbox is open — causes blink ──
+            // Carousel will be synced silently when lightbox closes via resumeCarousel()
+
             document.querySelectorAll('#lightboxThumbs img').forEach((t, i) => {
                 t.classList.toggle('active', i === currentIdx);
             });
@@ -613,10 +646,11 @@ if ($hasActiveLease || $hasActiveRent) {
             if (e.key === 'ArrowLeft')  lightboxNav(-1);
             if (e.key === 'Escape')     closeLightbox();
         });
+
+        // ── FIX: Only update currentIdx from carousel when lightbox is NOT open ──
         document.getElementById('carouselExample').addEventListener('slid.bs.carousel', (e) => {
-            if (!lightbox.classList.contains('active')) return;
+            if (lightbox.classList.contains('active')) return; // ignore while lightbox is open
             currentIdx = e.to;
-            renderLightbox();
         });
     </script>
 
