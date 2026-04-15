@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 require_once '../connection.php';
 include '../session_auth.php';
 
@@ -27,25 +29,27 @@ $stmt->execute();
 $stmt->close();
 
 // ── Insert into renttbl ──────────────────────────────────────────────────────
+$today = date('Y-m-d'); // ← ADDED THIS
+
 $stmt = $conn->prepare("
     INSERT INTO renttbl 
-    (listing_id, tenant_id, landlord_id, start_date, end_date, status, lease_id)
-    VALUES (?, ?, ?, ?, ?, 'approved', ?)
+    (listing_id, tenant_id, landlord_id, start_date, end_date, status, lease_id, date)
+    VALUES (?, ?, ?, ?, ?, 'approved', ?, ?)
 ");
 $stmt->bind_param(
-    "iiissi",
+    "iiissis",
     $lease['listing_id'],
     $tenant_id,
     $lease['landlord_id'],
     $lease['start_date'],
     $lease['end_date'],
-    $lease_id
+    $lease_id,
+    $today // ← AND THIS
 );
 $stmt->execute();
 $stmt->close();
 
 // ── Notify the landlord ──────────────────────────────────────────────────────
-// Fetch listing name and tenant name for the message
 $stmt = $conn->prepare("
     SELECT l.listingName,
            CONCAT(t.firstName, ' ', t.lastName) AS tenant_name
