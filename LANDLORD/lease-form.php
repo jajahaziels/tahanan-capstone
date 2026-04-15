@@ -1,4 +1,9 @@
 <?php
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
+require_once '../connection.php';
+// ... rest of your code
 require_once '../connection.php';
 include '../session_auth.php';
 require('../fpdf/fpdf.php');

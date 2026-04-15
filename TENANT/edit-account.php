@@ -1,4 +1,7 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 session_start();
 
 if (!isset($_SESSION['user_id']) || empty($_SESSION['user_id'])) {
@@ -10,100 +13,159 @@ $user_id = $_SESSION['user_id'];
 $conn = new mysqli("localhost", "root", "", "tahanandb");
 if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
+// ── FETCH USER ─────────────────────────
 $stmt = $conn->prepare("SELECT * FROM tenanttbl WHERE ID=?");
+if (!$stmt) die("Prepare failed: " . $conn->error);
+
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $user = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-$upload_dir = "../uploads/";
+// ── FILE UPLOAD SETUP ─────────────────
+$upload_dir = __DIR__ . "/../uploads/";
 if (!file_exists($upload_dir)) mkdir($upload_dir, 0777, true);
 
 function uploadFile($file, $prefix, $dir) {
-    if (isset($file) && $file['error'] === 0 && !empty($file['name'])) {
-        $filename = time() . "_{$prefix}_" . basename($file['name']);
-        if (move_uploaded_file($file['tmp_name'], $dir . $filename)) return $filename;
+    if (!isset($file)) return null;
+
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        return null;
     }
+
+    if (empty($file['tmp_name'])) {
+        return null;
+    }
+
+    $filename = time() . "_{$prefix}_" . basename($file['name']);
+    $target = rtrim($dir, "/") . "/" . $filename;
+
+    if (move_uploaded_file($file['tmp_name'], $target)) {
+        return $filename;
+    }
+
     return null;
 }
 
-// ── CHANGE PASSWORD ──────────────────────────────────────────────────
+// ─────────────────────────────────────
+// 🔐 CHANGE PASSWORD
+// ─────────────────────────────────────
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['change_password'])) {
+
     $current_password = $_POST['current_password'] ?? '';
-    $new_password     = $_POST['new_password']     ?? '';
+    $new_password     = $_POST['new_password'] ?? '';
     $confirm_password = $_POST['confirm_password'] ?? '';
 
-    if (!password_verify($current_password, $user['password'])) {
+    $isValidPassword = password_verify($current_password, $user['password']) 
+                       || $current_password === $user['password'];
+
+    if (!$isValidPassword) {
         $pw_error = "Current password is incorrect.";
     } elseif (strlen($new_password) < 8) {
         $pw_error = "New password must be at least 8 characters.";
     } elseif ($new_password !== $confirm_password) {
         $pw_error = "New passwords do not match.";
     } else {
+
         $hashed = password_hash($new_password, PASSWORD_DEFAULT);
-        $stmt = $conn->prepare("UPDATE tenanttbl SET password = ? WHERE ID = ?");
+
+        $stmt = $conn->prepare("UPDATE tenanttbl SET password=? WHERE ID=?");
+        if (!$stmt) die("Prepare failed: " . $conn->error);
+
         $stmt->bind_param("si", $hashed, $user_id);
+
         if ($stmt->execute()) {
             $_SESSION['success_message'] = "Password changed successfully!";
             header("Location: account.php");
             exit;
         } else {
-            $pw_error = "Error updating password: " . $stmt->error;
+            $pw_error = "Error: " . $stmt->error;
         }
+
         $stmt->close();
     }
 }
 
-// ── EDIT ACCOUNT ─────────────────────────────────────────────────────
-if ($_SERVER["REQUEST_METHOD"] == "POST" && !isset($_POST['change_password'])) {
+// ─────────────────────────────────────
+// 🧾 EDIT PROFILE
+// ─────────────────────────────────────
+if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['firstName'])) {
 
-    if (isset($_POST['removePhoto']) && $_POST['removePhoto'] == '1') {
-        if (!empty($user['profilePic']) && file_exists($upload_dir . $user['profilePic']))
-            unlink($upload_dir . $user['profilePic']);
-        $profilePic = null;
+    // ── PROFILE PIC ──
+    if (isset($_FILES['profilePic']) && $_FILES['profilePic']['error'] === UPLOAD_ERR_OK) {
+    $profilePic = uploadFile($_FILES['profilePic'], 'profile', $upload_dir);
     } else {
-        $profilePic = uploadFile($_FILES['profilePic'] ?? null, 'profile', $upload_dir) ?? $user['profilePic'];
+    $profilePic = $user['profilePic'];
     }
 
-    $verificationId = uploadFile($_FILES['verificationId'] ?? null, 'govid',  $upload_dir) ?? $user['verificationId'];
-    $ID_image       = uploadFile($_FILES['ID_image']       ?? null, 'selfie', $upload_dir) ?? $user['ID_image'];
+    // ── FILES (SAFE HANDLING) ──
+    $verificationId = isset($_FILES['verificationId']) 
+        ? (uploadFile($_FILES['verificationId'], 'govid', $upload_dir) ?? $user['verificationId'])
+        : $user['verificationId'];
 
-    $firstName  = $_POST['firstName']  ?? $user['firstName'];
-    $lastName   = $_POST['lastName']   ?? $user['lastName'];
+    $ID_image = isset($_FILES['ID_image']) 
+        ? (uploadFile($_FILES['ID_image'], 'selfie', $upload_dir) ?? $user['ID_image'])
+        : $user['ID_image'];
+
+    // ── FORM DATA ──
+    $firstName  = $_POST['firstName'] ?? $user['firstName'];
+    $lastName   = $_POST['lastName'] ?? '';
     $middleName = $_POST['middleName'] ?? $user['middleName'];
-    $street     = $_POST['street']     ?? $user['street'];
-    $barangay   = $_POST['barangay']   ?? $user['barangay'];
-    $city       = $_POST['city']       ?? $user['city'];
-    $province   = $_POST['province']   ?? $user['province'];
-    $zipCode    = $_POST['zipCode']    ?? $user['zipCode'];
-    $phoneNum   = $_POST['phoneNum']   ?? $user['phoneNum'];
-    $email      = $_POST['email']      ?? $user['email'];
-    $birthday   = $_POST['birthday']   ?? $user['birthday'];
-    $gender     = $_POST['gender']     ?? $user['gender'];
-    $username   = $_POST['userName']   ?? $user['username'];
+    $username   = $_POST['username'] ?? $user['username'];
+    $street     = $_POST['street'] ?? $user['street'];
+    $barangay   = $_POST['barangay'] ?? $user['barangay'];
+    $city       = $_POST['city'] ?? $user['city'];
+    $province   = $_POST['province'] ?? $user['province'];
+    $zipCode    = $_POST['zipCode'] ?? $user['zipCode'];
+    $phoneNum   = $_POST['phoneNum'] ?? $user['phoneNum'];
+    $email      = $_POST['email'] ?? $user['email'];
+    $birthday   = $_POST['birthday'] ?? $user['birthday'];
+    $gender     = $_POST['gender'] ?? $user['gender'];
 
     $stmt = $conn->prepare("UPDATE tenanttbl SET 
-        firstName=?, lastName=?, middleName=?, username=?, street=?, barangay=?, city=?, province=?, zipCode=?, phoneNum=?, email=?, birthday=?, gender=?, profilePic=?, verificationId=?, ID_image=? 
+        firstName=?, lastName=?, middleName=?, username=?, 
+        street=?, barangay=?, city=?, province=?, zipCode=?, 
+        phoneNum=?, email=?, birthday=?, gender=?, 
+        profilePic=?, verificationId=?, ID_image=? 
         WHERE ID=?");
-    $stmt->bind_param("ssssssssssssssssi",
-        $firstName, $lastName, $middleName, $username,
-        $street, $barangay, $city, $province, $zipCode,
-        $phoneNum, $email, $birthday, $gender,
-        $profilePic, $verificationId, $ID_image, $user_id
-    );
+
+    if (!$stmt) die("Prepare failed: " . $conn->error);
+
+$stmt->bind_param(
+    "ssssssssssssssssi",
+    $firstName,
+    $lastName,
+    $middleName,
+    $username,
+    $street,
+    $barangay,
+    $city,
+    $province,
+    $zipCode,
+    $phoneNum,
+    $email,
+    $birthday,
+    $gender,
+    $profilePic,
+    $verificationId,
+    $ID_image,
+    $user_id
+);
 
     if ($stmt->execute()) {
         $_SESSION['success_message'] = "Account updated successfully!";
         header("Location: account.php");
         exit;
     } else {
-        $error_message = "Error updating account: " . $stmt->error;
+        die("SQL Error: " . $stmt->error);
     }
+
     $stmt->close();
 }
 
 $conn->close();
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>

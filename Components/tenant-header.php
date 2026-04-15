@@ -4,6 +4,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
 <!DOCTYPE html>
 <html lang="en">
 
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,10 +15,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
 
+
     <style>
         /* =============================================
            HEADER RESPONSIVE — TENANT
         ============================================= */
+
 
         /* Hamburger: hidden on desktop */
         #navmenu {
@@ -26,6 +29,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             cursor: pointer;
             color: #8d0b41;
         }
+
 
         /* Mobile overlay backdrop */
         #navOverlay {
@@ -36,7 +40,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
             z-index: 9998;
         }
 
+
         #navOverlay.active { display: block; }
+
 
         /* Right-side cluster: user dropdown + bell + hamburger */
         .nav-icons {
@@ -45,23 +51,29 @@ $current_page = basename($_SERVER['PHP_SELF']);
             gap: 12px;
         }
 
+
         /* Bell sits inline */
         .bell-wrapper {
             position: relative;
         }
+
 
         /* ── Mobile styles ── */
         @media (max-width: 768px) {
             .logo { font-size: 18px !important; }
             .logo img { width: 30px !important; height: 30px !important; }
 
+
             #navmenu { display: block; }
+
 
             /* Hide username text, keep user icon */
             .nav-username { display: none; }
 
+
             /* Tighten spacing */
             .nav-icons { gap: 6px; }
+
 
             /* Slide-in nav panel */
             header .nav-links {
@@ -81,7 +93,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 overflow-y: auto !important;
             }
 
+
             header .nav-links.active { right: 0 !important; }
+
 
             header .nav-links li {
                 width: 100% !important;
@@ -89,6 +103,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 padding: 0 !important;
                 list-style: none !important;
             }
+
 
             header .nav-links li a {
                 display: block !important;
@@ -99,11 +114,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 text-decoration: none !important;
             }
 
+
             header .nav-links li a.active {
                 background: rgba(255, 255, 255, 0.15) !important;
                 border-left: 4px solid white !important;
             }
         }
+
 
         /* =============================================
            SETTINGS MODAL
@@ -120,6 +137,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
         .settings-modal.active { display: flex; }
 
+
         .settings-content {
             background: white;
             border-radius: 20px;
@@ -131,8 +149,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
             animation: slideUp 0.3s ease;
         }
 
+
         @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
         @keyframes slideUp { from { transform:translateY(50px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+
 
         .settings-header {
             background: linear-gradient(135deg, #8d0b41 0%, #6a0831 100%);
@@ -145,6 +165,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
         .settings-header h2 { margin:0; font-size:24px; font-weight:600; }
 
+
         .settings-close {
             background: none; border: none; color: white;
             font-size: 24px; cursor: pointer;
@@ -154,15 +175,18 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
         .settings-close:hover { background: rgba(255,255,255,0.2); }
 
+
         .settings-body { padding: 24px; }
         .settings-section { margin-bottom: 32px; }
         .settings-section:last-child { margin-bottom: 0; }
+
 
         .settings-section-title {
             font-size: 14px; font-weight: 600; color: #8d0b41;
             text-transform: uppercase; letter-spacing: 0.5px;
             margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
         }
+
 
         .settings-item {
             display: flex; justify-content: space-between; align-items: center;
@@ -171,6 +195,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
         .settings-item:hover { background: #e9ecef; transform: translateX(5px); }
         .settings-item-info  { display: flex; align-items: center; gap: 16px; }
+
 
         .settings-item-icon {
             width: 40px; height: 40px; border-radius: 10px;
@@ -182,6 +207,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         .settings-item-text p  { margin:4px 0 0 0; font-size:13px; color:#718096; }
         .settings-item-arrow   { color:#cbd5e0; font-size:18px; }
 
+
         /* =============================================
            PASSWORD MODAL
         ============================================= */
@@ -191,6 +217,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             justify-content: center; align-items: center;
         }
         .password-modal.active { display: flex; }
+
 
         .password-form-container {
             background: white; border-radius: 16px;
@@ -203,6 +230,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
         .password-form-header h3 { margin:0; font-size:22px; color:#2d3748; }
 
+
         .password-close {
             background: none; border: none; font-size: 24px; cursor: pointer;
             color: #718096; width: 32px; height: 32px;
@@ -211,6 +239,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
         .password-close:hover { background: #f7fafc; color: #2d3748; }
 
+
         .form-group { margin-bottom: 20px; }
         .form-group label { display:block; margin-bottom:8px; font-weight:600; color:#2d3748; font-size:14px; }
         .form-group input {
@@ -218,6 +247,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             border-radius: 8px; font-size: 14px; transition: all 0.2s;
         }
         .form-group input:focus { outline:none; border-color:#8d0b41; box-shadow:0 0 0 3px rgba(141,11,65,0.1); }
+
 
         .password-submit-btn {
             width: 100%; padding: 14px;
@@ -228,9 +258,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
         .password-submit-btn:hover    { transform:translateY(-2px); box-shadow:0 8px 16px rgba(141,11,65,0.3); }
         .password-submit-btn:disabled { opacity:0.6; cursor:not-allowed; }
 
+
         .alert-message { padding:12px 16px; border-radius:8px; margin-bottom:20px; font-size:14px; }
         .alert-success { background:#d4edda; color:#155724; border:1px solid #c3e6cb; }
         .alert-error   { background:#f8d7da; color:#721c24; border:1px solid #f5c6cb; }
+
 
         /* =============================================
            TERMS / LEGAL MODALS
@@ -241,6 +273,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             justify-content: center; align-items: center;
         }
         .terms-modal.active { display: flex; }
+
 
         .terms-container {
             background: white; border-radius: 16px;
@@ -255,6 +288,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
         .terms-header h3 { margin:0; font-size:22px; color:white; }
 
+
         .terms-close {
             background: none; border: none; color: white; font-size: 24px;
             cursor: pointer; width: 40px; height: 40px; border-radius: 50%;
@@ -262,6 +296,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             transition: background 0.2s;
         }
         .terms-close:hover { background: rgba(255,255,255,0.2); }
+
 
         .terms-content    { padding:32px; overflow-y:auto; flex:1; }
         .terms-content h1 { color:#2c3e50; border-bottom:2px solid #ccc; padding-bottom:10px; margin-bottom:20px; font-size:28px; }
@@ -271,6 +306,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         .terms-content li { margin-bottom:8px; line-height:1.7; }
         .terms-content strong { color:#2c3e50; }
 
+
         .terms-footer { padding:20px 32px; border-top:1px solid #e2e8f0; text-align:center; }
         .terms-accept-btn {
             padding:12px 32px;
@@ -279,6 +315,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             font-size:16px; font-weight:600; cursor:pointer; transition:all 0.2s;
         }
         .terms-accept-btn:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(141,11,65,0.3); }
+
 
         /* =============================================
            EMERGENCY ALERT POPUP STYLES
@@ -297,11 +334,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
             overflow: hidden;
         }
 
+
         .emergency-popup.flood { border-left: 8px solid #2196F3; }
         .emergency-popup.earthquake { border-left: 8px solid #FF9800; }
         .emergency-popup.fire { border-left: 8px solid #f44336; }
         .emergency-popup.storm { border-left: 8px solid #9C27B0; }
         .emergency-popup.typhoon { border-left: 8px solid #00BCD4; }
+
 
         .popup-header {
             padding: 15px;
@@ -312,9 +351,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
             font-weight: bold;
         }
 
+
         .popup-body {
             padding: 15px;
         }
+
 
         .emergency-badge {
             display: inline-block;
@@ -324,10 +365,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
             font-weight: bold;
         }
 
+
         .severity-emergency { background: #dc3545; color: white; }
         .severity-warning { background: #ffc107; color: #333; }
         .severity-alert { background: #fd7e14; color: white; }
         .severity-advisory { background: #17a2b8; color: white; }
+
 
         .popup-close {
             background: none;
@@ -337,10 +380,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
             color: #999;
         }
 
+
         @keyframes slideInRight {
             from { transform: translateX(400px); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
+
 
         /* Emergency alert items in notification dropdown */
         .emergency-notif-item {
@@ -361,12 +406,15 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </style>
 </head>
 
+
 <body>
     <!-- NAV OVERLAY -->
     <div id="navOverlay"></div>
 
+
     <!-- Container for emergency popups -->
     <div id="emergencyPopupContainer"></div>
+
 
     <!-- =============================================
          HEADER
@@ -378,6 +426,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             Map Aware Home
         </a>
 
+
         <!-- NAV LINKS (collapses to slide-in on mobile) -->
         <ul class="nav-links">
             <li><a href="tenant.php"          class="<?= $current_page == 'tenant.php'          ? 'active' : '' ?>">Home</a></li>
@@ -387,11 +436,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <li><a href="support.php"         class="<?= $current_page == 'support.php'         ? 'active' : '' ?>">Support</a></li>
         </ul>
 
+
         <!--
             RIGHT CLUSTER — everything on the right in ONE flex row:
             [User dropdown]  [Bell]  [Hamburger]
         -->
         <div class="nav-icons">
+
 
             <!-- USER DROPDOWN -->
             <div class="dropdown">
@@ -403,6 +454,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                     <a href="../LOGIN/logout.php">Log out</a>
                 </div>
             </div>
+
 
             <!-- BELL with Emergency Alert Integration -->
             <div class="bell-wrapper dropdown">
@@ -427,11 +479,14 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </ul>
             </div>
 
+
             <!-- HAMBURGER (visible on mobile only via CSS) -->
             <div class="fa-solid fa-bars" id="navmenu"></div>
 
+
         </div><!-- /.nav-icons -->
     </header>
+
 
     <!-- =============================================
          SETTINGS MODAL
@@ -465,6 +520,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
                             <i class="fa-solid fa-chevron-right settings-item-arrow"></i>
                     </div>
                 </div>
+
 
                 <div class="settings-section">
                     <div class="settings-section-title"><i class="fa-solid fa-scale-balanced"></i> Legal & Guidelines</div>
@@ -501,6 +557,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </div>
     </div>
 
+
     <!-- =============================================
          PASSWORD MODAL
     ============================================= -->
@@ -529,6 +586,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </div>
     </div>
 
+
     <!-- =============================================
          TERMS & CONDITIONS MODAL
     ============================================= -->
@@ -554,6 +612,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </div>
     </div>
 
+
     <!-- RENTAL RULES MODAL -->
     <div class="terms-modal" id="rentalRulesModal">
         <div class="terms-container">
@@ -576,6 +635,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </div>
     </div>
 
+
     <!-- LEGAL CONTRACT MODAL -->
     <div class="terms-modal" id="legalContractModal">
         <div class="terms-container">
@@ -595,6 +655,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             <div class="terms-footer"><button class="terms-accept-btn" data-close="legalContractModal">I Understand</button></div>
         </div>
     </div>
+
 
     <!-- CODE OF CONDUCT MODAL -->
     <div class="terms-modal" id="codeOfConductModal">
@@ -619,6 +680,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </div>
     </div>
 
+
     <!-- GLOBAL NOTIFICATION SYSTEM -->
     <?php if (isset($_SESSION['tenant_id'])): ?>
     <script>
@@ -630,6 +692,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <script src="../js/global-notification-init.js"></script>
     <?php endif; ?>
 
+
     <!-- Emergency Alert System for Tenant -->
     <script>
     /* =============================================
@@ -639,18 +702,21 @@ $current_page = basename($_SERVER['PHP_SELF']);
     const navLinks   = document.querySelector('.nav-links');
     const navOverlay = document.getElementById('navOverlay');
 
+
     function openNav()  { navLinks.classList.add('active');    navOverlay.classList.add('active');    document.body.style.overflow = 'hidden'; }
     function closeNav() { navLinks.classList.remove('active'); navOverlay.classList.remove('active'); document.body.style.overflow = ''; }
+
 
     navMenu.addEventListener('click', () => navLinks.classList.contains('active') ? closeNav() : openNav());
     navOverlay.addEventListener('click', closeNav);
     navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', closeNav));
     window.addEventListener('resize', () => { if (window.innerWidth > 768) closeNav(); });
 
+
     /* =============================================
        EMERGENCY ALERT SYSTEM
     ============================================= */
-    
+   
     // Alert type icons and mappings
     const alertIcons = {
         flood: '🌊',
@@ -659,32 +725,32 @@ $current_page = basename($_SERVER['PHP_SELF']);
         storm: '🌪️',
         typhoon: '🌀'
     };
-    
+   
     const severityText = {
         advisory: 'ADVISORY',
         alert: 'ALERT',
         warning: 'WARNING',
         emergency: 'EMERGENCY'
     };
-    
+   
     const severityClass = {
         advisory: 'severity-advisory',
         alert: 'severity-alert',
         warning: 'severity-warning',
         emergency: 'severity-emergency'
     };
-    
+   
     let lastAlertCheck = localStorage.getItem('lastAlertCheckTenant') || Math.floor(Date.now() / 1000);
     let shownAlerts = JSON.parse(localStorage.getItem('shownAlertsTenant') || '[]');
-    
+   
     // Function to fetch emergency alerts
     async function fetchEmergencyAlerts() {
         if (!window.currentUser || !window.currentUser.id) return;
-        
+       
         try {
             const response = await fetch(`../API/alerts/fetch_alerts.php?last_check=${lastAlertCheck}&_=${Date.now()}`);
             const data = await response.json();
-            
+           
             if (data.success && data.alerts && data.alerts.length > 0) {
                 for (const alert of data.alerts) {
                     // Check if alert already shown
@@ -708,12 +774,12 @@ $current_page = basename($_SERVER['PHP_SELF']);
             console.error('Error fetching emergency alerts:', error);
         }
     }
-    
+   
     // Show popup on page
     function showEmergencyPopup(alert) {
         const container = document.getElementById('emergencyPopupContainer');
         if (!container) return;
-        
+       
         const popup = document.createElement('div');
         popup.className = `emergency-popup ${alert.alert_type}`;
         popup.innerHTML = `
@@ -729,28 +795,28 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 <br><small style="color:#666; display:block; margin-top:10px;">📅 ${new Date(alert.created_at).toLocaleString()}</small>
             </div>
         `;
-        
+       
         container.appendChild(popup);
-        
+       
         // Play sound effect
         playAlertSound();
-        
+       
         // Auto remove after 30 seconds
         setTimeout(() => {
             if (popup.parentNode) popup.remove();
         }, 30000);
     }
-    
+   
     // Add to notification dropdown
     function addEmergencyToDropdown(alert) {
         const notificationList = document.getElementById('notificationList');
         if (!notificationList) return;
-        
+       
         // Remove "no notifications" message if exists
         if (notificationList.innerHTML.includes('No notifications')) {
             notificationList.innerHTML = '';
         }
-        
+       
         const notifItem = document.createElement('div');
         notifItem.className = `emergency-notif-item ${alert.alert_type}`;
         notifItem.style.margin = '8px';
@@ -758,7 +824,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         notifItem.style.borderRadius = '8px';
         notifItem.style.cursor = 'pointer';
         notifItem.onclick = () => showEmergencyPopup(alert);
-        
+       
         notifItem.innerHTML = `
             <div style="display: flex; align-items: flex-start; gap: 10px;">
                 <div style="font-size: 24px;">${alertIcons[alert.alert_type]}</div>
@@ -772,10 +838,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </div>
             </div>
         `;
-        
+       
         notificationList.insertBefore(notifItem, notificationList.firstChild);
     }
-    
+   
     // Mark alert as read in database
     async function markEmergencyAlertRead(alertId) {
         try {
@@ -788,7 +854,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             console.error('Error marking alert read:', err);
         }
     }
-    
+   
     // Update notification badge count
     function updateNotificationBadgeCount() {
         const notificationItems = document.querySelectorAll('#notificationList .emergency-notif-item');
@@ -803,7 +869,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             }
         }
     }
-    
+   
     // Play alert sound
     function playAlertSound() {
         try {
@@ -822,20 +888,21 @@ $current_page = basename($_SERVER['PHP_SELF']);
             console.log('Sound not supported');
         }
     }
-    
+   
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
     }
-    
+   
     // Start polling for alerts every 10 seconds
     let pollInterval = setInterval(fetchEmergencyAlerts, 10000);
-    
+   
     // Initial fetch on page load
     document.addEventListener('DOMContentLoaded', () => {
         setTimeout(fetchEmergencyAlerts, 1000);
     });
+
 
     /* =============================================
        CLEAR ALL NOTIFICATIONS
@@ -845,11 +912,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
         notificationList.innerHTML = '<li><span class="dropdown-item text-muted text-center py-3">No notifications</span></li>';
         const badge = document.querySelector('.count');
         if (badge) badge.style.display = 'none';
-        
+       
         // Clear shown alerts
         shownAlerts = [];
         localStorage.setItem('shownAlertsTenant', JSON.stringify(shownAlerts));
-        
+       
         if (window.currentUser) {
             try {
                 const resp = await fetch('../API/mark_notifications_read.php', {
@@ -863,11 +930,13 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
     });
 
+
     /* =============================================
        MODAL HELPERS
     ============================================= */
     function openModal(id)  { document.getElementById(id).classList.add('active');    document.body.style.overflow = 'hidden'; }
     function closeModal(id) { document.getElementById(id).classList.remove('active'); document.body.style.overflow = ''; }
+
 
     document.querySelectorAll('[data-close]').forEach(btn =>
         btn.addEventListener('click', () => closeModal(btn.dataset.close))
@@ -876,21 +945,26 @@ $current_page = basename($_SERVER['PHP_SELF']);
         modal.addEventListener('click', e => { if (e.target === modal) closeModal(modal.id); })
     );
 
+
     /* SETTINGS */
     document.getElementById('openSettings').addEventListener('click', e => { e.preventDefault(); openModal('settingsModal'); });
     document.getElementById('closeSettings').addEventListener('click', () => closeModal('settingsModal'));
     document.getElementById('settingsModal').addEventListener('click', e => { if (e.target === document.getElementById('settingsModal')) closeModal('settingsModal'); });
+
 
     /* PASSWORD */
     const passwordModal      = document.getElementById('passwordModal');
     const changePasswordForm = document.getElementById('changePasswordForm');
     const passwordAlert      = document.getElementById('passwordAlert');
 
+
     document.getElementById('changePasswordBtn').addEventListener('click', () => { closeModal('settingsModal'); openModal('passwordModal'); });
+
 
     function closePasswordModal() { closeModal('passwordModal'); changePasswordForm.reset(); passwordAlert.innerHTML = ''; }
     document.getElementById('closePasswordModal').addEventListener('click', closePasswordModal);
     passwordModal.addEventListener('click', e => { if (e.target === passwordModal) closePasswordModal(); });
+
 
     changePasswordForm.addEventListener('submit', async e => {
         e.preventDefault();
@@ -899,8 +973,10 @@ $current_page = basename($_SERVER['PHP_SELF']);
         const newPassword     = formData.get('new_password');
         const confirmPassword = formData.get('confirm_password');
 
+
         if (newPassword !== confirmPassword) { passwordAlert.innerHTML = '<div class="alert-message alert-error">Passwords do not match!</div>'; return; }
         if (newPassword.length < 8)          { passwordAlert.innerHTML = '<div class="alert-message alert-error">Password must be at least 8 characters!</div>'; return; }
+
 
         submitBtn.disabled = true; submitBtn.textContent = 'Changing...';
         try {
@@ -915,6 +991,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
         }
     });
 
+
     /* LEGAL MODALS */
     document.getElementById('termsBtn').addEventListener('click',         () => { closeModal('settingsModal'); openModal('termsModal'); });
     document.getElementById('closeTermsModal').addEventListener('click',  () => closeModal('termsModal'));
@@ -924,6 +1001,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     document.getElementById('legalContractBtn').addEventListener('click', () => { closeModal('settingsModal'); openModal('legalContractModal'); });
     document.getElementById('codeOfConductBtn').addEventListener('click', () => { closeModal('settingsModal'); openModal('codeOfConductModal'); });
     </script>
+
 
     <script src="../js/chat-notifications.js?v=<?= time() ?>"></script>
 </body>

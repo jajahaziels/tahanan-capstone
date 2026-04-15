@@ -269,12 +269,12 @@ while ($row = $result->fetch_assoc())
         City Boundary
     </label>
     <label class="layer-toggle">
-        <input type="checkbox" id="tog-hospitals" checked> 
+        <input type="checkbox" id="tog-hospitals"> 
         <span class="swatch swatch-circle" style="background:red;"></span>
         Hospitals
     </label>
     <label class="layer-toggle">
-        <input type="checkbox" id="tog-evac" checked>  
+        <input type="checkbox" id="tog-evac">  
         <span class="swatch swatch-circle" style="background:#0ea5e9;"></span>
         Evacuation Centers
     </label>
@@ -414,7 +414,7 @@ while ($row = $result->fetch_assoc())
         map = new google.maps.Map(document.getElementById('map'), {
             center: { lat: 14.3580, lng: 121.0480 },
             zoom: 15,
-            mapTypeId: 'satellite',
+            mapTypeId: 'roadmap',
             mapTypeControl: true,
             fullscreenControl: true,
             streetViewControl: false,
@@ -552,7 +552,7 @@ hospitals.forEach(hospital => {
 
     const marker = new google.maps.Marker({
         position: { lat: hospital.lat, lng: hospital.lng },
-        map: map,  
+        map: null,  
         title: hospital.name,
         icon: { url: iconUrl, scaledSize: new google.maps.Size(30, 30), anchor: new google.maps.Point(15, 15) },
         zIndex: 800,
@@ -635,7 +635,7 @@ const evacIconUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(eva
 evacCenters.forEach(center => {
     const marker = new google.maps.Marker({
         position: { lat: center.lat, lng: center.lng },
-        map: map,
+        map: null, //show or nah
         title: center.name,
         icon: { url: evacIconUrl, scaledSize: new google.maps.Size(36, 36), anchor: new google.maps.Point(18, 36) },
         zIndex: 800,

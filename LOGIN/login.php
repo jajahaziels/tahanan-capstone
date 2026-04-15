@@ -1,3 +1,135 @@
+<?php
+session_start();
+include '../includes/db.php';
+require '../vendor/autoload.php';
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+$SMTP_USERNAME = 'jajasison07@gmail.com';
+$SMTP_PASSWORD = 'aebfllyitmpjvzqz';
+
+$errorMsg = "";
+
+function getDeviceHash()
+{
+    $userAgent = $_SERVER['HTTP_USER_AGENT'] ?? 'unknown';
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    return hash('sha256', $userAgent . $ip);
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $email    = strtolower(trim($_POST['email']));
+    $password = trim($_POST['password']);
+
+    $roleMap = [
+        'landlordtbl' => ['redirect' => '/TAHANAN/LANDLORD/landlord-properties.php', 'db_role' => 'landlord'],
+        'tenanttbl'   => ['redirect' => '/TAHANAN/TENANT/tenant.php',                'db_role' => 'tenant'],
+        'admintbl'    => ['redirect' => '/TAHANAN/ADMIN/dashboard.php',              'db_role' => 'admin']
+    ];
+
+    $found = false;
+    foreach ($roleMap as $table => $map) {
+        $columns       = "ID, password, firstName, lastName";
+        $checkUsername = $conn->query("SHOW COLUMNS FROM `$table` LIKE 'username'");
+        if ($checkUsername && $checkUsername->num_rows > 0) {
+            $columns .= ", username";
+        }
+
+        $stmt = $conn->prepare("SELECT $columns FROM `$table` WHERE email=? LIMIT 1");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $res = $stmt->get_result();
+
+        if ($row = $res->fetch_assoc()) {
+            $found = true;
+
+            if (password_verify($password, $row['password'])) {
+                $userId     = $row['ID'];
+                $dbRole     = $map['db_role'];
+                $redirect   = $map['redirect'];
+                $deviceHash = getDeviceHash();
+                $fullName   = trim(($row['firstName'] ?? '') . ' ' . ($row['lastName'] ?? ''));
+                $username   = isset($row['username']) && !empty($row['username'])
+                                ? $row['username']
+                                : ($row['firstName'] ?? 'User');
+
+                // Admin: skip OTP
+                if ($dbRole === 'admin') {
+                    $_SESSION['user_id']   = $userId;
+                    $_SESSION['username']  = $username;
+                    $_SESSION['full_name'] = $fullName;
+                    $_SESSION['user_type'] = $dbRole;
+                    $_SESSION['admin_id']  = $userId;
+                    header("Location: $redirect");
+                    exit();
+                }
+
+                // Check trusted device
+                $stmtTrusted = $conn->prepare(
+                    "SELECT 1 FROM trusted_devices WHERE user_id=? AND device_hash=? AND role=?"
+                );
+                $stmtTrusted->bind_param("iss", $userId, $deviceHash, $dbRole);
+                $stmtTrusted->execute();
+                $resTrusted = $stmtTrusted->get_result();
+
+                if ($resTrusted && $resTrusted->num_rows > 0) {
+                    // Trusted device → skip OTP
+                    $_SESSION['user_id']   = $userId;
+                    $_SESSION['username']  = $username;
+                    $_SESSION['full_name'] = $fullName;
+                    $_SESSION['user_type'] = $dbRole;
+                    if ($dbRole === 'tenant')   $_SESSION['tenant_id']   = $userId;
+                    if ($dbRole === 'landlord') $_SESSION['landlord_id'] = $userId;
+                    header("Location: $redirect");
+                    exit();
+                }
+
+                // New device → send OTP
+                $otp = rand(100000, 999999);
+                $_SESSION['device_otp']      = $otp;
+                $_SESSION['otp_user_id']     = $userId;
+                $_SESSION['otp_device_hash'] = $deviceHash;
+                $_SESSION['otp_role']        = $dbRole;
+                $_SESSION['otp_expiry']      = time() + 600;
+                $_SESSION['otp_name']        = $fullName;
+                $_SESSION['otp_username']    = $username;
+                $_SESSION['otp_email']       = $email;
+                $_SESSION['otp_redirect']    = $redirect;
+
+                $mail = new PHPMailer(true);
+                try {
+                    $mail->isSMTP();
+                    $mail->Host       = 'smtp.gmail.com';
+                    $mail->SMTPAuth   = true;
+                    $mail->Username   = $SMTP_USERNAME;
+                    $mail->Password   = $SMTP_PASSWORD;
+                    $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                    $mail->Port       = 587;
+                    $mail->setFrom($SMTP_USERNAME, 'MapAware Home');
+                    $mail->addAddress($email);
+                    $mail->isHTML(true);
+                    $mail->Subject = 'MapAware Home Login OTP';
+                    $mail->Body    = "<h3>MapAware Home</h3><p>Your OTP code is: <b>$otp</b>. Expires in 10 minutes.</p>";
+                    $mail->send();
+                    header("Location: otp.php");
+                    exit();
+                } catch (Exception $e) {
+                    $errorMsg = "OTP send failed: " . $mail->ErrorInfo;
+                }
+
+            } else {
+                $errorMsg = "Wrong password or Email.";
+            }
+            break;
+        }
+    }
+
+    if (!$found) {
+        $errorMsg = "Wrong password or Email.";
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -72,222 +204,6 @@
       width: 16px;
       height: 16px;
       display: block;
-    }
-
-    /* ===== ENHANCED ANIMATIONS (ADDED ONLY) ===== */
-    
-    /* Smooth fade-in animation for the whole auth card */
-    .auth-card {
-      animation: cardFadeIn 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-    }
-
-    @keyframes cardFadeIn {
-      0% {
-        opacity: 0;
-        transform: translateY(20px) scale(0.98);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    .field {
-      opacity: 0;
-      animation: slideUpFade 0.4s ease forwards;
-    }
-
-    .field:nth-of-type(1) {
-      animation-delay: 0.1s;
-    }
-    .field:nth-of-type(2) {
-      animation-delay: 0.2s;
-    }
-
-    @keyframes slideUpFade {
-      0% {
-        opacity: 0;
-        transform: translateY(12px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .remember-forgot {
-      opacity: 0;
-      animation: fadeInItem 0.4s ease forwards;
-      animation-delay: 0.3s;
-    }
-
-    @keyframes fadeInItem {
-      0% {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .btn-primary {
-      opacity: 0;
-      animation: fadeInItem 0.4s ease forwards;
-      animation-delay: 0.4s;
-      transition: transform 0.25s ease, background 0.2s, box-shadow 0.2s;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 14px rgba(141, 11, 65, 0.25);
-    }
-
-    .btn-primary:active {
-      transform: translateY(1px);
-    }
-
-    .divider {
-      opacity: 0;
-      animation: fadeInItem 0.4s ease forwards;
-      animation-delay: 0.45s;
-    }
-
-    .socials {
-      opacity: 0;
-      animation: fadeInItem 0.4s ease forwards;
-      animation-delay: 0.5s;
-    }
-
-    .brand-identity {
-      transition: transform 0.3s ease;
-      animation: gentleScale 0.5s ease-out;
-    }
-
-    @keyframes gentleScale {
-      0% {
-        opacity: 0;
-        transform: scale(0.92);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    .field input:focus {
-      animation: subtlePulse 0.3s ease-out;
-    }
-
-    @keyframes subtlePulse {
-      0% {
-        box-shadow: 0 0 0 0 rgba(141, 11, 65, 0.2);
-      }
-      100% {
-        box-shadow: 0 0 0 3px rgba(141, 11, 65, 0.12);
-      }
-    }
-
-    .btn-google {
-      transition: all 0.25s ease;
-    }
-
-    .btn-google:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .forgot-link {
-      transition: all 0.2s ease;
-    }
-
-    .forgot-link:hover {
-      transform: translateX(2px);
-      letter-spacing: 0.3px;
-    }
-
-    .signup {
-      position: relative;
-      transition: color 0.2s;
-    }
-
-    .signup::after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 2px;
-      bottom: -2px;
-      left: 0;
-      background-color: #8D0B41;
-      transition: width 0.25s ease;
-    }
-
-    .signup:hover::after {
-      width: 100%;
-    }
-
-    .remember-forgot input[type="checkbox"] {
-      transition: transform 0.15s ease, accent-color 0.2s;
-    }
-
-    .remember-forgot input[type="checkbox"]:active {
-      transform: scale(0.92);
-    }
-
-    .hero-section {
-      animation: heroSlideIn 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
-    }
-
-    @keyframes heroSlideIn {
-      0% {
-        opacity: 0;
-        transform: translateX(-16px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .map-box img {
-      transition: transform 0.4s ease;
-      animation: imageReveal 0.7s ease-out;
-    }
-
-    @keyframes imageReveal {
-      0% {
-        opacity: 0;
-        transform: scale(0.96);
-      }
-      100% {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    .hero-text h1 {
-      animation: textGlide 0.5s ease-out;
-    }
-
-    @keyframes textGlide {
-      0% {
-        opacity: 0;
-        transform: translateY(18px);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .main-wrapper {
-      animation: wrapperFade 0.4s ease;
-    }
-
-    @keyframes wrapperFade {
-      0% { opacity: 0; }
-      100% { opacity: 1; }
     }
   </style>
 </head>
