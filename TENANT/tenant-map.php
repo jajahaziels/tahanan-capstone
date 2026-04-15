@@ -256,12 +256,12 @@ while ($row = $result->fetch_assoc())
         Available Listings
     </label>
     <label class="layer-toggle">
-        <input type="checkbox" id="tog-flood">   <!-- unchecked -->
+        <input type="checkbox" id="tog-flood">
         <span class="swatch swatch-square" style="background:#FF8000;"></span>
         Flood Hazard Zones
     </label>
     <label class="layer-toggle">
-        <input type="checkbox" id="tog-fault">   <!-- unchecked -->
+        <input type="checkbox" id="tog-fault">  
         <span class="swatch swatch-line" style="background:#dc2626;"></span>
         West Valley Fault
     </label>
@@ -271,12 +271,12 @@ while ($row = $result->fetch_assoc())
         City Boundary
     </label>
     <label class="layer-toggle">
-        <input type="checkbox" id="tog-hospitals">  <!-- unchecked -->
+        <input type="checkbox" id="tog-hospitals" checked> 
         <span class="swatch swatch-circle" style="background:red;"></span>
         Hospitals
     </label>
     <label class="layer-toggle">
-        <input type="checkbox" id="tog-evac">   <!-- unchecked -->
+        <input type="checkbox" id="tog-evac" checked>  
         <span class="swatch swatch-circle" style="background:#0ea5e9;"></span>
         Evacuation Centers
     </label>
@@ -288,14 +288,6 @@ while ($row = $result->fetch_assoc())
                     <div class="legend-item"><span class="swatch swatch-circle" style="background:#059669;"></span> ≤ ₱10,000 / month</div>
                     <div class="legend-item"><span class="swatch swatch-circle" style="background:#d97706;"></span> ₱10,001 – ₱20,000</div>
                     <div class="legend-item"><span class="swatch swatch-circle" style="background:#7c3aed;"></span> &gt; ₱20,000</div>
-                </div>
-
-                <!-- EVAC -->
-                <div class="legend-item">
-                    <svg width="13" height="13" viewBox="0 0 13 13" style="flex-shrink:0">
-                    <polygon points="6.5,1 12.5,12 0.5,12" fill="#0ea5e9"/>
-                    </svg>
-                    Evacuation Centers (EC)
                 </div>
 
                 <!-- Flood Hazard Legend -->
@@ -414,9 +406,8 @@ while ($row = $result->fetch_assoc())
     const priceColor  = p => p <= 10000 ? '#059669' : p <= 20000 ? '#d97706' : '#7c3aed';
 
     let map, iw;
-    // FIX: All marker arrays declared at top scope so toggles can reach them
     let listingMarkers  = [];
-    let hospitalMarkers = [];   // was never populated in original
+    let hospitalMarkers = [];   
     let evacMarkers     = [];
     let faultPolyline = null, faultPolylineSecondary = null, borderPolygon = null, floodLayer = null;
 
@@ -424,7 +415,7 @@ while ($row = $result->fetch_assoc())
         map = new google.maps.Map(document.getElementById('map'), {
             center: { lat: 14.3580, lng: 121.0480 },
             zoom: 15,
-            mapTypeId: 'satellite',
+            mapTypeId: 'roadmap',
             mapTypeControl: true,
             fullscreenControl: true,
             streetViewControl: false,
@@ -449,11 +440,9 @@ while ($row = $result->fetch_assoc())
         });
 
         // ── 2. Flood Hazard GeoJSON ──
-        
-const floodLoading = document.getElementById('flood-loading');
-// DON'T show loading on init since flood is off by default
-floodLayer = new google.maps.Data({ map: null });  // ← was: { map: map }
-floodLayer.loadGeoJson('sanedrofloodzone.geojson');
+        const floodLoading = document.getElementById('flood-loading');
+            floodLayer = new google.maps.Data({ map: null });  
+            floodLayer.loadGeoJson('sanedrofloodzone.geojson');
             
         floodLayer.setStyle(feature => {
             const v = Math.round(Number(feature.getProperty('Var')));
@@ -563,7 +552,7 @@ hospitals.forEach(hospital => {
 
     const marker = new google.maps.Marker({
         position: { lat: hospital.lat, lng: hospital.lng },
-        map: null,   // hidden by default
+        map: map,   // show or nah
         title: hospital.name,
         icon: { url: iconUrl, scaledSize: new google.maps.Size(30, 30), anchor: new google.maps.Point(15, 15) },
         zIndex: 800,
@@ -580,7 +569,7 @@ hospitals.forEach(hospital => {
     hospitalMarkers.push(marker);
 });
 
-// ── Evacuation Centers (Official — EO 58 Series 2025, City of San Pedro) ──
+// ── Evacuation Centers, City of San Pedro) ──
 const evacCenters = [
     { 
         name: "Rosario Evacuation Center", 
@@ -646,7 +635,7 @@ const evacIconUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(eva
 evacCenters.forEach(center => {
     const marker = new google.maps.Marker({
         position: { lat: center.lat, lng: center.lng },
-        map: null,
+        map: map, //show or nah
         title: center.name,
         icon: { url: evacIconUrl, scaledSize: new google.maps.Size(36, 36), anchor: new google.maps.Point(18, 36) },
         zIndex: 800,

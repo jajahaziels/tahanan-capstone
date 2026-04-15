@@ -38,7 +38,7 @@ while ($row = $result->fetch_assoc())
             font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
         }
         :root { --main-color: #8B0000; }
-        .tenant-page { margin-top: 140px !important; }
+        .landlord-page { margin-top: 140px !important; }
 
         .map-wrapper {
             display: flex;
@@ -199,9 +199,9 @@ while ($row = $result->fetch_assoc())
     </style>
 </head>
 <body>
-    <?php include '../Components/tenant-header.php'; ?>
+    <?php include '../Components/landlord-header.php'; ?>
 
-    <div class="tenant-page container-fluid px-4">
+    <div class="landlord-page container-fluid px-4">
         <div class="mb-3">
             <h1 class="h4 mb-1" style="font-weight:900">Property Map</h1>
             <p class="text-muted small mb-0" style="font-weight:600">
@@ -254,12 +254,12 @@ while ($row = $result->fetch_assoc())
         Available Listings
     </label>
     <label class="layer-toggle">
-        <input type="checkbox" id="tog-flood">   <!-- unchecked -->
+        <input type="checkbox" id="tog-flood">  
         <span class="swatch swatch-square" style="background:#FF8000;"></span>
         Flood Hazard Zones
     </label>
     <label class="layer-toggle">
-        <input type="checkbox" id="tog-fault">   <!-- unchecked -->
+        <input type="checkbox" id="tog-fault">   
         <span class="swatch swatch-line" style="background:#dc2626;"></span>
         West Valley Fault
     </label>
@@ -269,12 +269,12 @@ while ($row = $result->fetch_assoc())
         City Boundary
     </label>
     <label class="layer-toggle">
-        <input type="checkbox" id="tog-hospitals">  <!-- unchecked -->
+        <input type="checkbox" id="tog-hospitals" checked> 
         <span class="swatch swatch-circle" style="background:red;"></span>
         Hospitals
     </label>
     <label class="layer-toggle">
-        <input type="checkbox" id="tog-evac">   <!-- unchecked -->
+        <input type="checkbox" id="tog-evac" checked>  
         <span class="swatch swatch-circle" style="background:#0ea5e9;"></span>
         Evacuation Centers
     </label>
@@ -288,13 +288,6 @@ while ($row = $result->fetch_assoc())
                     <div class="legend-item"><span class="swatch swatch-circle" style="background:#7c3aed;"></span> &gt; ₱20,000</div>
                 </div>
 
-                <!-- EVAC -->
-                <div class="legend-item">
-                    <svg width="13" height="13" viewBox="0 0 13 13" style="flex-shrink:0">
-                    <polygon points="6.5,1 12.5,12 0.5,12" fill="#0ea5e9"/>
-                    </svg>
-                    Evacuation Centers (EC)
-                </div>
 
                 <!-- Flood Hazard Legend -->
                 <div class="sidebar-section">
@@ -412,9 +405,8 @@ while ($row = $result->fetch_assoc())
     const priceColor  = p => p <= 10000 ? '#059669' : p <= 20000 ? '#d97706' : '#7c3aed';
 
     let map, iw;
-    // FIX: All marker arrays declared at top scope so toggles can reach them
     let listingMarkers  = [];
-    let hospitalMarkers = [];   // was never populated in original
+    let hospitalMarkers = [];  
     let evacMarkers     = [];
     let faultPolyline = null, faultPolylineSecondary = null, borderPolygon = null, floodLayer = null;
 
@@ -448,10 +440,9 @@ while ($row = $result->fetch_assoc())
 
         // ── 2. Flood Hazard GeoJSON ──
         
-const floodLoading = document.getElementById('flood-loading');
-// DON'T show loading on init since flood is off by default
-floodLayer = new google.maps.Data({ map: null });  // ← was: { map: map }
-floodLayer.loadGeoJson('sanedrofloodzone.geojson');
+        const floodLoading = document.getElementById('flood-loading');
+        floodLayer = new google.maps.Data({ map: null });  
+        floodLayer.loadGeoJson('sanedrofloodzone.geojson');
             
         floodLayer.setStyle(feature => {
             const v = Math.round(Number(feature.getProperty('Var')));
@@ -561,7 +552,7 @@ hospitals.forEach(hospital => {
 
     const marker = new google.maps.Marker({
         position: { lat: hospital.lat, lng: hospital.lng },
-        map: null,   // hidden by default
+        map: map,  
         title: hospital.name,
         icon: { url: iconUrl, scaledSize: new google.maps.Size(30, 30), anchor: new google.maps.Point(15, 15) },
         zIndex: 800,
@@ -644,7 +635,7 @@ const evacIconUrl = 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(eva
 evacCenters.forEach(center => {
     const marker = new google.maps.Marker({
         position: { lat: center.lat, lng: center.lng },
-        map: null,
+        map: map,
         title: center.name,
         icon: { url: evacIconUrl, scaledSize: new google.maps.Size(36, 36), anchor: new google.maps.Point(18, 36) },
         zIndex: 800,
@@ -707,6 +698,7 @@ document.getElementById('tog-hospitals').addEventListener('change', function () 
 document.getElementById('tog-evac').addEventListener('change', function () {
     setMarkers(evacMarkers, this.checked);
 });
+
 document.getElementById('tog-border').addEventListener('change', function () {
     borderPolygon.setMap(this.checked ? map : null);
 });
