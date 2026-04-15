@@ -319,6 +319,77 @@ $result = $conn->query($sql);
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Add this to your existing <style> section */
+.cards {
+    height: 450px; /* Fixed height for all cards */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.cards .position-relative {
+    flex-shrink: 0; /* Prevents image area from shrinking */
+}
+
+.property-img {
+    width: 100%;
+    height: 200px; /* Fixed image height */
+    object-fit: cover;
+}
+
+.cards-content {
+    flex: 1; /* Takes remaining space */
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+    overflow-y: auto; /* Adds scroll if content overflows */
+}
+
+/* Optional: Hide scrollbar for cleaner look */
+.cards-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.cards-content::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.cards-content::-webkit-scrollbar-thumb {
+    background: #8D0B41;
+    border-radius: 10px;
+}
+
+/* Ensure text doesn't overflow */
+.house-name {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.location {
+    font-size: 0.85rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.features {
+    flex-wrap: wrap;
+    margin: 5px 0;
+}
+
+.landlord-info {
+    margin-top: auto; /* Pushes landlord info to bottom */
+    padding-top: 10px;
+}
+
     </style>
 </head>
 

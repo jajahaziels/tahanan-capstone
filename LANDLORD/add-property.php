@@ -256,6 +256,19 @@ if (isset($_SESSION['property_submitted'])) {
             color: #888;
             margin-top: 8px;
         }
+
+        /* ── Button Container Alignment ── */
+        .button-container {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-start;
+            align-items: center;
+            margin-top: 20px;
+        }
+
+        .button-container .main-button {
+            margin: 0 !important;
+        }
     </style>
 </head>
 
@@ -451,8 +464,8 @@ if (isset($_SESSION['property_submitted'])) {
                         </div>
 
                         <!-- Buttons -->
-                        <div class="mb-1">
-                            <button type="submit" class="main-button mx-2">
+                        <div class="button-container">
+                            <button type="submit" class="main-button">
                                 <i class="fas fa-plus"></i> Submit Property
                             </button>
                             <button type="button" class="main-button" onclick="location.href='landlord-properties.php'">
