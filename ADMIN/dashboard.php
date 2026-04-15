@@ -31,13 +31,15 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Tahanan</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
- 
-  
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
@@ -81,7 +83,9 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     }
 
-    .sidebar.collapsed { width: 75px; }
+    .sidebar.collapsed {
+      width: 75px;
+    }
 
     .sidebar header {
       padding: 20px 16px;
@@ -165,15 +169,28 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       overflow-x: hidden;
     }
 
-    .sidebar .menu-bar::-webkit-scrollbar { width: 4px; }
+    .sidebar .menu-bar::-webkit-scrollbar {
+      width: 4px;
+    }
+
     .sidebar .menu-bar::-webkit-scrollbar-thumb {
       background: var(--border-color);
       border-radius: 10px;
     }
 
-    .sidebar .menu { padding: 0 12px; }
-    .sidebar .menu-links { padding: 0; margin: 0; }
-    .sidebar li { list-style: none; margin: 4px 0; }
+    .sidebar .menu {
+      padding: 0 12px;
+    }
+
+    .sidebar .menu-links {
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar li {
+      list-style: none;
+      margin: 4px 0;
+    }
 
     .sidebar li a {
       display: flex;
@@ -198,14 +215,21 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       transition: transform 0.2s;
     }
 
-    .sidebar li a:hover { background: var(--sidebar-hover); }
-    .sidebar li a:hover::before { transform: scaleY(1); }
+    .sidebar li a:hover {
+      background: var(--sidebar-hover);
+    }
+
+    .sidebar li a:hover::before {
+      transform: scaleY(1);
+    }
 
     .sidebar li a.active {
       background: linear-gradient(90deg, rgba(141, 11, 65, 0.15) 0%, rgba(141, 11, 65, 0.05) 100%);
     }
 
-    .sidebar li a.active::before { transform: scaleY(1); }
+    .sidebar li a.active::before {
+      transform: scaleY(1);
+    }
 
     .sidebar li .icon {
       min-width: 45px;
@@ -350,7 +374,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       min-height: 100vh;
     }
 
-    .sidebar.collapsed ~ .content {
+    .sidebar.collapsed~.content {
       margin-left: 75px;
     }
 
@@ -390,7 +414,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       background: var(--card-bg);
       border-radius: 12px;
       padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       display: flex;
       align-items: center;
       gap: 20px;
@@ -412,7 +436,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
 
     .stat-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
       border-color: var(--card-color);
     }
 
@@ -422,12 +446,29 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       opacity: 0.9;
     }
 
-    .stat-card.users { --card-color: #667eea; }
-    .stat-card.tenants { --card-color: #f093fb; }
-    .stat-card.landlords { --card-color: #4facfe; }
-    .stat-card.posts { --card-color: #43e97b; }
-    .stat-card.active { --card-color: #fa709a; }
-    .stat-card.rented { --card-color: #feca57; }
+    .stat-card.users {
+      --card-color: #667eea;
+    }
+
+    .stat-card.tenants {
+      --card-color: #f093fb;
+    }
+
+    .stat-card.landlords {
+      --card-color: #4facfe;
+    }
+
+    .stat-card.posts {
+      --card-color: #43e97b;
+    }
+
+    .stat-card.active {
+      --card-color: #fa709a;
+    }
+
+    .stat-card.rented {
+      --card-color: #feca57;
+    }
 
     .stat-info h3 {
       font-size: 32px;
@@ -448,7 +489,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       background: var(--card-bg);
       border-radius: 12px;
       padding: 25px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-color);
     }
 
@@ -510,7 +551,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       background: var(--card-bg);
       border-radius: 12px;
       padding: 25px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-color);
     }
 
@@ -535,11 +576,9 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       width: 160px;
       height: 160px;
       border-radius: 50%;
-      background: conic-gradient(
-        #43e97b 0deg <?= ($verified_landlords / max($total_landlords, 1) * 360) ?>deg,
-        #feca57 <?= ($verified_landlords / max($total_landlords, 1) * 360) ?>deg <?= (($verified_landlords + $pending_verification) / max($total_landlords, 1) * 360) ?>deg,
-        var(--border-color) <?= (($verified_landlords + $pending_verification) / max($total_landlords, 1) * 360) ?>deg
-      );
+      background: conic-gradient(#43e97b 0deg <?= ($verified_landlords / max($total_landlords, 1) * 360) ?>deg,
+          #feca57 <?= ($verified_landlords / max($total_landlords, 1) * 360) ?>deg <?= (($verified_landlords + $pending_verification) / max($total_landlords, 1) * 360) ?>deg,
+          var(--border-color) <?= (($verified_landlords + $pending_verification) / max($total_landlords, 1) * 360) ?>deg);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -600,7 +639,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       background: var(--card-bg);
       border-radius: 12px;
       padding: 25px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-color);
     }
 
@@ -642,7 +681,10 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       overflow-y: auto;
     }
 
-    .activity-list::-webkit-scrollbar { width: 6px; }
+    .activity-list::-webkit-scrollbar {
+      width: 6px;
+    }
+
     .activity-list::-webkit-scrollbar-thumb {
       background: var(--border-color);
       border-radius: 10px;
@@ -686,7 +728,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       background: var(--card-bg);
       border-radius: 12px;
       padding: 25px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-color);
     }
 
@@ -730,14 +772,202 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       border-radius: 50%;
     }
 
-    .status-good { color: #43e97b; }
-    .status-good .status-dot { background: #43e97b; }
+    .status-good {
+      color: #43e97b;
+    }
 
-    .status-warning { color: #feca57; }
-    .status-warning .status-dot { background: #feca57; }
+    .status-good .status-dot {
+      background: #43e97b;
+    }
+
+    .status-warning {
+      color: #feca57;
+    }
+
+    .status-warning .status-dot {
+      background: #feca57;
+    }
+
+
+    .emergency-modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(5px);
+      overflow-y: auto;
+    }
+
+    .emergency-modal-content {
+      background: var(--card-bg);
+      margin: 20px auto;
+      width: 90%;
+      max-width: 550px;
+      border-radius: 20px;
+      border: 1px solid var(--border-color);
+      animation: slideIn 0.3s ease;
+      overflow: hidden;
+      position: relative;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .emergency-modal-header {
+      background: linear-gradient(135deg, #6a0831, #811621);
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .emergency-modal-header h2 {
+      margin: 0;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .emergency-close {
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      transition: 0.3s;
+      line-height: 1;
+    }
+
+    .emergency-close:hover {
+      color: #ddd;
+      transform: scale(1.1);
+    }
+
+    .emergency-form-body {
+      max-height: calc(80vh - 80px);
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .emergency-form-body::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .emergency-form-body::-webkit-scrollbar-track {
+      background: var(--border-color);
+      border-radius: 10px;
+    }
+
+    .emergency-form-body::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 10px;
+    }
+
+    .emergency-form-group {
+      padding: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .emergency-form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-color);
+      font-size: 14px;
+    }
+
+    .emergency-form-group select,
+    .emergency-form-group input,
+    .emergency-form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      background: var(--sidebar-hover);
+      color: var(--text-color);
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .emergency-form-group select:focus,
+    .emergency-form-group input:focus,
+    .emergency-form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 2px rgba(141, 11, 65, 0.2);
+    }
+
+    .emergency-preview {
+      background: var(--sidebar-hover);
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 10px;
+      border-left: 4px solid #dc3545;
+    }
+
+    .emergency-preview-badge {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    .emergency-preview-text {
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    .emergency-preview-text strong {
+      color: var(--text-color);
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .emergency-btn-send {
+      background: linear-gradient(135deg,  #6a0831, #811621);
+      color: white;
+      border: none;
+      padding: 14px;
+      margin: 0 20px 20px;
+      width: calc(100% - 40px);
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: sticky;
+      bottom: 0;
+    }
+
+    .emergency-btn-send:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(220, 53, 69, 0.4);
+    }
+
+    .emergency-btn-send:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
 
     /* ========== RESPONSIVE ========== */
     @media (max-width: 1200px) {
+
       .quick-actions,
       .verification-status,
       .recent-activity,
@@ -759,16 +989,25 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
         margin-left: 0;
       }
 
-      .sidebar.collapsed ~ .content {
+      .sidebar.collapsed~.content {
         margin-left: 0;
       }
 
       .action-buttons {
         grid-template-columns: 1fr;
       }
+      
+      .emergency-modal-content {
+        margin: 10px auto;
+        width: 95%;
+      }
+      
+      .emergency-form-body {
+        max-height: calc(90vh - 80px);
+      }
     }
   </style>
-   <link rel="stylesheet" href="admin-theme.css">
+  <link rel="stylesheet" href="admin-theme.css">
 </head>
 
 <body>
@@ -824,9 +1063,15 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
             <a href="verify-landlord.php" data-tooltip="Verify Landlord">
               <i class='bx bx-shield-check icon'></i>
               <span class="text">Verify Landlord</span>
-              <?php if($pending_verification > 0): ?>
+              <?php if ($pending_verification > 0): ?>
                 <span class="badge"><?= $pending_verification ?></span>
               <?php endif; ?>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="emergencyAlertBtn" data-tooltip="Alert Users">
+              <i class='bx bx-alert-square icon'></i>
+              <span class="text">Alert Users</span>
             </a>
           </li>
         </ul>
@@ -983,7 +1228,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
         <!-- Listings Activity -->
         <div id="listings-activity" class="activity-list">
           <?php if ($recent_listings->num_rows > 0): ?>
-            <?php while($listing = $recent_listings->fetch_assoc()): ?>
+            <?php while ($listing = $recent_listings->fetch_assoc()): ?>
               <div class="activity-item">
                 <h4><?= htmlspecialchars($listing['listingName']) ?></h4>
                 <p>₱<?= number_format($listing['price']) ?>/month • <?= htmlspecialchars($listing['barangay']) ?></p>
@@ -998,7 +1243,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
         <!-- Landlords Activity -->
         <div id="landlords-activity" class="activity-list" style="display: none;">
           <?php if ($recent_landlords->num_rows > 0): ?>
-            <?php while($landlord = $recent_landlords->fetch_assoc()): ?>
+            <?php while ($landlord = $recent_landlords->fetch_assoc()): ?>
               <div class="activity-item">
                 <h4><?= htmlspecialchars($landlord['firstName'] . ' ' . $landlord['lastName']) ?></h4>
                 <p><?= htmlspecialchars($landlord['email']) ?></p>
@@ -1013,7 +1258,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
         <!-- Tenants Activity -->
         <div id="tenants-activity" class="activity-list" style="display: none;">
           <?php if ($recent_tenants->num_rows > 0): ?>
-            <?php while($tenant = $recent_tenants->fetch_assoc()): ?>
+            <?php while ($tenant = $recent_tenants->fetch_assoc()): ?>
               <div class="activity-item">
                 <h4><?= htmlspecialchars($tenant['firstName'] . ' ' . $tenant['lastName']) ?></h4>
                 <p><?= htmlspecialchars($tenant['email']) ?></p>
@@ -1061,6 +1306,69 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
     </div>
   </main>
 
+  <!-- ========== EMERGENCY ALERT MODAL  ========== -->
+  <div id="emergencyModal" class="emergency-modal">
+    <div class="emergency-modal-content">
+      <div class="emergency-modal-header">
+        <h2>
+          <i class='bx bx-alarm-exclamation'></i>
+          Send Emergency Alert
+        </h2>
+        <span class="emergency-close">&times;</span>
+      </div>
+      
+      <form id="emergencyForm">
+        <div class="emergency-form-body">
+          <div class="emergency-form-group">
+            <label>⚠️ Alert Type:</label>
+            <select id="alertType" required>
+              <option value="flood">🌊 Flood Alert</option>
+              <option value="earthquake">🌋 Earthquake Alert</option>
+              <option value="fire">🔥 Fire Alert</option>
+              <option value="storm">🌪️ Storm Alert</option>
+              <option value="typhoon">🌀 Typhoon Alert</option>
+            </select>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>📊 Severity Level:</label>
+            <select id="severity" required>
+              <option value="advisory">📢 Advisory - Be Aware</option>
+              <option value="alert">⚠️ Alert - Be Prepared</option>
+              <option value="warning">🚨 Warning - Take Action</option>
+              <option value="emergency">🆘 Emergency - Immediate Action Required</option>
+            </select>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>📝 Alert Title:</label>
+            <input type="text" id="alertTitle" placeholder="e.g., Typhoon Signal #3 Alert" required>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>📄 Alert Message:</label>
+            <textarea id="alertMessage" rows="4" placeholder="Provide clear instructions and safety measures..." required></textarea>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>👁️ Preview:</label>
+            <div class="emergency-preview">
+              <div class="emergency-preview-badge" id="previewBadge">📢</div>
+              <div class="emergency-preview-text" id="previewText">
+                <strong>Alert Title</strong>
+                <small>Your message will appear here...</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="emergency-btn-send" id="sendAlertBtn">
+          🚨 Send Alert to ALL Users
+        </button>
+      </form>
+    </div>
+  </div>
+
   <script>
     // Sidebar toggle
     const sidebar = document.querySelector('.sidebar');
@@ -1084,19 +1392,189 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       document.querySelectorAll('.activity-list').forEach(list => {
         list.style.display = 'none';
       });
-      
+
       // Remove active class from all tabs
       document.querySelectorAll('.activity-tab').forEach(tab => {
         tab.classList.remove('active');
       });
-      
+
       // Show selected activity
       document.getElementById(type + '-activity').style.display = 'block';
-      
+
       // Add active class to clicked tab
       event.target.classList.add('active');
+    }
+
+    // ========== EMERGENCY ALERT SYSTEM ==========
+    // Get modal elements
+    const modal = document.getElementById('emergencyModal');
+    const emergencyBtn = document.getElementById('emergencyAlertBtn');
+    const closeBtn = document.querySelector('.emergency-close');
+    const form = document.getElementById('emergencyForm');
+    const sendBtn = document.getElementById('sendAlertBtn');
+
+    // Open modal when clicking Alert Users in sidebar
+    if (emergencyBtn) {
+      emergencyBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Prevent body scroll when modal is open
+      });
+    }
+
+    // Close modal function
+    function closeModal() {
+      modal.style.display = 'none';
+      document.body.style.overflow = ''; // Restore body scroll
+    }
+
+    // Close modal
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeModal);
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    // Live preview functionality
+    const alertType = document.getElementById('alertType');
+    const severity = document.getElementById('severity');
+    const alertTitle = document.getElementById('alertTitle');
+    const alertMessage = document.getElementById('alertMessage');
+    const previewBadge = document.getElementById('previewBadge');
+    const previewText = document.getElementById('previewText');
+
+    function updatePreview() {
+      const type = alertType ? alertType.value : 'flood';
+      const sev = severity ? severity.value : 'advisory';
+      const title = alertTitle ? (alertTitle.value || 'Alert Title') : 'Alert Title';
+      const message = alertMessage ? (alertMessage.value || 'Your message will appear here...') : 'Your message will appear here...';
+      
+      const icons = {
+        flood: '🌊',
+        earthquake: '🌋',
+        fire: '🔥',
+        storm: '🌪️',
+        typhoon: '🌀'
+      };
+      
+      const severityIcons = {
+        advisory: '📢',
+        alert: '⚠️',
+        warning: '🚨',
+        emergency: '🆘'
+      };
+      
+      if (previewBadge) {
+        previewBadge.innerHTML = `${severityIcons[sev]} ${icons[type]}`;
+      }
+      if (previewText) {
+        previewText.innerHTML = `<strong>${escapeHtml(title)}</strong><br><small>${escapeHtml(message.substring(0, 100))}${message.length > 100 ? '...' : ''}</small>`;
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    if (alertType) alertType.addEventListener('change', updatePreview);
+    if (severity) severity.addEventListener('change', updatePreview);
+    if (alertTitle) alertTitle.addEventListener('input', updatePreview);
+    if (alertMessage) alertMessage.addEventListener('input', updatePreview);
+
+    // Form submission
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Disable button and show loading
+        if (sendBtn) {
+          sendBtn.disabled = true;
+          sendBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Sending Alert...';
+        }
+        
+        const alertData = {
+          alert_type: alertType ? alertType.value : 'flood',
+          title: alertTitle ? alertTitle.value : '',
+          message: alertMessage ? alertMessage.value : '',
+          severity: severity ? severity.value : 'alert'
+        };
+        
+        // Validate inputs
+        if (!alertData.title || !alertData.message) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Missing Information',
+            text: 'Please fill in both title and message fields!',
+            background: '#1a1d29',
+            color: '#fff'
+          });
+          if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '🚨 Send Alert to ALL Users';
+          }
+          return;
+        }
+        
+        try {
+          const response = await fetch('../api/alerts/send_alert.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(alertData)
+          });
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Alert Sent!',
+              html: `✅ Emergency alert sent successfully to <strong>${result.recipients}</strong> users!`,
+              background: '#1a1d29',
+              color: '#fff',
+              confirmButtonColor: '#dc3545'
+            });
+            
+            // Reset form
+            if (form) form.reset();
+            updatePreview();
+            closeModal();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Failed to Send',
+              text: result.message || 'Something went wrong. Please try again.',
+              background: '#1a1d29',
+              color: '#fff'
+            });
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Connection Error',
+            text: 'Failed to connect to the server. Please check your connection.',
+            background: '#1a1d29',
+            color: '#fff'
+          });
+        } finally {
+          if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '🚨 Send Alert to ALL Users';
+          }
+        }
+      });
     }
   </script>
 
 </body>
+
 </html>

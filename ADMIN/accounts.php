@@ -12,10 +12,10 @@ $verification_filter = isset($_GET['verification']) ? $_GET['verification'] : 'a
 // Fetch landlords with filters
 $landlords_query = "SELECT * FROM landlordtbl WHERE 1=1";
 if (!empty($search)) {
-    $landlords_query .= " AND (firstName LIKE '%$search%' OR lastName LIKE '%$search%' OR email LIKE '%$search%' OR username LIKE '%$search%')";
+  $landlords_query .= " AND (firstName LIKE '%$search%' OR lastName LIKE '%$search%' OR email LIKE '%$search%' OR username LIKE '%$search%')";
 }
 if ($verification_filter !== 'all') {
-    $landlords_query .= " AND verification_status = '$verification_filter'";
+  $landlords_query .= " AND verification_status = '$verification_filter'";
 }
 $landlords_query .= " ORDER BY ID DESC";
 $landlords_result = $conn->query($landlords_query);
@@ -23,7 +23,7 @@ $landlords_result = $conn->query($landlords_query);
 // Fetch tenants with filters
 $tenants_query = "SELECT * FROM tenanttbl WHERE 1=1";
 if (!empty($search)) {
-    $tenants_query .= " AND (firstName LIKE '%$search%' OR lastName LIKE '%$search%' OR email LIKE '%$search%' OR username LIKE '%$search%')";
+  $tenants_query .= " AND (firstName LIKE '%$search%' OR lastName LIKE '%$search%' OR email LIKE '%$search%' OR username LIKE '%$search%')";
 }
 $tenants_query .= " ORDER BY ID DESC";
 $tenants_result = $conn->query($tenants_query);
@@ -37,12 +37,15 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Accounts - Admin Dashboard</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-  
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
@@ -85,7 +88,9 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     }
 
-    .sidebar.collapsed { width: 75px; }
+    .sidebar.collapsed {
+      width: 75px;
+    }
 
     .sidebar header {
       padding: 20px 16px;
@@ -169,15 +174,28 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       overflow-x: hidden;
     }
 
-    .sidebar .menu-bar::-webkit-scrollbar { width: 4px; }
+    .sidebar .menu-bar::-webkit-scrollbar {
+      width: 4px;
+    }
+
     .sidebar .menu-bar::-webkit-scrollbar-thumb {
       background: var(--border-color);
       border-radius: 10px;
     }
 
-    .sidebar .menu { padding: 0 12px; }
-    .sidebar .menu-links { padding: 0; margin: 0; }
-    .sidebar li { list-style: none; margin: 4px 0; }
+    .sidebar .menu {
+      padding: 0 12px;
+    }
+
+    .sidebar .menu-links {
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar li {
+      list-style: none;
+      margin: 4px 0;
+    }
 
     .sidebar li a {
       display: flex;
@@ -202,14 +220,21 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       transition: transform 0.2s;
     }
 
-    .sidebar li a:hover { background: var(--sidebar-hover); }
-    .sidebar li a:hover::before { transform: scaleY(1); }
+    .sidebar li a:hover {
+      background: var(--sidebar-hover);
+    }
+
+    .sidebar li a:hover::before {
+      transform: scaleY(1);
+    }
 
     .sidebar li a.active {
       background: linear-gradient(90deg, rgba(141, 11, 65, 0.15) 0%, rgba(141, 11, 65, 0.05) 100%);
     }
 
-    .sidebar li a.active::before { transform: scaleY(1); }
+    .sidebar li a.active::before {
+      transform: scaleY(1);
+    }
 
     .sidebar li .icon {
       min-width: 45px;
@@ -354,7 +379,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       min-height: 100vh;
     }
 
-    .sidebar.collapsed ~ .content {
+    .sidebar.collapsed~.content {
       margin-left: 75px;
     }
 
@@ -386,7 +411,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       background: #1a1d29;
       padding: 24px;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       position: relative;
       overflow: hidden;
       transition: transform 0.3s, box-shadow 0.3s;
@@ -395,7 +420,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
 
     .stat-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       border-color: var(--primary-color);
     }
 
@@ -469,7 +494,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       background: #1a1d29;
       padding: 24px;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       margin-bottom: 24px;
       border: 1px solid #2d3142;
     }
@@ -563,7 +588,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
     .tabs-container {
       background: #1a1d29;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       overflow: hidden;
       margin-bottom: 24px;
       border: 1px solid #2d3142;
@@ -620,7 +645,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       background: #1a1d29;
       border-radius: 12px;
       padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       transition: all 0.3s;
       position: relative;
       border: 1px solid #2d3142;
@@ -628,7 +653,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
 
     .account-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
       border-color: var(--primary-color);
     }
 
@@ -764,13 +789,18 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       top: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0,0,0,0.6);
+      background-color: rgba(0, 0, 0, 0.6);
       animation: fadeIn 0.3s;
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
     }
 
     .modal-content {
@@ -780,13 +810,20 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       border-radius: 16px;
       width: 90%;
       max-width: 600px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
       animation: slideDown 0.3s;
     }
 
     @keyframes slideDown {
-      from { transform: translateY(-50px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     .modal-header {
@@ -915,7 +952,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
         margin-left: 0;
       }
 
-      .sidebar.collapsed ~ .content {
+      .sidebar.collapsed~.content {
         margin-left: 0;
       }
 
@@ -932,8 +969,201 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
         grid-template-columns: 1fr;
       }
     }
+
+    /* ========== EMERGENCY ALERT MODAL STYLES  ========== */
+    .emergency-modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(3px);
+      overflow-y: auto;
+    }
+
+    .emergency-modal-content {
+      background: #ffffff;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 550px;
+      border-radius: 20px;
+      border: none;
+      animation: slideIn 0.3s ease;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .emergency-modal-header {
+      background: linear-gradient(135deg, #6a0831, #811621);
+      color: white;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .emergency-modal-header h2 {
+      margin: 0;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: white;
+    }
+
+    .emergency-close {
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      transition: 0.3s;
+      line-height: 1;
+    }
+
+    .emergency-close:hover {
+      color: #ddd;
+      transform: scale(1.1);
+    }
+
+    .emergency-form-body {
+      max-height: calc(80vh - 80px);
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .emergency-form-body::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .emergency-form-body::-webkit-scrollbar-track {
+      background: var(--border-color);
+      border-radius: 10px;
+    }
+
+    .emergency-form-body::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 10px;
+    }
+
+    .emergency-form-group {
+      padding: 20px 24px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .emergency-form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #2d3748;
+      font-size: 14px;
+    }
+
+    .emergency-form-group select,
+    .emergency-form-group input,
+    .emergency-form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #1a202c;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .emergency-form-group select:focus,
+    .emergency-form-group input:focus,
+    .emergency-form-group textarea:focus {
+      outline: none;
+      border-color: #dc3545;
+      box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+    }
+
+    .emergency-form-group select option {
+      background: #ffffff;
+      color: #1a202c;
+    }
+
+    .emergency-preview {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 10px;
+      border-left: 4px solid #dc3545;
+    }
+
+    .emergency-preview-badge {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    .emergency-preview-text {
+      color: #6c757d;
+      font-size: 13px;
+    }
+
+    .emergency-preview-text strong {
+      color: #2d3748;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .emergency-btn-send {
+      background: linear-gradient(135deg, #6a0831, #811621);
+      color: white;
+      border: none;
+      padding: 14px;
+      margin: 0 24px 24px;
+      width: calc(100% - 48px);
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .emergency-btn-send:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(220, 53, 69, 0.4);
+    }
+
+    .emergency-btn-send:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .emergency-btn-send i {
+      margin-right: 8px;
+    }
+
+    /* Placeholder text color */
+    .emergency-form-group input::placeholder,
+    .emergency-form-group textarea::placeholder {
+      color: #adb5bd;
+    }
   </style>
-   <link rel="stylesheet" href="admin-theme.css">
+  <link rel="stylesheet" href="admin-theme.css">
 </head>
 
 <body>
@@ -989,9 +1219,15 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
             <a href="verify-landlord.php" data-tooltip="Verify Landlord">
               <i class='bx bx-shield-check icon'></i>
               <span class="text">Verify Landlord</span>
-              <?php if($pending_landlords > 0): ?>
+              <?php if ($pending_landlords > 0): ?>
                 <span class="badge"><?= $pending_landlords ?></span>
               <?php endif; ?>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="emergencyAlertBtn" data-tooltip="Alert Users">
+              <i class='bx bx-alert-square icon'></i>
+              <span class="text">Alert Users</span>
             </a>
           </li>
         </ul>
@@ -1094,11 +1330,11 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       <div id="landlords" class="tab-content active">
         <?php if ($landlords_result->num_rows > 0): ?>
           <div class="card-grid">
-            <?php while($landlord = $landlords_result->fetch_assoc()): ?>
+            <?php while ($landlord = $landlords_result->fetch_assoc()): ?>
               <div class="account-card">
                 <div class="profile-section">
-                  <img src="<?= !empty($landlord['profilePic']) ? htmlspecialchars($landlord['profilePic']) : 'https://via.placeholder.com/64' ?>" 
-                       alt="Landlord" class="profile-pic">
+                  <img src="<?= !empty($landlord['profilePic']) ? htmlspecialchars($landlord['profilePic']) : 'https://via.placeholder.com/64' ?>"
+                    alt="Landlord" class="profile-pic">
                   <div class="profile-info">
                     <h3><?= htmlspecialchars($landlord['firstName'] . ' ' . $landlord['lastName']) ?></h3>
                     <div class="username">
@@ -1118,7 +1354,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
                     <i class='bx bx-envelope'></i>
                     <span><?= htmlspecialchars($landlord['email']) ?></span>
                   </div>
-                  <?php if(!empty($landlord['phoneNum'])): ?>
+                  <?php if (!empty($landlord['phoneNum'])): ?>
                     <div class="detail-item">
                       <i class='bx bx-phone'></i>
                       <span><?= htmlspecialchars($landlord['phoneNum']) ?></span>
@@ -1149,11 +1385,11 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       <div id="tenants" class="tab-content">
         <?php if ($tenants_result->num_rows > 0): ?>
           <div class="card-grid">
-            <?php while($tenant = $tenants_result->fetch_assoc()): ?>
+            <?php while ($tenant = $tenants_result->fetch_assoc()): ?>
               <div class="account-card">
                 <div class="profile-section">
-                  <img src="<?= !empty($tenant['profilePic']) ? htmlspecialchars($tenant['profilePic']) : 'https://via.placeholder.com/64' ?>" 
-                       alt="Tenant" class="profile-pic">
+                  <img src="<?= !empty($tenant['profilePic']) ? htmlspecialchars($tenant['profilePic']) : 'https://via.placeholder.com/64' ?>"
+                    alt="Tenant" class="profile-pic">
                   <div class="profile-info">
                     <h3><?= htmlspecialchars($tenant['firstName'] . ' ' . $tenant['lastName']) ?></h3>
                     <div class="username">
@@ -1173,7 +1409,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
                     <i class='bx bx-envelope'></i>
                     <span><?= htmlspecialchars($tenant['email']) ?></span>
                   </div>
-                  <?php if(!empty($tenant['phoneNum'])): ?>
+                  <?php if (!empty($tenant['phoneNum'])): ?>
                     <div class="detail-item">
                       <i class='bx bx-phone'></i>
                       <span><?= htmlspecialchars($tenant['phoneNum']) ?></span>
@@ -1201,6 +1437,69 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       </div>
     </div>
   </main>
+
+  <!-- ========== EMERGENCY ALERT MODAL (LIGHT THEME FIXED) ========== -->
+  <div id="emergencyModal" class="emergency-modal">
+    <div class="emergency-modal-content">
+      <div class="emergency-modal-header">
+        <h2>
+          <i class='bx bx-alarm-exclamation'></i>
+          Send Emergency Alert
+        </h2>
+        <span class="emergency-close">&times;</span>
+      </div>
+
+      <form id="emergencyForm">
+        <div class="emergency-form-body">
+          <div class="emergency-form-group">
+            <label>⚠️ Alert Type:</label>
+            <select id="alertType" required>
+              <option value="flood">🌊 Flood Alert</option>
+              <option value="earthquake">🌋 Earthquake Alert</option>
+              <option value="fire">🔥 Fire Alert</option>
+              <option value="storm">🌪️ Storm Alert</option>
+              <option value="typhoon">🌀 Typhoon Alert</option>
+            </select>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>📊 Severity Level:</label>
+            <select id="severity" required>
+              <option value="advisory">📢 Advisory - Be Aware</option>
+              <option value="alert">⚠️ Alert - Be Prepared</option>
+              <option value="warning">🚨 Warning - Take Action</option>
+              <option value="emergency">🆘 Emergency - Immediate Action Required</option>
+            </select>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>📝 Alert Title:</label>
+            <input type="text" id="alertTitle" placeholder="e.g., Typhoon Signal #3 Alert" required>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>📄 Alert Message:</label>
+            <textarea id="alertMessage" rows="4" placeholder="Provide clear instructions and safety measures..." required></textarea>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>👁️ Preview:</label>
+            <div class="emergency-preview">
+              <div class="emergency-preview-badge" id="previewBadge">📢</div>
+              <div class="emergency-preview-text" id="previewText">
+                <strong>Alert Title</strong>
+                <small>Your message will appear here...</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="emergency-btn-send" id="sendAlertBtn">
+          🚨 Send Alert to ALL Users
+        </button>
+      </form>
+    </div>
+  </div>
 
   <!-- User Detail Modal -->
   <div id="userModal" class="modal">
@@ -1234,10 +1533,10 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
     document.querySelectorAll('.tab').forEach(tab => {
       tab.addEventListener('click', () => {
         const target = tab.dataset.target;
-        
+
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        
+
         tab.classList.add('active');
         document.querySelector(target).classList.add('active');
       });
@@ -1248,16 +1547,16 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       const modal = document.getElementById('userModal');
       const modalBody = document.getElementById('modalBody');
       const modalTitle = document.getElementById('modalTitle');
-      
+
       modalTitle.textContent = type.charAt(0).toUpperCase() + type.slice(1) + ' Details';
-      
+
       let verificationBadge = '';
       if (type === 'landlord' && user.verification_status) {
-        const badgeClass = user.verification_status === 'verified' ? 'badge-verified' : 
-                           user.verification_status === 'pending' ? 'badge-pending' : 'badge-rejected';
+        const badgeClass = user.verification_status === 'verified' ? 'badge-verified' :
+          user.verification_status === 'pending' ? 'badge-pending' : 'badge-rejected';
         verificationBadge = `<span class="verification-badge ${badgeClass}">${user.verification_status.toUpperCase()}</span>`;
       }
-      
+
       modalBody.innerHTML = `
         <div class="user-profile-modal">
           <img src="${user.profilePic || 'https://via.placeholder.com/100'}" class="user-profile-pic-modal" alt="Profile">
@@ -1296,27 +1595,196 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
           <div class="detail-value">${user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', {year: 'numeric', month: 'long', day: 'numeric'}) : 'N/A'}</div>
         </div>
       `;
-      
+
       modal.style.display = 'block';
     }
-    
+
     function closeModal() {
       document.getElementById('userModal').style.display = 'none';
     }
-    
+
     window.onclick = function(event) {
       const modal = document.getElementById('userModal');
       if (event.target == modal) {
         modal.style.display = 'none';
       }
     }
-    
+
     function removeUser(type, id, name) {
-      if(confirm(`Are you sure you want to remove ${name}?\n\nThis action cannot be undone.`)) {
+      if (confirm(`Are you sure you want to remove ${name}?\n\nThis action cannot be undone.`)) {
         window.location.href = `delete_user.php?type=${type}&id=${id}`;
       }
+    }
+    // ========== EMERGENCY ALERT SYSTEM ==========
+    // Get modal elements
+    const modal = document.getElementById('emergencyModal');
+    const emergencyBtn = document.getElementById('emergencyAlertBtn');
+    const closeBtn = document.querySelector('.emergency-close');
+    const form = document.getElementById('emergencyForm');
+    const sendBtn = document.getElementById('sendAlertBtn');
+
+    // Open modal when clicking Alert Users in sidebar
+    if (emergencyBtn) {
+      emergencyBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Prevent body scroll when modal is open
+      });
+    }
+
+    // Close modal function
+    function closeModal() {
+      modal.style.display = 'none';
+      document.body.style.overflow = ''; // Restore body scroll
+    }
+
+    // Close modal
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeModal);
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    // Live preview functionality
+    const alertType = document.getElementById('alertType');
+    const severity = document.getElementById('severity');
+    const alertTitle = document.getElementById('alertTitle');
+    const alertMessage = document.getElementById('alertMessage');
+    const previewBadge = document.getElementById('previewBadge');
+    const previewText = document.getElementById('previewText');
+
+    function updatePreview() {
+      const type = alertType ? alertType.value : 'flood';
+      const sev = severity ? severity.value : 'advisory';
+      const title = alertTitle ? (alertTitle.value || 'Alert Title') : 'Alert Title';
+      const message = alertMessage ? (alertMessage.value || 'Your message will appear here...') : 'Your message will appear here...';
+
+      const icons = {
+        flood: '🌊',
+        earthquake: '🌋',
+        fire: '🔥',
+        storm: '🌪️',
+        typhoon: '🌀'
+      };
+
+      const severityIcons = {
+        advisory: '📢',
+        alert: '⚠️',
+        warning: '🚨',
+        emergency: '🆘'
+      };
+
+      if (previewBadge) {
+        previewBadge.innerHTML = `${severityIcons[sev]} ${icons[type]}`;
+      }
+      if (previewText) {
+        previewText.innerHTML = `<strong>${escapeHtml(title)}</strong><br><small>${escapeHtml(message.substring(0, 100))}${message.length > 100 ? '...' : ''}</small>`;
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    if (alertType) alertType.addEventListener('change', updatePreview);
+    if (severity) severity.addEventListener('change', updatePreview);
+    if (alertTitle) alertTitle.addEventListener('input', updatePreview);
+    if (alertMessage) alertMessage.addEventListener('input', updatePreview);
+
+    // Form submission
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Disable button and show loading
+        if (sendBtn) {
+          sendBtn.disabled = true;
+          sendBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Sending Alert...';
+        }
+
+        const alertData = {
+          alert_type: alertType ? alertType.value : 'flood',
+          title: alertTitle ? alertTitle.value : '',
+          message: alertMessage ? alertMessage.value : '',
+          severity: severity ? severity.value : 'alert'
+        };
+
+        // Validate inputs
+        if (!alertData.title || !alertData.message) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Missing Information',
+            text: 'Please fill in both title and message fields!',
+            background: '#1a1d29',
+            color: '#fff'
+          });
+          if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '🚨 Send Alert to ALL Users';
+          }
+          return;
+        }
+
+        try {
+          const response = await fetch('../api/alerts/send_alert.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(alertData)
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Alert Sent!',
+              html: `✅ Emergency alert sent successfully to <strong>${result.recipients}</strong> users!`,
+              background: '#1a1d29',
+              color: '#fff',
+              confirmButtonColor: '#dc3545'
+            });
+
+            // Reset form
+            if (form) form.reset();
+            updatePreview();
+            closeModal();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Failed to Send',
+              text: result.message || 'Something went wrong. Please try again.',
+              background: '#1a1d29',
+              color: '#fff'
+            });
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Connection Error',
+            text: 'Failed to connect to the server. Please check your connection.',
+            background: '#1a1d29',
+            color: '#fff'
+          });
+        } finally {
+          if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '🚨 Send Alert to ALL Users';
+          }
+        }
+      });
     }
   </script>
 
 </body>
+
 </html>

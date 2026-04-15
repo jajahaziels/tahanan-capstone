@@ -279,12 +279,94 @@ $current_page = basename($_SERVER['PHP_SELF']);
             font-size:16px; font-weight:600; cursor:pointer; transition:all 0.2s;
         }
         .terms-accept-btn:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(141,11,65,0.3); }
+
+        /* =============================================
+           EMERGENCY ALERT POPUP STYLES
+        ============================================= */
+        .emergency-popup {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 10001;
+            min-width: 320px;
+            max-width: 450px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            animation: slideInRight 0.4s ease;
+            overflow: hidden;
+        }
+
+        .emergency-popup.flood { border-left: 8px solid #2196F3; }
+        .emergency-popup.earthquake { border-left: 8px solid #FF9800; }
+        .emergency-popup.fire { border-left: 8px solid #f44336; }
+        .emergency-popup.storm { border-left: 8px solid #9C27B0; }
+        .emergency-popup.typhoon { border-left: 8px solid #00BCD4; }
+
+        .popup-header {
+            padding: 15px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        .popup-body {
+            padding: 15px;
+        }
+
+        .emergency-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .severity-emergency { background: #dc3545; color: white; }
+        .severity-warning { background: #ffc107; color: #333; }
+        .severity-alert { background: #fd7e14; color: white; }
+        .severity-advisory { background: #17a2b8; color: white; }
+
+        .popup-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(400px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        /* Emergency alert items in notification dropdown */
+        .emergency-notif-item {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+            border-left: 4px solid #dc3545;
+            margin: 8px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .emergency-notif-item:hover {
+            transform: translateX(3px);
+        }
+        .emergency-notif-item.flood { border-left-color: #2196F3; background: linear-gradient(135deg, #e3f2fd 0%, #bbdef5 100%); }
+        .emergency-notif-item.earthquake { border-left-color: #FF9800; background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); }
+        .emergency-notif-item.fire { border-left-color: #f44336; background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%); }
+        .emergency-notif-item.storm { border-left-color: #9C27B0; background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%); }
+        .emergency-notif-item.typhoon { border-left-color: #00BCD4; background: linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%); }
     </style>
 </head>
 
 <body>
     <!-- NAV OVERLAY -->
     <div id="navOverlay"></div>
+
+    <!-- Container for emergency popups -->
+    <div id="emergencyPopupContainer"></div>
 
     <!-- =============================================
          HEADER
@@ -322,16 +404,21 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </div>
             </div>
 
-            <!-- BELL — inline with hamburger, NOT a separate header child -->
+            <!-- BELL with Emergency Alert Integration -->
             <div class="bell-wrapper dropdown">
                 <a href="#" class="nav-link position-relative" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger count" style="display:none;">0</span>
                     <i class="fa-solid fa-bell fs-5"></i>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-end p-0" style="min-width:280px;">
-                    <li class="dropdown-header d-flex justify-content-between px-3 py-2">
-                        <span class="fw-semibold p-3">Notifications</span>
-                        <button class="btn btn-sm btn-link text-danger ps-4" id="clearNotifications">Clear all</button>
+                <ul class="dropdown-menu dropdown-menu-end p-0" style="min-width:320px; max-height:500px; overflow-y:auto;">
+                    <li class="dropdown-header d-flex justify-content-between align-items-center px-3 py-2" style="background:#f8f9fa;">
+                        <div>
+                            <i class="fa-regular fa-bell me-2"></i>
+                            <span class="fw-semibold">Notifications</span>
+                        </div>
+                        <div>
+                            <button class="btn btn-sm btn-link text-danger" id="clearAllNotifications">Clear all</button>
+                        </div>
                     </li>
                     <li><hr class="dropdown-divider m-0"></li>
                     <div id="notificationList">
@@ -543,6 +630,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <script src="../js/global-notification-init.js"></script>
     <?php endif; ?>
 
+    <!-- Emergency Alert System for Tenant -->
     <script>
     /* =============================================
        MOBILE NAV
@@ -560,13 +648,219 @@ $current_page = basename($_SERVER['PHP_SELF']);
     window.addEventListener('resize', () => { if (window.innerWidth > 768) closeNav(); });
 
     /* =============================================
-       NOTIFICATION CLEAR
+       EMERGENCY ALERT SYSTEM
     ============================================= */
-    document.getElementById('clearNotifications').addEventListener('click', () => {
-        document.getElementById('notificationList').innerHTML =
-            '<li><span class="dropdown-item text-muted text-center py-3">No notifications</span></li>';
+    
+    // Alert type icons and mappings
+    const alertIcons = {
+        flood: '🌊',
+        earthquake: '🌋',
+        fire: '🔥',
+        storm: '🌪️',
+        typhoon: '🌀'
+    };
+    
+    const severityText = {
+        advisory: 'ADVISORY',
+        alert: 'ALERT',
+        warning: 'WARNING',
+        emergency: 'EMERGENCY'
+    };
+    
+    const severityClass = {
+        advisory: 'severity-advisory',
+        alert: 'severity-alert',
+        warning: 'severity-warning',
+        emergency: 'severity-emergency'
+    };
+    
+    let lastAlertCheck = localStorage.getItem('lastAlertCheckTenant') || Math.floor(Date.now() / 1000);
+    let shownAlerts = JSON.parse(localStorage.getItem('shownAlertsTenant') || '[]');
+    
+    // Function to fetch emergency alerts
+    async function fetchEmergencyAlerts() {
+        if (!window.currentUser || !window.currentUser.id) return;
+        
+        try {
+            const response = await fetch(`../api/alerts/fetch_alerts.php?last_check=${lastAlertCheck}&_=${Date.now()}`);
+            const data = await response.json();
+            
+            if (data.success && data.alerts && data.alerts.length > 0) {
+                for (const alert of data.alerts) {
+                    // Check if alert already shown
+                    if (!shownAlerts.includes(alert.id)) {
+                        // Show popup on page
+                        showEmergencyPopup(alert);
+                        // Add to notification dropdown
+                        addEmergencyToDropdown(alert);
+                        // Mark as read
+                        await markEmergencyAlertRead(alert.id);
+                        // Add to shown alerts
+                        shownAlerts.push(alert.id);
+                    }
+                }
+                lastAlertCheck = Math.floor(Date.now() / 1000);
+                localStorage.setItem('lastAlertCheckTenant', lastAlertCheck);
+                localStorage.setItem('shownAlertsTenant', JSON.stringify(shownAlerts));
+                updateNotificationBadgeCount();
+            }
+        } catch (error) {
+            console.error('Error fetching emergency alerts:', error);
+        }
+    }
+    
+    // Show popup on page
+    function showEmergencyPopup(alert) {
+        const container = document.getElementById('emergencyPopupContainer');
+        if (!container) return;
+        
+        const popup = document.createElement('div');
+        popup.className = `emergency-popup ${alert.alert_type}`;
+        popup.innerHTML = `
+            <div class="popup-header">
+                <span>
+                    ${alertIcons[alert.alert_type]} <strong>${escapeHtml(alert.title)}</strong>
+                    <span class="emergency-badge ${severityClass[alert.severity]}">${severityText[alert.severity]}</span>
+                </span>
+                <button class="popup-close" onclick="this.closest('.emergency-popup').remove()">&times;</button>
+            </div>
+            <div class="popup-body">
+                ${escapeHtml(alert.message)}
+                <br><small style="color:#666; display:block; margin-top:10px;">📅 ${new Date(alert.created_at).toLocaleString()}</small>
+            </div>
+        `;
+        
+        container.appendChild(popup);
+        
+        // Play sound effect
+        playAlertSound();
+        
+        // Auto remove after 30 seconds
+        setTimeout(() => {
+            if (popup.parentNode) popup.remove();
+        }, 30000);
+    }
+    
+    // Add to notification dropdown
+    function addEmergencyToDropdown(alert) {
+        const notificationList = document.getElementById('notificationList');
+        if (!notificationList) return;
+        
+        // Remove "no notifications" message if exists
+        if (notificationList.innerHTML.includes('No notifications')) {
+            notificationList.innerHTML = '';
+        }
+        
+        const notifItem = document.createElement('div');
+        notifItem.className = `emergency-notif-item ${alert.alert_type}`;
+        notifItem.style.margin = '8px';
+        notifItem.style.padding = '12px';
+        notifItem.style.borderRadius = '8px';
+        notifItem.style.cursor = 'pointer';
+        notifItem.onclick = () => showEmergencyPopup(alert);
+        
+        notifItem.innerHTML = `
+            <div style="display: flex; align-items: flex-start; gap: 10px;">
+                <div style="font-size: 24px;">${alertIcons[alert.alert_type]}</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; margin-bottom: 4px;">
+                        ${escapeHtml(alert.title)}
+                        <span class="emergency-badge ${severityClass[alert.severity]}" style="font-size: 9px; margin-left: 6px;">${severityText[alert.severity]}</span>
+                    </div>
+                    <div style="font-size: 12px; color: #666; margin-bottom: 4px;">${escapeHtml(alert.message.substring(0, 80))}${alert.message.length > 80 ? '...' : ''}</div>
+                    <div style="font-size: 10px; color: #999;">🚨 Emergency Alert • ${new Date(alert.created_at).toLocaleTimeString()}</div>
+                </div>
+            </div>
+        `;
+        
+        notificationList.insertBefore(notifItem, notificationList.firstChild);
+    }
+    
+    // Mark alert as read in database
+    async function markEmergencyAlertRead(alertId) {
+        try {
+            await fetch('../api/alerts/mark_read.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ alert_id: alertId })
+            });
+        } catch(err) {
+            console.error('Error marking alert read:', err);
+        }
+    }
+    
+    // Update notification badge count
+    function updateNotificationBadgeCount() {
+        const notificationItems = document.querySelectorAll('#notificationList .emergency-notif-item');
+        const badge = document.querySelector('.count');
+        if (badge) {
+            const count = notificationItems.length;
+            if (count > 0) {
+                badge.textContent = count;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    }
+    
+    // Play alert sound
+    function playAlertSound() {
+        try {
+            // Simple beep using Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = 880;
+            gainNode.gain.value = 0.3;
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 1);
+            oscillator.stop(audioContext.currentTime + 1);
+        } catch(e) {
+            console.log('Sound not supported');
+        }
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Start polling for alerts every 10 seconds
+    let pollInterval = setInterval(fetchEmergencyAlerts, 10000);
+    
+    // Initial fetch on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(fetchEmergencyAlerts, 1000);
+    });
+
+    /* =============================================
+       CLEAR ALL NOTIFICATIONS
+    ============================================= */
+    document.getElementById('clearAllNotifications').addEventListener('click', async () => {
+        const notificationList = document.getElementById('notificationList');
+        notificationList.innerHTML = '<li><span class="dropdown-item text-muted text-center py-3">No notifications</span></li>';
         const badge = document.querySelector('.count');
         if (badge) badge.style.display = 'none';
+        
+        // Clear shown alerts
+        shownAlerts = [];
+        localStorage.setItem('shownAlertsTenant', JSON.stringify(shownAlerts));
+        
+        if (window.currentUser) {
+            try {
+                const resp = await fetch('../API/mark_notifications_read.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `user_id=${window.currentUser.id}&user_type=${window.currentUser.type}&mark_all=1`
+                });
+                const data = await resp.json();
+                console.log('Notifications cleared:', data);
+            } catch(e) { console.error(e); }
+        }
     });
 
     /* =============================================

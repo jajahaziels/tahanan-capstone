@@ -18,11 +18,11 @@ $filter = isset($_GET['filter']) ? $_GET['filter'] : 'all';
 $listings_query = "SELECT * FROM listingtbl WHERE 1=1";
 
 if (!empty($search)) {
-    $listings_query .= " AND (listingName LIKE '%$search%' OR barangay LIKE '%$search%' OR listingDesc LIKE '%$search%')";
+  $listings_query .= " AND (listingName LIKE '%$search%' OR barangay LIKE '%$search%' OR listingDesc LIKE '%$search%')";
 }
 
 if ($filter !== 'all') {
-    $listings_query .= " AND verification_status = '$filter'";
+  $listings_query .= " AND verification_status = '$filter'";
 }
 
 $listings_query .= " ORDER BY ID DESC";
@@ -36,12 +36,15 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Property Listings - Admin Dashboard</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-  
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
@@ -85,7 +88,9 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     }
 
-    .sidebar.collapsed { width: 75px; }
+    .sidebar.collapsed {
+      width: 75px;
+    }
 
     .sidebar header {
       padding: 20px 16px;
@@ -169,15 +174,28 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       overflow-x: hidden;
     }
 
-    .sidebar .menu-bar::-webkit-scrollbar { width: 4px; }
+    .sidebar .menu-bar::-webkit-scrollbar {
+      width: 4px;
+    }
+
     .sidebar .menu-bar::-webkit-scrollbar-thumb {
       background: var(--border-color);
       border-radius: 10px;
     }
 
-    .sidebar .menu { padding: 0 12px; }
-    .sidebar .menu-links { padding: 0; margin: 0; }
-    .sidebar li { list-style: none; margin: 4px 0; }
+    .sidebar .menu {
+      padding: 0 12px;
+    }
+
+    .sidebar .menu-links {
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar li {
+      list-style: none;
+      margin: 4px 0;
+    }
 
     .sidebar li a {
       display: flex;
@@ -202,14 +220,21 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       transition: transform 0.2s;
     }
 
-    .sidebar li a:hover { background: var(--sidebar-hover); }
-    .sidebar li a:hover::before { transform: scaleY(1); }
+    .sidebar li a:hover {
+      background: var(--sidebar-hover);
+    }
+
+    .sidebar li a:hover::before {
+      transform: scaleY(1);
+    }
 
     .sidebar li a.active {
       background: linear-gradient(90deg, rgba(141, 11, 65, 0.15) 0%, rgba(141, 11, 65, 0.05) 100%);
     }
 
-    .sidebar li a.active::before { transform: scaleY(1); }
+    .sidebar li a.active::before {
+      transform: scaleY(1);
+    }
 
     .sidebar li .icon {
       min-width: 45px;
@@ -354,7 +379,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       min-height: 100vh;
     }
 
-    .sidebar.collapsed ~ .content {
+    .sidebar.collapsed~.content {
       margin-left: 75px;
     }
 
@@ -387,7 +412,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       border-radius: 12px;
       padding: 20px;
       border: 1px solid var(--border-color);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       display: flex;
       align-items: center;
       gap: 16px;
@@ -396,13 +421,21 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
 
     .stat-box:hover {
       transform: translateY(-4px);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
       border-color: var(--stat-color);
     }
 
-    .stat-box.total { --stat-color: #667eea; }
-    .stat-box.available { --stat-color: #43e97b; }
-    .stat-box.occupied { --stat-color: #feca57; }
+    .stat-box.total {
+      --stat-color: #667eea;
+    }
+
+    .stat-box.available {
+      --stat-color: #43e97b;
+    }
+
+    .stat-box.occupied {
+      --stat-color: #feca57;
+    }
 
     .stat-icon {
       width: 50px;
@@ -412,7 +445,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       align-items: center;
       justify-content: center;
       font-size: 24px;
-      background: rgba(255,255,255,0.05);
+      background: rgba(255, 255, 255, 0.05);
       color: var(--stat-color);
     }
 
@@ -434,7 +467,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       background: var(--card-bg);
       padding: 24px;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       margin-bottom: 24px;
       border: 1px solid var(--border-color);
     }
@@ -512,7 +545,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       background: var(--card-bg);
       border-radius: 12px;
       padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-color);
     }
 
@@ -526,7 +559,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       background: var(--sidebar-hover);
       border-radius: 12px;
       overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       transition: all 0.3s ease;
       opacity: 1;
       border: 1px solid var(--border-color);
@@ -534,7 +567,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
 
     .listing-card:hover {
       transform: translateY(-8px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
       border-color: var(--primary-color);
     }
 
@@ -695,7 +728,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
         margin-left: 0;
       }
 
-      .sidebar.collapsed ~ .content {
+      .sidebar.collapsed~.content {
         margin-left: 0;
       }
 
@@ -703,8 +736,201 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
         grid-template-columns: 1fr;
       }
     }
+
+    /* ========== EMERGENCY ALERT MODAL STYLES  ========== */
+    .emergency-modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(3px);
+      overflow-y: auto;
+    }
+
+    .emergency-modal-content {
+      background: #ffffff;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 550px;
+      border-radius: 20px;
+      border: none;
+      animation: slideIn 0.3s ease;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .emergency-modal-header {
+      background: linear-gradient(135deg, #6a0831, #811621);
+      color: white;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .emergency-modal-header h2 {
+      margin: 0;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: white;
+    }
+
+    .emergency-close {
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      transition: 0.3s;
+      line-height: 1;
+    }
+
+    .emergency-close:hover {
+      color: #ddd;
+      transform: scale(1.1);
+    }
+
+    .emergency-form-body {
+      max-height: calc(80vh - 80px);
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .emergency-form-body::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .emergency-form-body::-webkit-scrollbar-track {
+      background: var(--border-color);
+      border-radius: 10px;
+    }
+
+    .emergency-form-body::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 10px;
+    }
+
+    .emergency-form-group {
+      padding: 20px 24px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .emergency-form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #2d3748;
+      font-size: 14px;
+    }
+
+    .emergency-form-group select,
+    .emergency-form-group input,
+    .emergency-form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #1a202c;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .emergency-form-group select:focus,
+    .emergency-form-group input:focus,
+    .emergency-form-group textarea:focus {
+      outline: none;
+      border-color: #dc3545;
+      box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+    }
+
+    .emergency-form-group select option {
+      background: #ffffff;
+      color: #1a202c;
+    }
+
+    .emergency-preview {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 10px;
+      border-left: 4px solid #dc3545;
+    }
+
+    .emergency-preview-badge {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    .emergency-preview-text {
+      color: #6c757d;
+      font-size: 13px;
+    }
+
+    .emergency-preview-text strong {
+      color: #2d3748;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .emergency-btn-send {
+      background: linear-gradient(135deg, #6a0831, #811621);
+      color: white;
+      border: none;
+      padding: 14px;
+      margin: 0 24px 24px;
+      width: calc(100% - 48px);
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .emergency-btn-send:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(220, 53, 69, 0.4);
+    }
+
+    .emergency-btn-send:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .emergency-btn-send i {
+      margin-right: 8px;
+    }
+
+    /* Placeholder text color */
+    .emergency-form-group input::placeholder,
+    .emergency-form-group textarea::placeholder {
+      color: #adb5bd;
+    }
   </style>
-   <link rel="stylesheet" href="admin-theme.css">
+  <link rel="stylesheet" href="admin-theme.css">
 </head>
 
 <body>
@@ -760,9 +986,9 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
             <a href="verify-properties.php" data-tooltip="Verify Properties">
               <i class='bx bx-shield-alt-2 icon'></i>
               <span class="text">Verify Properties</span>
-              <?php 
+              <?php
               $pending_props = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHERE verification_status='pending'")->fetch_assoc()['count'];
-              if($pending_props > 0): 
+              if ($pending_props > 0):
               ?>
                 <span class="badge"><?= $pending_props ?></span>
               <?php endif; ?>
@@ -772,9 +998,15 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
             <a href="verify-landlord.php" data-tooltip="Verify Landlord">
               <i class='bx bx-shield-check icon'></i>
               <span class="text">Verify Landlord</span>
-              <?php if($pending_verification > 0): ?>
+              <?php if ($pending_verification > 0): ?>
                 <span class="badge"><?= $pending_verification ?></span>
               <?php endif; ?>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="emergencyAlertBtn" data-tooltip="Alert Users">
+              <i class='bx bx-alert-square icon'></i>
+              <span class="text">Alert Users</span>
             </a>
           </li>
         </ul>
@@ -853,7 +1085,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
           </div>
         </div>
       </a>
-      
+
       <a href="?filter=pending" style="text-decoration: none;">
         <div class="stat-box" style="cursor: pointer; --stat-color: #fbbf24;">
           <div class="stat-icon"><i class='bx bx-time'></i></div>
@@ -863,7 +1095,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
           </div>
         </div>
       </a>
-      
+
       <a href="?filter=approved" style="text-decoration: none;">
         <div class="stat-box" style="cursor: pointer; --stat-color: #10b981;">
           <div class="stat-icon"><i class='bx bx-check-circle'></i></div>
@@ -873,7 +1105,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
           </div>
         </div>
       </a>
-      
+
       <a href="?filter=rejected" style="text-decoration: none;">
         <div class="stat-box" style="cursor: pointer; --stat-color: #ef4444;">
           <div class="stat-icon"><i class='bx bx-x-circle'></i></div>
@@ -888,11 +1120,11 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
     <!-- Search Section -->
     <div class="search-section">
       <form method="GET" class="search-bar">
-        <input type="text" 
-               name="search" 
-               id="searchInput"
-               placeholder="🔍 Search by property name, location..." 
-               value="<?= htmlspecialchars($search) ?>">
+        <input type="text"
+          name="search"
+          id="searchInput"
+          placeholder="🔍 Search by property name, location..."
+          value="<?= htmlspecialchars($search) ?>">
         <button type="submit" class="btn-search">
           <i class='bx bx-search'></i> Search
         </button>
@@ -908,44 +1140,44 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
     <div class="listings-container">
       <?php if ($listings_result && $listings_result->num_rows > 0): ?>
         <div class="card-grid">
-          <?php while($listing = $listings_result->fetch_assoc()): ?>
+          <?php while ($listing = $listings_result->fetch_assoc()): ?>
             <div class="listing-card">
               <?php
               $images = !empty($listing['images']) ? $listing['images'] : '';
               $first_image = '../img/house1.jpeg';
-              
+
               if (!empty($images)) {
-                  $image_array = json_decode($images, true);
-                  
-                  if (!is_array($image_array)) {
-                      $image_array = array_map('trim', explode(',', $images));
+                $image_array = json_decode($images, true);
+
+                if (!is_array($image_array)) {
+                  $image_array = array_map('trim', explode(',', $images));
+                }
+
+                if (!empty($image_array) && isset($image_array[0])) {
+                  $raw_image = trim($image_array[0]);
+
+                  if (!empty($raw_image)) {
+                    if (strpos($raw_image, '../LANDLORD/') === 0) {
+                      $first_image = $raw_image;
+                    } elseif (strpos($raw_image, 'uploads/') === 0) {
+                      $first_image = '../LANDLORD/' . $raw_image;
+                    } elseif (strpos($raw_image, 'LANDLORD/') === 0) {
+                      $first_image = '../' . $raw_image;
+                    } else {
+                      $first_image = '../LANDLORD/uploads/' . $raw_image;
+                    }
                   }
-                  
-                  if (!empty($image_array) && isset($image_array[0])) {
-                      $raw_image = trim($image_array[0]);
-                      
-                      if (!empty($raw_image)) {
-                          if (strpos($raw_image, '../LANDLORD/') === 0) {
-                              $first_image = $raw_image;
-                          } elseif (strpos($raw_image, 'uploads/') === 0) {
-                              $first_image = '../LANDLORD/' . $raw_image;
-                          } elseif (strpos($raw_image, 'LANDLORD/') === 0) {
-                              $first_image = '../' . $raw_image;
-                          } else {
-                              $first_image = '../LANDLORD/uploads/' . $raw_image;
-                          }
-                      }
-                  }
+                }
               }
               ?>
-              <img src="<?= htmlspecialchars($first_image) ?>" 
-                   alt="<?= htmlspecialchars($listing['listingName']) ?>"
-                   loading="lazy"
-                   onerror="this.onerror=null; this.src='../img/house1.jpeg';">
+              <img src="<?= htmlspecialchars($first_image) ?>"
+                alt="<?= htmlspecialchars($listing['listingName']) ?>"
+                loading="lazy"
+                onerror="this.onerror=null; this.src='../img/house1.jpeg';">
               <div class="card-body">
                 <h3><?= htmlspecialchars($listing['listingName']) ?></h3>
                 <div class="price">₱<?= number_format($listing['price']) ?>/month</div>
-                
+
                 <?php if (isset($listing['verification_status'])): ?>
                   <?php if ($listing['verification_status'] === 'pending'): ?>
                     <span class="availability-badge" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24;">
@@ -972,13 +1204,13 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
 
                 <div class="details">
                   <div><i class='bx bx-map'></i><?= htmlspecialchars($listing['barangay']) ?><?= !empty($listing['city']) ? ', ' . htmlspecialchars($listing['city']) : '' ?></div>
-                  <?php if(!empty($listing['bedrooms'])): ?>
+                  <?php if (!empty($listing['bedrooms'])): ?>
                     <div><i class='bx bx-bed'></i><?= htmlspecialchars($listing['bedrooms']) ?> Bedrooms</div>
                   <?php endif; ?>
-                  <?php if(!empty($listing['bathrooms'])): ?>
+                  <?php if (!empty($listing['bathrooms'])): ?>
                     <div><i class='bx bx-bath'></i><?= htmlspecialchars($listing['bathrooms']) ?> Bathrooms</div>
                   <?php endif; ?>
-                  <?php if(!empty($listing['rooms'])): ?>
+                  <?php if (!empty($listing['rooms'])): ?>
                     <div><i class='bx bx-door-open'></i><?= htmlspecialchars($listing['rooms']) ?> Rooms</div>
                   <?php endif; ?>
                 </div>
@@ -1004,6 +1236,69 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
     </div>
   </main>
 
+  <!-- ========== EMERGENCY ALERT MODAL (LIGHT THEME FIXED) ========== -->
+  <div id="emergencyModal" class="emergency-modal">
+    <div class="emergency-modal-content">
+      <div class="emergency-modal-header">
+        <h2>
+          <i class='bx bx-alarm-exclamation'></i>
+          Send Emergency Alert
+        </h2>
+        <span class="emergency-close">&times;</span>
+      </div>
+
+      <form id="emergencyForm">
+        <div class="emergency-form-body">
+          <div class="emergency-form-group">
+            <label>⚠️ Alert Type:</label>
+            <select id="alertType" required>
+              <option value="flood">🌊 Flood Alert</option>
+              <option value="earthquake">🌋 Earthquake Alert</option>
+              <option value="fire">🔥 Fire Alert</option>
+              <option value="storm">🌪️ Storm Alert</option>
+              <option value="typhoon">🌀 Typhoon Alert</option>
+            </select>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>📊 Severity Level:</label>
+            <select id="severity" required>
+              <option value="advisory">📢 Advisory - Be Aware</option>
+              <option value="alert">⚠️ Alert - Be Prepared</option>
+              <option value="warning">🚨 Warning - Take Action</option>
+              <option value="emergency">🆘 Emergency - Immediate Action Required</option>
+            </select>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>📝 Alert Title:</label>
+            <input type="text" id="alertTitle" placeholder="e.g., Typhoon Signal #3 Alert" required>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>📄 Alert Message:</label>
+            <textarea id="alertMessage" rows="4" placeholder="Provide clear instructions and safety measures..." required></textarea>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>👁️ Preview:</label>
+            <div class="emergency-preview">
+              <div class="emergency-preview-badge" id="previewBadge">📢</div>
+              <div class="emergency-preview-text" id="previewText">
+                <strong>Alert Title</strong>
+                <small>Your message will appear here...</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="emergency-btn-send" id="sendAlertBtn">
+          🚨 Send Alert to ALL Users
+        </button>
+      </form>
+    </div>
+  </div>
+
   <script>
     // Sidebar toggle
     const sidebar = document.querySelector('.sidebar');
@@ -1028,7 +1323,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
 
     // Delete listing
     function deleteListing(id, name) {
-      if(confirm(`Are you sure you want to remove "${name}"?\n\nThis action cannot be undone.`)) {
+      if (confirm(`Are you sure you want to remove "${name}"?\n\nThis action cannot be undone.`)) {
         window.location.href = `delete-listing.php?id=${id}`;
       }
     }
@@ -1084,7 +1379,177 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
     if (searchInput) {
       searchInput.addEventListener('input', onInput);
     }
+
+    // ========== EMERGENCY ALERT SYSTEM ==========
+    // Get modal elements
+    const modal = document.getElementById('emergencyModal');
+    const emergencyBtn = document.getElementById('emergencyAlertBtn');
+    const closeBtn = document.querySelector('.emergency-close');
+    const form = document.getElementById('emergencyForm');
+    const sendBtn = document.getElementById('sendAlertBtn');
+
+    // Open modal when clicking Alert Users in sidebar
+    if (emergencyBtn) {
+      emergencyBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Prevent body scroll when modal is open
+      });
+    }
+
+    // Close modal function
+    function closeModal() {
+      modal.style.display = 'none';
+      document.body.style.overflow = ''; // Restore body scroll
+    }
+
+    // Close modal
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeModal);
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    // Live preview functionality
+    const alertType = document.getElementById('alertType');
+    const severity = document.getElementById('severity');
+    const alertTitle = document.getElementById('alertTitle');
+    const alertMessage = document.getElementById('alertMessage');
+    const previewBadge = document.getElementById('previewBadge');
+    const previewText = document.getElementById('previewText');
+
+    function updatePreview() {
+      const type = alertType ? alertType.value : 'flood';
+      const sev = severity ? severity.value : 'advisory';
+      const title = alertTitle ? (alertTitle.value || 'Alert Title') : 'Alert Title';
+      const message = alertMessage ? (alertMessage.value || 'Your message will appear here...') : 'Your message will appear here...';
+
+      const icons = {
+        flood: '🌊',
+        earthquake: '🌋',
+        fire: '🔥',
+        storm: '🌪️',
+        typhoon: '🌀'
+      };
+
+      const severityIcons = {
+        advisory: '📢',
+        alert: '⚠️',
+        warning: '🚨',
+        emergency: '🆘'
+      };
+
+      if (previewBadge) {
+        previewBadge.innerHTML = `${severityIcons[sev]} ${icons[type]}`;
+      }
+      if (previewText) {
+        previewText.innerHTML = `<strong>${escapeHtml(title)}</strong><br><small>${escapeHtml(message.substring(0, 100))}${message.length > 100 ? '...' : ''}</small>`;
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    if (alertType) alertType.addEventListener('change', updatePreview);
+    if (severity) severity.addEventListener('change', updatePreview);
+    if (alertTitle) alertTitle.addEventListener('input', updatePreview);
+    if (alertMessage) alertMessage.addEventListener('input', updatePreview);
+
+    // Form submission
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Disable button and show loading
+        if (sendBtn) {
+          sendBtn.disabled = true;
+          sendBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Sending Alert...';
+        }
+
+        const alertData = {
+          alert_type: alertType ? alertType.value : 'flood',
+          title: alertTitle ? alertTitle.value : '',
+          message: alertMessage ? alertMessage.value : '',
+          severity: severity ? severity.value : 'alert'
+        };
+
+        // Validate inputs
+        if (!alertData.title || !alertData.message) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Missing Information',
+            text: 'Please fill in both title and message fields!',
+            background: '#1a1d29',
+            color: '#fff'
+          });
+          if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '🚨 Send Alert to ALL Users';
+          }
+          return;
+        }
+
+        try {
+          const response = await fetch('../api/alerts/send_alert.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(alertData)
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Alert Sent!',
+              html: `✅ Emergency alert sent successfully to <strong>${result.recipients}</strong> users!`,
+              background: '#1a1d29',
+              color: '#fff',
+              confirmButtonColor: '#dc3545'
+            });
+
+            // Reset form
+            if (form) form.reset();
+            updatePreview();
+            closeModal();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Failed to Send',
+              text: result.message || 'Something went wrong. Please try again.',
+              background: '#1a1d29',
+              color: '#fff'
+            });
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Connection Error',
+            text: 'Failed to connect to the server. Please check your connection.',
+            background: '#1a1d29',
+            color: '#fff'
+          });
+        } finally {
+          if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '🚨 Send Alert to ALL Users';
+          }
+        }
+      });
+    }
   </script>
 
 </body>
+
 </html>

@@ -28,13 +28,13 @@ LEFT JOIN landlordtbl l ON r.landlord_id = l.ID
 WHERE 1=1";
 
 if ($status_filter !== 'all') {
-    $reports_query .= " AND r.status = '" . $conn->real_escape_string($status_filter) . "'";
+  $reports_query .= " AND r.status = '" . $conn->real_escape_string($status_filter) . "'";
 }
 if ($priority_filter !== 'all') {
-    $reports_query .= " AND r.priority = '" . $conn->real_escape_string($priority_filter) . "'";
+  $reports_query .= " AND r.priority = '" . $conn->real_escape_string($priority_filter) . "'";
 }
 if ($category_filter !== 'all') {
-    $reports_query .= " AND r.category = '" . $conn->real_escape_string($category_filter) . "'";
+  $reports_query .= " AND r.category = '" . $conn->real_escape_string($category_filter) . "'";
 }
 
 $reports_query .= " ORDER BY 
@@ -63,12 +63,15 @@ $stats = $stats_result->fetch_assoc();
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Reports Management - Admin Dashboard</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-  
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
 
@@ -112,7 +115,9 @@ $stats = $stats_result->fetch_assoc();
       box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
     }
 
-    .sidebar.collapsed { width: 75px; }
+    .sidebar.collapsed {
+      width: 75px;
+    }
 
     .sidebar header {
       padding: 20px 16px;
@@ -196,15 +201,28 @@ $stats = $stats_result->fetch_assoc();
       overflow-x: hidden;
     }
 
-    .sidebar .menu-bar::-webkit-scrollbar { width: 4px; }
+    .sidebar .menu-bar::-webkit-scrollbar {
+      width: 4px;
+    }
+
     .sidebar .menu-bar::-webkit-scrollbar-thumb {
       background: var(--border-color);
       border-radius: 10px;
     }
 
-    .sidebar .menu { padding: 0 12px; }
-    .sidebar .menu-links { padding: 0; margin: 0; }
-    .sidebar li { list-style: none; margin: 4px 0; }
+    .sidebar .menu {
+      padding: 0 12px;
+    }
+
+    .sidebar .menu-links {
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar li {
+      list-style: none;
+      margin: 4px 0;
+    }
 
     .sidebar li a {
       display: flex;
@@ -229,14 +247,21 @@ $stats = $stats_result->fetch_assoc();
       transition: transform 0.2s;
     }
 
-    .sidebar li a:hover { background: var(--sidebar-hover); }
-    .sidebar li a:hover::before { transform: scaleY(1); }
+    .sidebar li a:hover {
+      background: var(--sidebar-hover);
+    }
+
+    .sidebar li a:hover::before {
+      transform: scaleY(1);
+    }
 
     .sidebar li a.active {
       background: linear-gradient(90deg, rgba(141, 11, 65, 0.15) 0%, rgba(141, 11, 65, 0.05) 100%);
     }
 
-    .sidebar li a.active::before { transform: scaleY(1); }
+    .sidebar li a.active::before {
+      transform: scaleY(1);
+    }
 
     .sidebar li .icon {
       min-width: 45px;
@@ -365,7 +390,7 @@ $stats = $stats_result->fetch_assoc();
       min-height: 100vh;
     }
 
-    .sidebar.collapsed ~ .content {
+    .sidebar.collapsed~.content {
       margin-left: 75px;
     }
 
@@ -401,7 +426,7 @@ $stats = $stats_result->fetch_assoc();
       padding: 20px;
       border-radius: 12px;
       border: 1px solid var(--border-color);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       transition: all 0.3s;
       position: relative;
       overflow: hidden;
@@ -419,16 +444,33 @@ $stats = $stats_result->fetch_assoc();
 
     .stat-card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
       border-color: var(--stat-color);
     }
 
-    .stat-card.total { --stat-color: #667eea; }
-    .stat-card.pending { --stat-color: #feca57; }
-    .stat-card.investigating { --stat-color: #4facfe; }
-    .stat-card.resolved { --stat-color: #43e97b; }
-    .stat-card.dismissed { --stat-color: #fa709a; }
-    .stat-card.urgent { --stat-color: #ef4444; }
+    .stat-card.total {
+      --stat-color: #667eea;
+    }
+
+    .stat-card.pending {
+      --stat-color: #feca57;
+    }
+
+    .stat-card.investigating {
+      --stat-color: #4facfe;
+    }
+
+    .stat-card.resolved {
+      --stat-color: #43e97b;
+    }
+
+    .stat-card.dismissed {
+      --stat-color: #fa709a;
+    }
+
+    .stat-card.urgent {
+      --stat-color: #ef4444;
+    }
 
     .stat-card h3 {
       font-size: 32px;
@@ -456,7 +498,7 @@ $stats = $stats_result->fetch_assoc();
       background: var(--card-bg);
       padding: 24px;
       border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       margin-bottom: 24px;
       border: 1px solid var(--border-color);
     }
@@ -497,7 +539,7 @@ $stats = $stats_result->fetch_assoc();
       background: var(--card-bg);
       border-radius: 12px;
       padding: 24px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
       border: 1px solid var(--border-color);
     }
 
@@ -654,7 +696,7 @@ $stats = $stats_result->fetch_assoc();
         margin-left: 0;
       }
 
-      .sidebar.collapsed ~ .content {
+      .sidebar.collapsed~.content {
         margin-left: 0;
       }
 
@@ -667,8 +709,201 @@ $stats = $stats_result->fetch_assoc();
         overflow-x: auto;
       }
     }
+
+    /* ========== EMERGENCY ALERT MODAL STYLES  ========== */
+    .emergency-modal {
+      display: none;
+      position: fixed;
+      z-index: 10000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(3px);
+      overflow-y: auto;
+    }
+
+    .emergency-modal-content {
+      background: #ffffff;
+      margin: 20px auto;
+      width: 90%;
+      max-width: 550px;
+      border-radius: 20px;
+      border: none;
+      animation: slideIn 0.3s ease;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .emergency-modal-header {
+      background: linear-gradient(135deg, #6a0831, #811621);
+      color: white;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .emergency-modal-header h2 {
+      margin: 0;
+      font-size: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: white;
+    }
+
+    .emergency-close {
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: white;
+      transition: 0.3s;
+      line-height: 1;
+    }
+
+    .emergency-close:hover {
+      color: #ddd;
+      transform: scale(1.1);
+    }
+
+    .emergency-form-body {
+      max-height: calc(80vh - 80px);
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    .emergency-form-body::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .emergency-form-body::-webkit-scrollbar-track {
+      background: var(--border-color);
+      border-radius: 10px;
+    }
+
+    .emergency-form-body::-webkit-scrollbar-thumb {
+      background: var(--primary-color);
+      border-radius: 10px;
+    }
+
+    .emergency-form-group {
+      padding: 20px 24px;
+      border-bottom: 1px solid #e9ecef;
+    }
+
+    .emergency-form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #2d3748;
+      font-size: 14px;
+    }
+
+    .emergency-form-group select,
+    .emergency-form-group input,
+    .emergency-form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #1a202c;
+      font-size: 14px;
+      transition: all 0.3s;
+    }
+
+    .emergency-form-group select:focus,
+    .emergency-form-group input:focus,
+    .emergency-form-group textarea:focus {
+      outline: none;
+      border-color: #dc3545;
+      box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+    }
+
+    .emergency-form-group select option {
+      background: #ffffff;
+      color: #1a202c;
+    }
+
+    .emergency-preview {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 15px;
+      margin-top: 10px;
+      border-left: 4px solid #dc3545;
+    }
+
+    .emergency-preview-badge {
+      font-size: 24px;
+      margin-bottom: 8px;
+      display: inline-block;
+    }
+
+    .emergency-preview-text {
+      color: #6c757d;
+      font-size: 13px;
+    }
+
+    .emergency-preview-text strong {
+      color: #2d3748;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .emergency-btn-send {
+      background: linear-gradient(135deg, #6a0831, #811621);
+      color: white;
+      border: none;
+      padding: 14px;
+      margin: 0 24px 24px;
+      width: calc(100% - 48px);
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .emergency-btn-send:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(220, 53, 69, 0.4);
+    }
+
+    .emergency-btn-send:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .emergency-btn-send i {
+      margin-right: 8px;
+    }
+
+    /* Placeholder text color */
+    .emergency-form-group input::placeholder,
+    .emergency-form-group textarea::placeholder {
+      color: #adb5bd;
+    }
   </style>
-   <link rel="stylesheet" href="admin-theme.css">
+  <link rel="stylesheet" href="admin-theme.css">
 </head>
 
 <body>
@@ -724,9 +959,15 @@ $stats = $stats_result->fetch_assoc();
             <a href="verify-landlord.php" data-tooltip="Verify Landlord">
               <i class='bx bx-shield-check icon'></i>
               <span class="text">Verify Landlord</span>
-              <?php if($pending_verification > 0): ?>
+              <?php if ($pending_verification > 0): ?>
                 <span class="badge"><?= $pending_verification ?></span>
               <?php endif; ?>
+            </a>
+          </li>
+          <li>
+            <a href="#" id="emergencyAlertBtn" data-tooltip="Alert Users">
+              <i class='bx bx-alert-square icon'></i>
+              <span class="text">Alert Users</span>
             </a>
           </li>
         </ul>
@@ -857,7 +1098,7 @@ $stats = $stats_result->fetch_assoc();
             </tr>
           </thead>
           <tbody>
-            <?php while($report = $reports_result->fetch_assoc()): ?>
+            <?php while ($report = $reports_result->fetch_assoc()): ?>
               <tr>
                 <td style="color: #ffffff; font-weight: 600;">#<?= $report['ID'] ?></td>
                 <td>
@@ -903,6 +1144,69 @@ $stats = $stats_result->fetch_assoc();
     </div>
   </main>
 
+  <!-- ========== EMERGENCY ALERT MODAL (LIGHT THEME FIXED) ========== -->
+  <div id="emergencyModal" class="emergency-modal">
+    <div class="emergency-modal-content">
+      <div class="emergency-modal-header">
+        <h2>
+          <i class='bx bx-alarm-exclamation'></i>
+          Send Emergency Alert
+        </h2>
+        <span class="emergency-close">&times;</span>
+      </div>
+
+      <form id="emergencyForm">
+        <div class="emergency-form-body">
+          <div class="emergency-form-group">
+            <label>⚠️ Alert Type:</label>
+            <select id="alertType" required>
+              <option value="flood">🌊 Flood Alert</option>
+              <option value="earthquake">🌋 Earthquake Alert</option>
+              <option value="fire">🔥 Fire Alert</option>
+              <option value="storm">🌪️ Storm Alert</option>
+              <option value="typhoon">🌀 Typhoon Alert</option>
+            </select>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>📊 Severity Level:</label>
+            <select id="severity" required>
+              <option value="advisory">📢 Advisory - Be Aware</option>
+              <option value="alert">⚠️ Alert - Be Prepared</option>
+              <option value="warning">🚨 Warning - Take Action</option>
+              <option value="emergency">🆘 Emergency - Immediate Action Required</option>
+            </select>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>📝 Alert Title:</label>
+            <input type="text" id="alertTitle" placeholder="e.g., Typhoon Signal #3 Alert" required>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>📄 Alert Message:</label>
+            <textarea id="alertMessage" rows="4" placeholder="Provide clear instructions and safety measures..." required></textarea>
+          </div>
+
+          <div class="emergency-form-group">
+            <label>👁️ Preview:</label>
+            <div class="emergency-preview">
+              <div class="emergency-preview-badge" id="previewBadge">📢</div>
+              <div class="emergency-preview-text" id="previewText">
+                <strong>Alert Title</strong>
+                <small>Your message will appear here...</small>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="emergency-btn-send" id="sendAlertBtn">
+          🚨 Send Alert to ALL Users
+        </button>
+      </form>
+    </div>
+  </div>
+
   <script>
     // Sidebar toggle
     const sidebar = document.querySelector('.sidebar');
@@ -919,7 +1223,177 @@ $stats = $stats_result->fetch_assoc();
         sidebar.classList.contains('collapsed') ? 'collapsed' : 'expanded'
       );
     });
+
+    // ========== EMERGENCY ALERT SYSTEM ==========
+    // Get modal elements
+    const modal = document.getElementById('emergencyModal');
+    const emergencyBtn = document.getElementById('emergencyAlertBtn');
+    const closeBtn = document.querySelector('.emergency-close');
+    const form = document.getElementById('emergencyForm');
+    const sendBtn = document.getElementById('sendAlertBtn');
+
+    // Open modal when clicking Alert Users in sidebar
+    if (emergencyBtn) {
+      emergencyBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // Prevent body scroll when modal is open
+      });
+    }
+
+    // Close modal function
+    function closeModal() {
+      modal.style.display = 'none';
+      document.body.style.overflow = ''; // Restore body scroll
+    }
+
+    // Close modal
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeModal);
+    }
+
+    // Close modal when clicking outside
+    window.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    // Live preview functionality
+    const alertType = document.getElementById('alertType');
+    const severity = document.getElementById('severity');
+    const alertTitle = document.getElementById('alertTitle');
+    const alertMessage = document.getElementById('alertMessage');
+    const previewBadge = document.getElementById('previewBadge');
+    const previewText = document.getElementById('previewText');
+
+    function updatePreview() {
+      const type = alertType ? alertType.value : 'flood';
+      const sev = severity ? severity.value : 'advisory';
+      const title = alertTitle ? (alertTitle.value || 'Alert Title') : 'Alert Title';
+      const message = alertMessage ? (alertMessage.value || 'Your message will appear here...') : 'Your message will appear here...';
+
+      const icons = {
+        flood: '🌊',
+        earthquake: '🌋',
+        fire: '🔥',
+        storm: '🌪️',
+        typhoon: '🌀'
+      };
+
+      const severityIcons = {
+        advisory: '📢',
+        alert: '⚠️',
+        warning: '🚨',
+        emergency: '🆘'
+      };
+
+      if (previewBadge) {
+        previewBadge.innerHTML = `${severityIcons[sev]} ${icons[type]}`;
+      }
+      if (previewText) {
+        previewText.innerHTML = `<strong>${escapeHtml(title)}</strong><br><small>${escapeHtml(message.substring(0, 100))}${message.length > 100 ? '...' : ''}</small>`;
+      }
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    if (alertType) alertType.addEventListener('change', updatePreview);
+    if (severity) severity.addEventListener('change', updatePreview);
+    if (alertTitle) alertTitle.addEventListener('input', updatePreview);
+    if (alertMessage) alertMessage.addEventListener('input', updatePreview);
+
+    // Form submission
+    if (form) {
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        // Disable button and show loading
+        if (sendBtn) {
+          sendBtn.disabled = true;
+          sendBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Sending Alert...';
+        }
+
+        const alertData = {
+          alert_type: alertType ? alertType.value : 'flood',
+          title: alertTitle ? alertTitle.value : '',
+          message: alertMessage ? alertMessage.value : '',
+          severity: severity ? severity.value : 'alert'
+        };
+
+        // Validate inputs
+        if (!alertData.title || !alertData.message) {
+          Swal.fire({
+            icon: 'error',
+            title: 'Missing Information',
+            text: 'Please fill in both title and message fields!',
+            background: '#1a1d29',
+            color: '#fff'
+          });
+          if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '🚨 Send Alert to ALL Users';
+          }
+          return;
+        }
+
+        try {
+          const response = await fetch('../api/alerts/send_alert.php', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(alertData)
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            Swal.fire({
+              icon: 'success',
+              title: 'Alert Sent!',
+              html: `✅ Emergency alert sent successfully to <strong>${result.recipients}</strong> users!`,
+              background: '#1a1d29',
+              color: '#fff',
+              confirmButtonColor: '#dc3545'
+            });
+
+            // Reset form
+            if (form) form.reset();
+            updatePreview();
+            closeModal();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Failed to Send',
+              text: result.message || 'Something went wrong. Please try again.',
+              background: '#1a1d29',
+              color: '#fff'
+            });
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Connection Error',
+            text: 'Failed to connect to the server. Please check your connection.',
+            background: '#1a1d29',
+            color: '#fff'
+          });
+        } finally {
+          if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '🚨 Send Alert to ALL Users';
+          }
+        }
+      });
+    }
   </script>
 
 </body>
+
 </html>
