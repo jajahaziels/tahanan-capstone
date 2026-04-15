@@ -584,6 +584,7 @@ $pending_verification = $conn->query("SELECT COUNT(*) as count FROM landlordtbl 
       }
     }
   </style>
+   <link rel="stylesheet" href="admin-theme.css">
 </head>
 
 <body>

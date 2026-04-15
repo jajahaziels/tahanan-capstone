@@ -407,6 +407,8 @@
         .sidebar li:nth-child(4) { animation-delay: 0.2s; }
         .sidebar li:nth-child(5) { animation-delay: 0.25s; }
         .sidebar li:nth-child(6) { animation-delay: 0.3s; }
+        .sidebar li:nth-child(7) { animation-delay: 0.35s; }
+        .sidebar li:nth-child(8) { animation-delay: 0.4s; }
 
         /* ========== RESPONSIVE ========== */
         @media (max-width: 768px) {
@@ -486,12 +488,19 @@
                     </li>
                     
                     <li>
-                        <a href="verify-landlord.php" data-tooltip="Verify Landlord">
-                            <i class='bx bx-shield-alt-2 icon'></i>
-                            <span class="text">Verify Landlord</span>
-                            <span class="badge">3</span>
-                        </a>
-                    </li>
+                      <a href="verify-properties.php" data-tooltip="Verify Properties">
+                          <i class='bx bx-shield-alt-2 icon'></i>
+                          <span class="text">Verify Properties</span>
+                          <span class="badge">3</span>
+                      </a>
+                  </li>
+                  <li>
+                      <a href="verify-landlord.php" data-tooltip="Verify Landlord">
+                          <i class='bx bx-shield-check icon'></i>
+                          <span class="text">Verify Landlord</span>
+                          <span class="badge">3</span>
+                      </a>
+                  </li>
                 </ul>
             </div>
 

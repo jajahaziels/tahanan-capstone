@@ -668,6 +668,7 @@ $stats = $stats_result->fetch_assoc();
       }
     }
   </style>
+   <link rel="stylesheet" href="admin-theme.css">
 </head>
 
 <body>

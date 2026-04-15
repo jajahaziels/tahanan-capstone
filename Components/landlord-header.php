@@ -485,25 +485,38 @@ $current_page = basename($_SERVER['PHP_SELF']);
 
     <script>
     /* MOBILE NAV */
-    const navMenu    = document.getElementById('navmenu');
-    const navLinks   = document.querySelector('.nav-links');
-    const navOverlay = document.getElementById('navOverlay');
+    var navMenu    = document.getElementById('navmenu');
+    var navLinks   = document.querySelector('.nav-links');
+    var navOverlay = document.getElementById('navOverlay');
 
     function openNav()  { navLinks.classList.add('active');    navOverlay.classList.add('active');    document.body.style.overflow = 'hidden'; }
     function closeNav() { navLinks.classList.remove('active'); navOverlay.classList.remove('active'); document.body.style.overflow = ''; }
 
-    navMenu.addEventListener('click', () => navLinks.classList.contains('active') ? closeNav() : openNav());
-    navOverlay.addEventListener('click', closeNav);
-    navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', closeNav));
-    window.addEventListener('resize', () => { if (window.innerWidth > 768) closeNav(); });
-
+    if (navMenu) {
+        navMenu.addEventListener('click', () => navLinks.classList.contains('active') ? closeNav() : openNav());
+        navOverlay.addEventListener('click', closeNav);
+        navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', closeNav));
+        window.addEventListener('resize', () => { if (window.innerWidth > 768) closeNav(); });
+    }
     /* NOTIFICATION CLEAR */
-    document.getElementById('clearNotifications').addEventListener('click', () => {
-        document.getElementById('notificationList').innerHTML =
-            '<li><span class="dropdown-item text-muted text-center py-3">No notifications</span></li>';
-        const badge = document.querySelector('.count');
-        if (badge) badge.style.display = 'none';
-    });
+    document.getElementById('clearNotifications').addEventListener('click', async () => {
+    document.getElementById('notificationList').innerHTML =
+        '<li><span class="dropdown-item text-muted text-center py-3">No notifications</span></li>';
+    const badge = document.querySelector('.count');
+    if (badge) badge.style.display = 'none';
+
+    if (window.currentUser) {
+        try {
+            const resp = await fetch('../API/mark_notifications_read.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `user_id=${window.currentUser.id}&user_type=${window.currentUser.type}&mark_all=1`
+            });
+            const data = await resp.json();
+            console.log('Notifications cleared:', data);
+        } catch(e) { console.error(e); }
+    }
+});
 
     /* MODAL HELPERS */
     function openModal(id)  { document.getElementById(id).classList.add('active');    document.body.style.overflow = 'hidden'; }

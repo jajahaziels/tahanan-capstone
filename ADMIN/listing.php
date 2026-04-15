@@ -704,6 +704,7 @@ $occupied_listings = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHER
       }
     }
   </style>
+   <link rel="stylesheet" href="admin-theme.css">
 </head>
 
 <body>

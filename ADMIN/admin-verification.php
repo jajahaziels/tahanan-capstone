@@ -241,6 +241,7 @@ $rejectedCount = $conn->query("SELECT COUNT(*) as count FROM landlordtbl WHERE v
             margin-bottom: 20px;
         }
     </style>
+     <link rel="stylesheet" href="admin-theme.css">
 </head>
 
 <body>

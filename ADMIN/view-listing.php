@@ -658,6 +658,7 @@ if (empty($images)) {
       }
     }
   </style>
+   <link rel="stylesheet" href="admin-theme.css">
 </head>
 
 <body>

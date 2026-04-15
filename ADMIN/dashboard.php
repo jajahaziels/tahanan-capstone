@@ -36,6 +36,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - Tahanan</title>
   <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+ 
   
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
@@ -767,6 +768,7 @@ $recent_tenants = $conn->query("SELECT firstName, lastName, email, created_at FR
       }
     }
   </style>
+   <link rel="stylesheet" href="admin-theme.css">
 </head>
 
 <body>

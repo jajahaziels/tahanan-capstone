@@ -1,0 +1,325 @@
+/* ============================================
+   ADMIN THEME — White + #8d0b41
+   Place this AFTER the inline <style> tag
+   in every admin page's <head>
+   v2 — darker borders, improved contrast
+============================================ */
+
+/* Override CSS variables */
+:root {
+    --body-color:     #f5f5f5 !important;
+    --sidebar-color:  #ffffff !important;
+    --sidebar-hover:  #fdf0f4 !important;
+    --primary-color:  #8d0b41 !important;
+    --primary-hover:  #6a0831 !important;
+    --text-color:     #2d3748 !important;
+    --text-muted:     #718096 !important;
+    --border-color:   #e2e8f0 !important;
+    --card-bg:        #ffffff !important;
+}
+
+/* ── Body ── */
+body {
+    background: #f5f5f5 !important;
+    color: #2d3748 !important;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+    background: #ffffff !important;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.08) !important;
+    border-right: 1px solid #e2e8f0 !important;
+}
+
+.sidebar header {
+    background: linear-gradient(135deg, #8d0b41, #6a0831) !important;
+    border-bottom: none !important;
+}
+
+.header-text .name { color: #ffffff !important; }
+.header-text .role { color: rgba(255,255,255,0.75) !important; }
+
+.menu-section-title { color: #a0aec0 !important; }
+
+.sidebar .text    { color: #2d3748 !important; }
+.sidebar li .icon { color: #a0aec0 !important; }
+
+.sidebar li a:hover {
+    background: #fdf0f4 !important;
+}
+.sidebar li a:hover .icon,
+.sidebar li a.active .icon {
+    color: #8d0b41 !important;
+}
+.sidebar li a.active {
+    background: linear-gradient(90deg, rgba(141,11,65,0.1), rgba(141,11,65,0.03)) !important;
+}
+
+/* Scrollbar */
+.sidebar .menu-bar::-webkit-scrollbar-thumb { background: #e2e8f0 !important; }
+
+/* Bottom user info */
+.sidebar .bottom-content { border-top: 1px solid #e2e8f0 !important; }
+.user-info               { background: #fdf0f4 !important; }
+.user-info .user-name    { color: #2d3748 !important; }
+.user-info .user-status  { color: #718096 !important; }
+
+/* ── Content area ── */
+.content { background: #f5f5f5 !important; }
+
+/* ── Page header ── */
+.page-header h1,
+.page-header > h1 { color: #2d3748 !important; }
+.page-header p    { color: #718096 !important; }
+
+/* ── Stat cards ── */
+.stat-card {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+.stat-card:hover { box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important; }
+.stat-info h3    { color: #2d3748 !important; }
+.stat-info p     { color: #718096 !important; }
+
+/* ── Stat boxes (verify-properties style) ── */
+.stat-box {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+}
+
+/* ── Quick actions / cards ── */
+.quick-actions,
+.verification-status,
+.recent-activity,
+.system-health,
+.action-panel,
+.filters-section,
+.properties-table,
+.reports-container,
+.property-details {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+
+.quick-actions h2,
+.verification-status h2,
+.recent-activity h2,
+.system-health h2,
+.action-panel h2,
+.action-panel h3 { color: #2d3748 !important; }
+
+/* Action buttons in quick actions */
+.action-btn {
+    background: #f9fafb !important;
+    border-color: #e2e8f0 !important;
+    color: #2d3748 !important;
+}
+.action-btn:hover {
+    background: #fdf0f4 !important;
+    border-color: #8d0b41 !important;
+}
+.action-btn-content h3 { color: #2d3748 !important; }
+.action-btn-content p  { color: #718096 !important; }
+
+/* ── Activity items ── */
+.activity-item {
+    background: #f9fafb !important;
+    border-left-color: #8d0b41 !important;
+}
+.activity-item:hover { background: #fdf0f4 !important; }
+.activity-item h4    { color: #2d3748 !important; }
+.activity-item p     { color: #718096 !important; }
+.activity-time       { color: #a0aec0 !important; }
+
+/* Activity tabs */
+.activity-tab        { color: #718096 !important; }
+.activity-tab.active { color: #8d0b41 !important; border-bottom-color: #8d0b41 !important; }
+.activity-tabs       { border-bottom-color: #e2e8f0 !important; }
+
+/* ── System health ── */
+.health-item  { border-bottom-color: #e2e8f0 !important; }
+.health-label { color: #718096 !important; }
+
+/* ── Circular progress inner circle ── */
+.circular-progress::before { background: #ffffff !important; }
+.progress-text h3           { color: #2d3748 !important; }
+.progress-text p            { color: #718096 !important; }
+.legend-item                { color: #2d3748 !important; }
+
+/* ── Verification legend ── */
+.verification-legend span { color: #2d3748 !important; }
+
+/* ── Tables ── */
+thead tr  { background: #fdf0f4 !important; }
+th        { color: #718096 !important; border-color: #e2e8f0 !important; }
+td        { color: #2d3748 !important; border-color: #e2e8f0 !important; }
+tr:hover  { background: #fdf0f4 !important; }
+
+/* ── Search / filter inputs ── */
+.search-bar input,
+.filter-group select {
+    background: #f9fafb !important;
+    color: #2d3748 !important;
+    border-color: #e2e8f0 !important;
+}
+.search-bar input::placeholder { color: #a0aec0 !important; }
+.search-bar input:focus,
+.filter-group select:focus {
+    border-color: #8d0b41 !important;
+    background: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(141,11,65,0.1) !important;
+}
+
+/* ── Buttons ── */
+.btn-search,
+.btn-action,
+.btn-approve,
+.btn-schedule { background: #8d0b41 !important; }
+
+.btn-search:hover,
+.btn-action:hover { background: #6a0831 !important; }
+
+/* ── Back button ── */
+.btn-back {
+    background: #f9fafb !important;
+    color: #2d3748 !important;
+    border-color: #e2e8f0 !important;
+}
+.btn-back:hover {
+    background: #fdf0f4 !important;
+    color: #8d0b41 !important;
+}
+
+/* ── Property details page ── */
+.info-item        { background: #f9fafb !important; }
+.info-item label  { color: #718096 !important; }
+.info-item value  { color: #2d3748 !important; }
+.landlord-card    { background: #f9fafb !important; }
+.landlord-info h4 { color: #2d3748 !important; }
+.landlord-info p  { color: #718096 !important; }
+
+/* ── Description section ── */
+.description-section h3 { color: #2d3748 !important; }
+.description-section p  { color: #718096 !important; }
+
+/* ── Empty state ── */
+.empty-state   { color: #718096 !important; }
+.empty-state p { color: #718096 !important; }
+
+/* ── accounts.php specific ── */
+.stat-card h4     { color: #718096 !important; }
+.stat-card .number { color: #2d3748 !important; }
+.stat-card .stat-icon { background: rgba(141,11,65,0.08) !important; color: #8d0b41 !important; }
+.stat-card.purple .stat-icon { background: rgba(102,126,234,0.08) !important; color: #667eea !important; }
+.stat-card.pink .stat-icon   { background: rgba(240,147,251,0.08) !important; color: #f5576c !important; }
+.stat-card.blue .stat-icon   { background: rgba(79,172,254,0.08)  !important; color: #4facfe !important; }
+
+/* Search section */
+.search-section {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+}
+.search-bar select {
+    background: #f9fafb !important;
+    color: #2d3748 !important;
+    border-color: #e2e8f0 !important;
+}
+.search-bar select:focus {
+    background: #ffffff !important;
+    border-color: #8d0b41 !important;
+}
+
+/* Tabs container */
+.tabs-container {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+}
+.tabs { border-bottom-color: #e2e8f0 !important; }
+.tab  { color: #718096 !important; }
+.tab:hover  { color: #8d0b41 !important; background: rgba(141,11,65,0.04) !important; }
+.tab.active { color: #8d0b41 !important; border-bottom-color: #8d0b41 !important; background: rgba(141,11,65,0.06) !important; }
+
+/* Account cards */
+.account-card {
+    background: #ffffff !important;
+    border-color: #e2e8f0 !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06) !important;
+}
+.account-card:hover {
+    border-color: #8d0b41 !important;
+    box-shadow: 0 8px 24px rgba(141,11,65,0.1) !important;
+}
+.account-card .profile-section { border-bottom-color: #e2e8f0 !important; }
+.profile-info h3   { color: #2d3748 !important; }
+.profile-info .username { color: #718096 !important; }
+.detail-item       { color: #2d3748 !important; }
+.detail-item i     { color: #8d0b41 !important; }
+
+/* Remove button keep red */
+.btn-remove { background: #dc3545 !important; }
+.btn-remove:hover { background: #c82333 !important; }
+
+/* View button use theme color */
+.btn-view { background: #8d0b41 !important; }
+.btn-view:hover { background: #6a0831 !important; }
+
+/* ── Stronger borders everywhere ── */
+:root {
+    --border-color: #c0c0c0 !important;
+}
+
+.stat-card,
+.stat-box,
+.quick-actions,
+.verification-status,
+.recent-activity,
+.system-health,
+.action-panel,
+.filters-section,
+.properties-table,
+.reports-container,
+.property-details,
+.search-section,
+.tabs-container,
+.account-card,
+.activity-item,
+.landlord-card,
+.info-item {
+    border: 1px solid #b0b0b0 !important;
+}
+
+.account-card .profile-section { border-bottom: 1px solid #b0b0b0 !important; }
+.activity-tabs                 { border-bottom: 1px solid #b0b0b0 !important; }
+.tabs                          { border-bottom: 1px solid #b0b0b0 !important; }
+.health-item                   { border-bottom: 1px solid #b0b0b0 !important; }
+.sidebar .bottom-content       { border-top: 1px solid #b0b0b0 !important; }
+
+th { border-bottom: 2px solid #b0b0b0 !important; }
+td { border-bottom: 1px solid #c0c0c0 !important; }
+
+.search-bar input,
+.filter-group select,
+.search-bar select {
+    border: 1.5px solid #b0b0b0 !important;
+}
+
+/* Hover border becomes theme color */
+.stat-card:hover,
+.account-card:hover,
+.stat-box:hover {
+    border-color: #8d0b41 !important;
+}
+
+/* ── Better sidebar border ── */
+.sidebar {
+    border-right: 1px solid #b0b0b0 !important;
+}
+
+/* ── Page header improvement ── */
+.page-header {
+    border-bottom: 2px solid #b0b0b0 !important;
+    padding-bottom: 16px !important;
+    margin-bottom: 24px !important;
+}

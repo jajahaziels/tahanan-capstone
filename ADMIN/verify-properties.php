@@ -593,6 +593,7 @@ $total_rejected = $conn->query("SELECT COUNT(*) as count FROM listingtbl WHERE v
       }
     }
   </style>
+   <link rel="stylesheet" href="admin-theme.css">
 </head>
 
 <body>

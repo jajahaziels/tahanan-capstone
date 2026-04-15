@@ -933,6 +933,7 @@ $total_tenants = $conn->query("SELECT COUNT(*) as count FROM tenanttbl")->fetch_
       }
     }
   </style>
+   <link rel="stylesheet" href="admin-theme.css">
 </head>
 
 <body>
