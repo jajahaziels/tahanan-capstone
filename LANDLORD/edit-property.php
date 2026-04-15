@@ -510,7 +510,7 @@ $existingTerms = json_decode($property['terms'] ?? '[]', true) ?? [];
             });
         }
     </script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCZ3GIqm75W_KKyz1dfW_Pvjw1PeJDpEJU&callback=initMap"></script>
 
     <!-- House Rules JS -->
     <script>

@@ -22,11 +22,18 @@ $resultProperty = $stmt->get_result();
 if ($resultProperty->num_rows === 0)
     die("Property not found.");
 $property = $resultProperty->fetch_assoc();
-$images   = json_decode($property['images'], true) ?? [];
-$terms    = json_decode($property['terms']  ?? '[]', true) ?? [];
+$images = json_decode($property['images'], true) ?? [];
 $stmt->close();
 
 // --- Query 2: Tenant Requests + Latest Lease Info ---
+//
+// Rules:
+//   • Show ALL requests that haven't been "removed" by the landlord.
+//   • A request whose tenant_action = 'removed' is hidden (landlord chose to hide it).
+//   • terminated + cancelled leases ARE shown so the landlord can see the history
+//     and create a fresh lease if needed.
+//   • We LEFT JOIN on the LATEST lease for that (listing, tenant) pair regardless of status,
+//     so we always know the current state.
 $sqlRequests = "
     SELECT
         r.ID           AS request_id,
@@ -125,54 +132,6 @@ $stmt2->close();
         .property-description { margin: 10px 0; font-size: .95rem; line-height: 1.5; }
         #carouselExample .carousel-inner { border-radius: 1rem; overflow: hidden; }
 
-        /* ── House Rules (landlord view) ── */
-        .house-rules-panel {
-            background: var(--bg-alt-color);
-            border: 1px solid #8d0b41;
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin-top: 16px;
-        }
-
-        .house-rules-panel h6 {
-            color: #8d0b41;
-            font-weight: 700;
-            margin-bottom: 10px;
-            font-size: 0.95rem;
-        }
-
-        .house-rules-panel ul {
-            margin: 0;
-            padding-left: 0;
-            list-style: none;
-        }
-
-        .house-rules-panel ul li {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            padding: 6px 0;
-            border-bottom: 1px dashed #8d0b41;
-            font-size: 0.9rem;
-            color: #333;
-        }
-
-        .house-rules-panel ul li:last-child { border-bottom: none; }
-
-        .house-rules-panel ul li i {
-            color: #8d0b41;
-            margin-top: 2px;
-            flex-shrink: 0;
-            font-size: 0.8rem;
-        }
-
-        .no-rules-note {
-            font-size: 0.85rem;
-            color: #999;
-            font-style: italic;
-        }
-
-        /* ── Requests panel ── */
         .requests-card {
             background: #fff;
             border-radius: 1rem;
@@ -221,6 +180,8 @@ $stmt2->close();
             margin-top: 4px;
         }
 
+        /* Shown when tenant rejected or lease was terminated/cancelled — 
+           lets landlord know they can create a fresh agreement */
         .reapply-notice {
             background: #e8f4fd;
             border: 1px solid #bee3f8;
@@ -295,40 +256,7 @@ $stmt2->close();
                         <strong>Address:</strong> <?= htmlspecialchars($property['address']) ?>,
                         <?= htmlspecialchars($property['barangay']) ?>, San Pedro, Laguna
                     </p>
-
-                    <p class="property-description">
-                        <?= nl2br(htmlspecialchars($property['listingDesc'])) ?>
-                    </p>
-
-                    <!-- ── HOUSE RULES PANEL (Landlord View) ── -->
-                    <div class="house-rules-panel">
-                        <h6>
-                            <i class="fa-solid fa-clipboard-list me-1"></i> House Rules &amp; Terms
-                        </h6>
-                        <?php if (!empty($terms)): ?>
-                            <ul>
-                                <?php foreach ($terms as $rule): ?>
-                                    <li>
-                                        <i class="fa-solid fa-circle-dot"></i>
-                                        <?= htmlspecialchars($rule) ?>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        <?php else: ?>
-                            <p class="no-rules-note mb-0">
-                                No house rules set yet.
-                                <a href="edit-property.php?ID=<?= $listingID ?>">Edit property</a> to add some.
-                            </p>
-                        <?php endif; ?>
-                    </div>
-
-                    <!-- Edit shortcut -->
-                    <div class="mt-3">
-                        <a href="edit-property.php?ID=<?= $listingID ?>" class="main-button"
-                            style="display:inline-block; text-decoration:none;">
-                            <i class="fa-solid fa-pen me-1"></i> Edit Property
-                        </a>
-                    </div>
+                    <p class="property-description"><?= nl2br(htmlspecialchars($property['listingDesc'])) ?></p>
                 </div>
             </div>
 
@@ -344,19 +272,26 @@ $stmt2->close();
                             $tenantResponse = $req['tenant_response'] ?? null;
                             $leaseId        = $req['lease_id']        ?? null;
 
+                            // ── Derive state flags ────────────────────────────────────
                             $hasLease           = !empty($leaseId);
                             $leaseIsTerminated  = $hasLease && in_array($leaseStatus, ['terminated']);
                             $leaseIsCancelled   = $hasLease && $leaseStatus === 'cancelled';
                             $tenantRejected     = $tenantResponse === 'rejected';
                             $leaseIsActive      = $hasLease && $leaseStatus === 'active';
                             $leaseIsPending     = $hasLease && $leaseStatus === 'pending';
-                            $leaseIsCancellable = $leaseIsPending && $tenantResponse !== 'accepted';
-                            $canMakeNewLease    = !$hasLease
-                                                  || $leaseIsCancelled
-                                                  || $leaseIsTerminated
-                                                  || $tenantRejected;
 
-                            // Check for pending termination request from tenant
+                            // Can the landlord cancel the current lease?
+                            // Only when lease is pending AND tenant hasn't accepted yet.
+                            $leaseIsCancellable = $leaseIsPending && $tenantResponse !== 'accepted';
+
+                            // Can the landlord create a NEW lease?
+                            // Yes when: no lease at all, OR latest lease was cancelled/terminated, OR tenant rejected.
+                            $canMakeNewLease = !$hasLease
+                                               || $leaseIsCancelled
+                                               || $leaseIsTerminated
+                                               || $tenantRejected;
+
+                            // ── Check for pending termination request from tenant ──────
                             $terminationInfo = null;
                             if ($leaseIsActive) {
                                 $tStmt = $conn->prepare("
@@ -383,7 +318,7 @@ $stmt2->close();
                                 <span class="badge bg-secondary badge-status"><?= ucfirst($req['request_status']) ?></span>
                             </p>
 
-                            <!-- Lease / response status -->
+                            <!-- ── Lease / response status pill ── -->
                             <?php if ($tenantRejected): ?>
                                 <div class="ended-notice">
                                     <strong>✖ Tenant rejected the lease agreement.</strong>
@@ -410,7 +345,7 @@ $stmt2->close();
                                 </p>
                             <?php endif; ?>
 
-                            <!-- Re-apply notice -->
+                            <!-- ── Re-apply notice ── -->
                             <?php if ($canMakeNewLease && $hasLease): ?>
                                 <div class="reapply-notice">
                                     <i class="fa-solid fa-circle-info"></i>
@@ -419,7 +354,7 @@ $stmt2->close();
                                 </div>
                             <?php endif; ?>
 
-                            <!-- Pending termination notice -->
+                            <!-- ── Pending termination notice ── -->
                             <?php if ($hasPendingTermination): ?>
                                 <div class="termination-notice">
                                     <strong>⚠ Tenant Requested Lease Termination</strong>
@@ -440,20 +375,43 @@ $stmt2->close();
                                 </div>
                             <?php endif; ?>
 
-                            <!-- Action buttons -->
+                            <!-- ── Pending termination notice ── -->
+                            <?php if ($hasPendingTermination): ?>
+                                <div class="termination-notice">
+                                    <strong>⚠ Tenant Requested Lease Termination</strong>
+                                    <div class="reason-text">"<?= htmlspecialchars($terminationInfo['reason']) ?>"</div>
+                                    <div class="mt-2 d-flex gap-2 flex-wrap">
+                                        <button class="btn2 btn2-red approve-termination-btn"
+                                            data-lease="<?= $leaseId ?>"
+                                            data-termination="<?= $terminationInfo['ID'] ?>"
+                                            data-request="<?= $req['request_id'] ?>">
+                                            ✔ Approve Termination
+                                        </button>
+                                        <button class="btn2 btn2-orange reject-termination-btn"
+                                            data-lease="<?= $leaseId ?>"
+                                            data-termination="<?= $terminationInfo['ID'] ?>">
+                                            ✖ Reject
+                                        </button>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+
+                            <!-- ── Action buttons ── -->
                             <div class="d-flex gap-2 flex-wrap mt-2">
 
                                 <?php if ($canMakeNewLease): ?>
+                                    <!-- New / first-time lease -->
                                     <a href="lease-form.php?request_id=<?= $req['request_id'] ?>&listing_id=<?= $listingID ?>&tenant_id=<?= $req['tenant_id'] ?>"
-                                        class="btn2 btn2-green">
-                                        📝 <?= $hasLease ? 'New Lease Agreement' : 'Make Lease Agreement' ?>
-                                    </a>
+                                        class="btn2 btn2-green">📝 <?= $hasLease ? 'New Lease Agreement' : 'Make Lease Agreement' ?></a>
+
+                                    <!-- Remove card: always available when lease is in an ended state -->
                                     <button type="button" class="btn2 btn2-red remove-btn"
                                         data-request="<?= $req['request_id'] ?>">
                                         <i class="fa-solid fa-trash"></i> Remove
                                     </button>
 
                                 <?php elseif ($leaseIsActive || $leaseIsPending): ?>
+
                                     <?php if (!empty($req['pdf_path'])): ?>
                                         <a href="<?= htmlspecialchars($req['pdf_path']) ?>" target="_blank"
                                             class="btn2 btn2-blue">📄 View Lease</a>
@@ -471,14 +429,17 @@ $stmt2->close();
                                     <?php endif; ?>
 
                                 <?php elseif (!$hasLease): ?>
+                                    <!-- No lease at all yet — just a Remove option -->
                                     <button type="button" class="btn2 btn2-red remove-btn"
                                         data-request="<?= $req['request_id'] ?>">
                                         <i class="fa-solid fa-trash"></i> Remove
                                     </button>
+
                                 <?php endif; ?>
 
                             </div>
-                        </div>
+
+                        </div><!-- end tenant-request card -->
 
                     <?php endwhile; else: ?>
                         <p class="text-center">No tenant requests yet.</p>
@@ -494,7 +455,7 @@ $stmt2->close();
     <script>
         document.addEventListener("DOMContentLoaded", () => {
 
-            /* ── Remove request ── */
+            /* ── Remove request ─────────────────────────────────────────── */
             document.querySelectorAll(".remove-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     Swal.fire({
@@ -530,7 +491,7 @@ $stmt2->close();
                 });
             });
 
-            /* ── Cancel Lease ── */
+            /* ── Cancel Lease ───────────────────────────────────────────── */
             document.querySelectorAll(".cancel-lease-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const leaseId   = btn.dataset.lease;
@@ -567,7 +528,7 @@ $stmt2->close();
                 });
             });
 
-            /* ── Approve termination ── */
+            /* ── Approve termination ────────────────────────────────────── */
             document.querySelectorAll(".approve-termination-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const leaseId       = btn.dataset.lease;
@@ -604,7 +565,7 @@ $stmt2->close();
                 });
             });
 
-            /* ── Reject termination ── */
+            /* ── Reject termination ─────────────────────────────────────── */
             document.querySelectorAll(".reject-termination-btn").forEach(btn => {
                 btn.addEventListener("click", () => {
                     const terminationId = btn.dataset.termination;

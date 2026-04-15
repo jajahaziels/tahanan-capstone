@@ -434,11 +434,79 @@ body { background: #eef2f7; color: var(--ink); min-height: 100vh; }
     border-color:var(--maroon); box-shadow:0 0 0 3px rgba(141,11,65,.1);
 }
 
-.complaint-desc-box {
-    background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-sm);
-    padding:12px 14px; font-size:.85rem; color:var(--ink2); line-height:1.6;
-    white-space:pre-wrap; margin-bottom:16px; max-height:110px; overflow-y:auto;
-    font-weight:600;
+/* ─── IMPROVED COMPLAINT MODAL ─── */
+.complaint-modal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+.complaint-photo-preview {
+    width: 100%;
+    max-height: 180px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid var(--border);
+    display: block;
+}
+.complaint-photo-wrap {
+    grid-column: 1 / -1;
+    background: var(--surface2);
+    border: 1.5px dashed var(--border2);
+    border-radius: 10px;
+    padding: 12px;
+    text-align: center;
+}
+.complaint-photo-wrap a {
+    display: block;
+}
+.field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.status-option-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+.status-radio {
+    display: none;
+}
+.status-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--ink2);
+    transition: all .18s;
+    background: var(--surface);
+}
+.status-label:hover { border-color: var(--maroon); background: var(--maroon-lt); }
+.status-radio:checked + .status-label {
+    border-color: var(--maroon);
+    background: var(--maroon-lt);
+    color: var(--maroon);
+}
+.status-label .status-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.sdot-pending   { background: #b45309; }
+.sdot-progress  { background: #2563eb; }
+.sdot-completed { background: #0d9488; }
+.sdot-rejected  { background: #dc2626; }
+.complaint-meta-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 4px 10px;
+    font-size: .72rem; font-weight: 700; color: var(--ink3);
 }
 
 .info-box { border-radius:10px; padding:14px 16px; margin-bottom:16px; }
@@ -532,6 +600,8 @@ body { background: #eef2f7; color: var(--ink); min-height: 100vh; }
 /* ─── VERIFY GATE ─── */
 .verify-gate { display:flex; align-items:center; justify-content:center; min-height:calc(100vh - 140px); }
 .verify-card { background:var(--surface); border-radius:20px; padding:48px 40px; text-align:center; max-width:500px; width:100%; box-shadow:var(--shadow-md); border:1px solid var(--border); border-top:5px solid var(--maroon); }
+
+
 </style>
 
 <body>
@@ -886,15 +956,15 @@ body { background: #eef2f7; color: var(--ink); min-height: 100vh; }
                         <td style="font-size:.8rem;color:var(--ink3)"><?= $sched ?></td>
                         <td style="font-size:.8rem;color:var(--ink3)"><?= $completed ?></td>
                         <td>
-                            <?php if (!empty($complaint['photo_path'])): ?>
-                                <a href="../uploads/<?= htmlspecialchars($complaint['photo_path']) ?>" target="_blank"
-                                   class="btn btn-outline" style="height:30px;padding:0 10px;font-size:.73rem;text-decoration:none">
-                                    <i class="bi bi-image"></i> View
-                                </a>
-                            <?php else: ?>
-                                <span style="color:var(--ink3);font-size:.8rem;font-weight:600">—</span>
-                            <?php endif; ?>
-                        </td>
+    <?php if (!empty($complaint['photo_path'])): ?>
+        <a href="/<?= htmlspecialchars($complaint['photo_path']); ?>" target="_blank">
+            <img src="/<?= htmlspecialchars($complaint['photo_path']); ?>" 
+                 style="width:60px; height:60px; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid var(--border);">
+        </a>
+    <?php else: ?>
+        <span style="color:var(--ink3); font-size:.8rem; font-weight:600">—</span>
+    <?php endif; ?>
+</td>
                         <td>
                             <div class="action-group">
                                 <?php if ($cs === 'completed'): ?>
@@ -905,12 +975,16 @@ body { background: #eef2f7; color: var(--ink); min-height: 100vh; }
                                     </button>
                                 <?php elseif ($cs === 'rejected'): ?>
                                     <button class="btn btn-blue respond-btn"
-                                        style="height:30px;padding:0 11px;font-size:.74rem"
-                                        data-id="<?= $complaint['complaint_id'] ?>"
-                                        data-title="<?= htmlspecialchars($complaint['title']) ?>"
-                                        data-description="<?= htmlspecialchars($complaint['description'] ?? '') ?>">
-                                        <i class="bi bi-reply-fill"></i> Respond
-                                    </button>
+    style="height:30px;padding:0 11px;font-size:.74rem"
+    data-id="<?= $complaint['complaint_id'] ?>"
+    data-title="<?= htmlspecialchars($complaint['title']) ?>"
+    data-description="<?= htmlspecialchars($complaint['description'] ?? '') ?>"
+    data-category="<?= htmlspecialchars($complaint['category'] ?? '') ?>"
+    data-priority="<?= htmlspecialchars($complaint['priority'] ?? '') ?>"
+    data-status="<?= htmlspecialchars($complaint['status'] ?? 'pending') ?>"
+    data-photo="<?= htmlspecialchars($complaint['photo_path'] ?? '') ?>">
+    <i class="bi bi-reply-fill"></i> Respond
+</button>
                                     <button class="btn btn-danger btn-icon remove-complaint-btn"
                                         title="Remove request"
                                         data-id="<?= $complaint['complaint_id'] ?>">
@@ -945,37 +1019,96 @@ body { background: #eef2f7; color: var(--ink); min-height: 100vh; }
 
 <!-- ─── MAINTENANCE RESPOND MODAL ─── -->
 <div class="modal-overlay" id="complaintModal" style="display:none" onclick="if(event.target===this)closeModal('complaintModal')">
-    <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-box" style="max-width:580px" onclick="event.stopPropagation()">
         <form id="complaintForm" method="post" action="maintenance-respond.php">
             <div class="modal-head">
                 <h4><i class="bi bi-tools"></i> <span id="compModalTitle">Respond to Complaint</span></h4>
                 <button type="button" class="modal-close" onclick="closeModal('complaintModal')">✕</button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding:20px 22px">
                 <input type="hidden" name="complaint_id" id="complaint_id_input">
-                <div id="compDescSection" style="display:none;margin-bottom:18px">
+
+                <!-- Meta chips: category + priority -->
+                <div id="compMetaRow" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px"></div>
+
+                <!-- Photo preview -->
+                <div id="compPhotoWrap" class="complaint-photo-wrap" style="display:none;margin-bottom:16px">
+                    <a id="compPhotoLink" href="#" target="_blank">
+                        <img id="compPhotoImg" class="complaint-photo-preview" src="" alt="Issue photo">
+                    </a>
+                    <div style="font-size:.72rem;color:var(--ink3);margin-top:6px;font-weight:600">
+                        <i class="bi bi-image"></i> Tenant-submitted photo — click to view full size
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div id="compDescSection" style="display:none;margin-bottom:16px">
                     <label class="modal-label"><i class="bi bi-chat-quote" style="margin-right:4px"></i>Tenant's Description</label>
                     <div class="complaint-desc-box" id="compDescText"></div>
                 </div>
+
+                <!-- Status picker -->
                 <div style="margin-bottom:16px">
                     <label class="modal-label">Update Status</label>
-                    <select class="modal-select" name="status" required>
-                        <option value="pending">Pending</option>
-                        <option value="in progress">Scheduled / In Progress</option>
-                        <option value="completed">Completed</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
+                    <div class="status-option-grid">
+                        <div>
+                            <input type="radio" name="status" value="pending" id="s_pending" class="status-radio">
+                            <label for="s_pending" class="status-label">
+                                <span class="status-dot sdot-pending"></span> Pending
+                            </label>
+                        </div>
+                        <div>
+                            <input type="radio" name="status" value="in progress" id="s_progress" class="status-radio">
+                            <label for="s_progress" class="status-label">
+                                <span class="status-dot sdot-progress"></span> In Progress
+                            </label>
+                        </div>
+                        <div>
+                            <input type="radio" name="status" value="completed" id="s_completed" class="status-radio">
+                            <label for="s_completed" class="status-label">
+                                <span class="status-dot sdot-completed"></span> Completed
+                            </label>
+                        </div>
+                        <div>
+                            <input type="radio" name="status" value="rejected" id="s_rejected" class="status-radio">
+                            <label for="s_rejected" class="status-label">
+                                <span class="status-dot sdot-rejected"></span> Rejected
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                <div style="margin-bottom:16px">
-                    <label class="modal-label">Your Message to Tenant</label>
-                    <textarea class="modal-textarea" name="response" rows="4"
-                        placeholder="Write your response or update here…" style="resize:vertical"></textarea>
+
+                <div class="complaint-modal-grid">
+                    <!-- Scheduled date -->
+                    <div class="field-group">
+                        <label class="modal-label">
+                            <i class="bi bi-calendar-event" style="margin-right:3px"></i>
+                            Scheduled Date
+                            <span style="color:var(--ink3);font-weight:600;text-transform:none;letter-spacing:0">(optional)</span>
+                        </label>
+                        <input type="date" class="modal-input" name="scheduled_date" id="compScheduledDate">
+                    </div>
+
+                    <!-- Remarks -->
+                    <div class="field-group">
+                        <label class="modal-label">
+                            <i class="bi bi-tag" style="margin-right:3px"></i>
+                            Internal Remarks
+                            <span style="color:var(--ink3);font-weight:600;text-transform:none;letter-spacing:0">(optional)</span>
+                        </label>
+                        <input type="text" class="modal-input" name="remarks" placeholder="e.g., Parts ordered">
+                    </div>
                 </div>
-                <div>
-                    <label class="modal-label">Scheduled Date
-                        <span style="color:var(--ink3);font-weight:600;text-transform:none;letter-spacing:0">(if applicable)</span>
+
+                <!-- Response message -->
+                <div class="field-group">
+                    <label class="modal-label">
+                        <i class="bi bi-send" style="margin-right:3px"></i>
+                        Message to Tenant *
                     </label>
-                    <input type="date" class="modal-input" name="scheduled_date">
+                    <textarea class="modal-textarea" name="response" rows="4"
+                        placeholder="Write your response or update here… The tenant will see this message."
+                        style="resize:vertical" required></textarea>
                 </div>
             </div>
             <div class="modal-foot">
@@ -1131,6 +1264,8 @@ document.querySelectorAll('.respond-btn').forEach(btn => {
     btn.addEventListener('click', function() {
         document.getElementById('complaint_id_input').value = this.dataset.id;
         document.getElementById('compModalTitle').textContent = 'Respond to: ' + this.dataset.title;
+
+        // Description
         const desc = (this.dataset.description || '').trim();
         const section = document.getElementById('compDescSection');
         if (desc) {
@@ -1139,6 +1274,34 @@ document.querySelectorAll('.respond-btn').forEach(btn => {
         } else {
             section.style.display = 'none';
         }
+
+        // Photo preview
+        const photo = this.dataset.photo || '';
+        const photoWrap = document.getElementById('compPhotoWrap');
+        if (photo) {
+            document.getElementById('compPhotoImg').src = '/' + photo;
+            document.getElementById('compPhotoLink').href = '/' + photo;
+            photoWrap.style.display = 'block';
+        } else {
+            photoWrap.style.display = 'none';
+        }
+
+        // Meta chips: category + priority
+        const category = this.dataset.category || '';
+        const priority = this.dataset.priority || '';
+        const metaRow = document.getElementById('compMetaRow');
+        metaRow.innerHTML = '';
+        if (category) metaRow.innerHTML += `<span class="complaint-meta-chip"><i class="bi bi-tag-fill"></i>${category}</span>`;
+        const pColors = {low:'#16a34a',medium:'#d97706',high:'#dc2626',urgent:'#1a1a2e'};
+        if (priority) metaRow.innerHTML += `<span class="complaint-meta-chip" style="background:${pColors[priority.toLowerCase()]||'#64748b'};color:#fff;border-color:transparent"><i class="bi bi-flag-fill"></i>${priority}</span>`;
+
+        // Pre-select current status
+        const currentStatus = (this.dataset.status || 'pending').toLowerCase();
+        const statusMap = {'pending':'s_pending','in progress':'s_progress','completed':'s_completed','rejected':'s_rejected'};
+        const radioId = statusMap[currentStatus] || 's_pending';
+        const radio = document.getElementById(radioId);
+        if (radio) radio.checked = true;
+
         openModal('complaintModal');
     });
 });
