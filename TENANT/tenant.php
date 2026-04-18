@@ -105,7 +105,7 @@ $result = $conn->query($sql);
             background: var(--bg-alt-color);
             color: var(--text-color);
             transition: all 0.22s ease;
-            width: 220px;
+            width: 270px;
             outline: none;
         }
 

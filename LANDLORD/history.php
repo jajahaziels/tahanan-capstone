@@ -1187,28 +1187,36 @@ document.getElementById('approveBtn').addEventListener('click', () => sendReques
 document.getElementById('rejectBtn').addEventListener('click',  () => sendRequest('rejected'));
 
 function sendRequest(status) {
-    const leaseId=document.getElementById('reqLeaseId').value, type=document.getElementById('reqType').value;
-    const ab=document.getElementById('approveBtn'), rb=document.getElementById('rejectBtn');
-    ab.disabled=rb.disabled=true;
-    ab.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Processing…';
-    rb.innerHTML='<span class="spinner-border spinner-border-sm me-1"></span> Processing…';
-    fetch('update-request.php',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`lease_id=${leaseId}&type=${type}&status=${status}`})
-    .then(r=>r.json()).then(data=>{
-        closeModal('requestModal'); ab.disabled=rb.disabled=false;
-        ab.innerHTML='<i class="bi bi-check-circle-fill"></i> Approve';
-        rb.innerHTML='<i class="bi bi-x-circle-fill"></i> Reject';
-        let icon='success',title='Success!',text=data.message;
-        if(type==='termination'&&status==='approved'){title='Termination Approved';text='The lease has been terminated.';}
-        else if(type==='termination'&&status==='rejected'){icon='info';title='Termination Rejected';text='The lease remains active.';}
-        else if(type==='renewal'&&status==='approved'){title='Renewal Approved';text='Lease renewal approved.';}
-        else if(type==='renewal'&&status==='rejected'){icon='info';title='Renewal Rejected';text='Renewal request rejected.';}
-        if(data.success) Swal.fire({icon,title,text,confirmButtonColor:'#8d0b41'}).then(()=>location.reload());
-        else Swal.fire({icon:'error',title:'Action Failed',text:data.message||'Something went wrong.',confirmButtonColor:'#8d0b41'});
-    }).catch(()=>{
-        ab.disabled=rb.disabled=false;
-        ab.innerHTML='<i class="bi bi-check-circle-fill"></i> Approve';
-        rb.innerHTML='<i class="bi bi-x-circle-fill"></i> Reject';
-        Swal.fire({icon:'error',title:'Network Error',text:'Could not connect.',confirmButtonColor:'#8d0b41'});
+    const leaseId = document.getElementById('reqLeaseId').value;
+    const type    = document.getElementById('reqType').value;
+    const ab = document.getElementById('approveBtn');
+    const rb = document.getElementById('rejectBtn');
+    ab.disabled = rb.disabled = true;
+    ab.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing…';
+    rb.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Processing…';
+
+    fetch('update-request.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: `action=lease_request&lease_id=${leaseId}&type=${type}&status=${status}`
+    })
+    .then(r => r.json()).then(data => {
+        closeModal('requestModal');
+        ab.disabled = rb.disabled = false;
+        ab.innerHTML = '<i class="bi bi-check-circle-fill"></i> Approve';
+        rb.innerHTML = '<i class="bi bi-x-circle-fill"></i> Reject';
+        let icon = 'success', title = 'Success!', text = data.message;
+        if (type === 'termination' && status === 'approved')      { title = 'Termination Approved'; text = 'The lease has been terminated.'; }
+        else if (type === 'termination' && status === 'rejected') { icon = 'info'; title = 'Termination Rejected'; text = 'The lease remains active.'; }
+        else if (type === 'renewal' && status === 'approved')     { title = 'Renewal Approved'; text = 'Lease renewal approved.'; }
+        else if (type === 'renewal' && status === 'rejected')     { icon = 'info'; title = 'Renewal Rejected'; text = 'Renewal request rejected.'; }
+        if (data.success) Swal.fire({icon, title, text, confirmButtonColor: '#8d0b41'}).then(() => location.reload());
+        else Swal.fire({icon: 'error', title: 'Action Failed', text: data.message || 'Something went wrong.', confirmButtonColor: '#8d0b41'});
+    }).catch(() => {
+        ab.disabled = rb.disabled = false;
+        ab.innerHTML = '<i class="bi bi-check-circle-fill"></i> Approve';
+        rb.innerHTML = '<i class="bi bi-x-circle-fill"></i> Reject';
+        Swal.fire({icon: 'error', title: 'Network Error', text: 'Could not connect.', confirmButtonColor: '#8d0b41'});
     });
 }
 

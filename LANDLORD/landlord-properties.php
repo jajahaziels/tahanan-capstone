@@ -36,7 +36,6 @@ $result = $stmt->get_result();
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
     <title>My Properties</title>
     <style>
-        /* ── Page Layout ── */
         .page-hero {
             margin-top: 110px;
             padding: 40px 0 24px;
@@ -60,9 +59,7 @@ $result = $stmt->get_result();
             line-height: 1.2;
         }
 
-        .page-hero h1 span {
-            color: var(--main-color);
-        }
+        .page-hero h1 span { color: var(--main-color); }
 
         .page-hero p {
             font-size: 0.88rem;
@@ -70,7 +67,6 @@ $result = $stmt->get_result();
             margin-top: 5px;
         }
 
-        /* ── Add Button ── */
         .btn-add {
             display: inline-flex;
             align-items: center;
@@ -97,10 +93,95 @@ $result = $stmt->get_result();
             color: #fff;
         }
 
+        /* ── Search Bar ── */
+        .search-row {
+            max-width: 1140px;
+            margin: 0 auto 0;
+            padding: 0 24px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-wrap {
+            position: relative;
+            flex: 1;
+            max-width: 420px;
+        }
+
+        .search-wrap i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--main-color);
+            font-size: 0.85rem;
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 11px 16px 11px 40px;
+            border: 1.5px solid rgba(141,11,65,0.15);
+            border-radius: 50px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            background: var(--bg-alt-color);
+            color: var(--text-color);
+            transition: all 0.22s ease;
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--main-color);
+            background: var(--bg-color);
+            box-shadow: 0 0 0 3px rgba(141,11,65,0.08);
+        }
+
+        .search-input::placeholder { color: var(--text-alt-color); }
+
+        .filter-select {
+    padding: 11px 16px;
+    border: 1.5px solid rgba(141, 11, 65, 0.15);
+    border-radius: 50px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    background: var(--bg-alt-color);
+    color: var(--text-color);
+    outline: none;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    height: 44px;          /* matches search input height */
+    min-width: 180px;      /* prevents it from shrinking too small */
+    max-width: 200px;      /* prevents it from growing too wide */
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238d0b41' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+}
+
+.filter-select:focus {
+    border-color: var(--main-color);
+    box-shadow: 0 0 0 3px rgba(141, 11, 65, 0.08);
+}
+
+        .search-count {
+            font-size: 0.8rem;
+            color: var(--text-alt-color);
+            white-space: nowrap;
+        }
+
+        .search-count span {
+            font-weight: 700;
+            color: var(--main-color);
+        }
+
         /* ── Section Divider ── */
         .section-divider {
             max-width: 1140px;
-            margin: 28px auto 28px;
+            margin: 20px auto 28px;
             padding: 0 24px;
             display: flex;
             align-items: center;
@@ -150,14 +231,11 @@ $result = $stmt->get_result();
             animation: fadeUp 0.45s ease both;
         }
 
-        /* Decorative left border accent */
         .prop-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
+            top: 0; left: 0;
+            width: 4px; height: 100%;
             background: linear-gradient(to bottom, var(--main-color), transparent);
             border-radius: 16px 0 0 16px;
             opacity: 0;
@@ -171,8 +249,11 @@ $result = $stmt->get_result();
             border-color: rgba(141, 11, 65, 0.2);
         }
 
-        .prop-card:hover::before {
-            opacity: 1;
+        .prop-card:hover::before { opacity: 1; }
+
+        /* hide cards that don't match search */
+        .prop-card.hidden {
+            display: none;
         }
 
         @keyframes fadeUp {
@@ -187,7 +268,6 @@ $result = $stmt->get_result();
         .prop-card:nth-child(5) { animation-delay: 0.28s; }
         .prop-card:nth-child(6) { animation-delay: 0.34s; }
 
-        /* ── Card Image ── */
         .card-img-wrap {
             position: relative;
             overflow: hidden;
@@ -196,22 +276,16 @@ $result = $stmt->get_result();
         }
 
         .card-img-wrap img {
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             object-fit: cover;
             transition: transform 0.5s ease;
         }
 
-        .prop-card:hover .card-img-wrap img {
-            transform: scale(1.06);
-        }
+        .prop-card:hover .card-img-wrap img { transform: scale(1.06); }
 
-        /* ── Image Badges ── */
         .img-badges {
             position: absolute;
-            top: 12px;
-            left: 12px;
-            right: 12px;
+            top: 12px; left: 12px; right: 12px;
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
@@ -230,10 +304,9 @@ $result = $stmt->get_result();
             backdrop-filter: blur(6px);
         }
 
-        .badge-occupied    { background: rgba(220, 53, 69, 0.88);  color: #fff; }
-        .badge-available   { background: rgba(25, 135, 84, 0.88);  color: #fff; }
-        .badge-pending-v   { background: rgba(255, 193, 7, 0.92);  color: #3d2b00; }
-        .badge-rejected    { background: rgba(220, 53, 69, 0.88);  color: #fff; }
+        .badge-occupied  { background: rgba(220,53,69,0.88); color: #fff; }
+        .badge-available { background: rgba(25,135,84,0.88); color: #fff; }
+        .badge-pending-v { background: rgba(255,193,7,0.92); color: #3d2b00; }
 
         .badge-maintenance {
             font-size: 0.72rem;
@@ -254,12 +327,9 @@ $result = $stmt->get_result();
             50%       { box-shadow: 0 2px 18px rgba(141,11,65,0.6); }
         }
 
-        /* ── Price ribbon ── */
         .price-ribbon {
             position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
             background: linear-gradient(to top, rgba(0,0,0,0.68), transparent);
             padding: 30px 14px 10px;
             color: #fff;
@@ -274,7 +344,6 @@ $result = $stmt->get_result();
             margin-left: 2px;
         }
 
-        /* ── Card Body ── */
         .card-body-inner {
             padding: 18px 18px 0;
             flex: 1;
@@ -301,7 +370,6 @@ $result = $stmt->get_result();
 
         .card-location i { color: var(--main-color); }
 
-        /* ── Feature Pills ── */
         .card-features {
             display: flex;
             gap: 7px;
@@ -324,7 +392,6 @@ $result = $stmt->get_result();
 
         .feature-pill i { color: var(--main-color); font-size: 0.72rem; }
 
-        /* ── Card Footer ── */
         .card-footer-actions {
             margin-top: auto;
             padding: 14px 18px 18px;
@@ -367,7 +434,7 @@ $result = $stmt->get_result();
             box-shadow: 0 5px 16px rgba(141,11,65,0.35);
         }
 
-        /* ── Empty State ── */
+        /* ── Empty / No results ── */
         .empty-state {
             grid-column: 1 / -1;
             text-align: center;
@@ -385,9 +452,27 @@ $result = $stmt->get_result();
 
         .empty-state p { font-size: 0.95rem; }
 
+        #no-results {
+            display: none;
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-alt-color);
+        }
+
+        #no-results i {
+            font-size: 3rem;
+            color: var(--main-color);
+            opacity: 0.2;
+            display: block;
+            margin-bottom: 12px;
+        }
+
         @media (max-width: 600px) {
             .page-hero .inner { flex-direction: column; align-items: flex-start; }
             .property-grid { grid-template-columns: 1fr; }
+            .search-row { flex-wrap: wrap; }
+            .search-wrap { max-width: 100%; }
         }
     </style>
 </head>
@@ -408,13 +493,30 @@ $result = $stmt->get_result();
         </div>
     </div>
 
+    <!-- Search Bar -->
+    <div class="search-row" style="padding-top: 24px;">
+        <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" class="search-input" id="searchInput"
+                placeholder="Search by name, address, barangay...">
+        </div>
+        <select class="filter-select" id="statusFilter">
+            <option value="">All Status</option>
+            <option value="available">Available</option>
+            <option value="occupied">Occupied</option>
+            <option value="pending">Pending Verification</option>
+            <option value="rejected">Rejected</option>
+        </select>
+        <div class="search-count" id="searchCount"></div>
+    </div>
+
     <!-- Section Label -->
     <div class="section-divider">
         <span>All Listings</span>
     </div>
 
     <!-- Property Grid -->
-    <div class="property-grid">
+    <div class="property-grid" id="propertyGrid">
 
         <?php if ($result && $result->num_rows > 0): ?>
             <?php while ($row = $result->fetch_assoc()): ?>
@@ -426,16 +528,37 @@ $result = $stmt->get_result();
                     if (!empty($images) && is_array($images) && isset($images[0])) {
                         $imagePath = '../LANDLORD/uploads/' . $images[0];
                     }
+
+                    // Determine status for filtering
+                    if ($row['verification_status'] === 'pending') {
+                        $statusClass = 'pending';
+                    } elseif ($row['verification_status'] === 'rejected') {
+                        $statusClass = 'rejected';
+                    } elseif ($isOccupied) {
+                        $statusClass = 'occupied';
+                    } else {
+                        $statusClass = 'available';
+                    }
+
+                    // Searchable text for JS
+                    $searchText = strtolower(
+                        $row['listingName'] . ' ' .
+                        $row['address']     . ' ' .
+                        $row['barangay']    . ' ' .
+                        $row['category']    . ' ' .
+                        $row['rooms']
+                    );
                 ?>
 
-                <div class="prop-card">
+                <div class="prop-card"
+                     data-search="<?= htmlspecialchars($searchText) ?>"
+                     data-status="<?= $statusClass ?>">
 
                     <!-- Image -->
                     <div class="card-img-wrap">
                         <img src="<?= htmlspecialchars($imagePath) ?>" alt="Property Image">
 
                         <div class="img-badges">
-                            <!-- Status badge -->
                             <?php if ($row['verification_status'] === 'pending'): ?>
                                 <span class="badge-pill badge-pending-v">
                                     <i class="fas fa-clock"></i> Pending Verification
@@ -451,7 +574,6 @@ $result = $stmt->get_result();
                                 </span>
                             <?php endif; ?>
 
-                            <!-- Maintenance badge -->
                             <?php if ($hasMaintenance): ?>
                                 <span class="badge-maintenance">
                                     <i class="bi bi-exclamation-triangle-fill"></i>
@@ -460,7 +582,6 @@ $result = $stmt->get_result();
                             <?php endif; ?>
                         </div>
 
-                        <!-- Price -->
                         <div class="price-ribbon">
                             ₱ <?= number_format($row['price']) ?><small>/mo</small>
                         </div>
@@ -514,11 +635,68 @@ $result = $stmt->get_result();
             </div>
         <?php endif; ?>
 
+        <!-- No results message (shown by JS) -->
+        <div id="no-results">
+            <i class="fas fa-search"></i>
+            <p>No properties match your search.</p>
+        </div>
+
     </div>
 
     <?php include '../Components/footer.php'; ?>
     <script src="../js/script.js" defer></script>
     <script src="../js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/scrollreveal"></script>
+    <script>
+        const searchInput  = document.getElementById('searchInput');
+        const statusFilter = document.getElementById('statusFilter');
+        const searchCount  = document.getElementById('searchCount');
+        const noResults    = document.getElementById('no-results');
+        const cards        = document.querySelectorAll('.prop-card');
+        const total        = cards.length;
+
+        function filterCards() {
+            const query  = searchInput.value.toLowerCase().trim();
+            const status = statusFilter.value;
+            let visible  = 0;
+
+            cards.forEach(card => {
+                const text       = card.dataset.search || '';
+                const cardStatus = card.dataset.status || '';
+
+                const matchesText   = !query  || text.includes(query);
+                const matchesStatus = !status || cardStatus === status;
+
+                if (matchesText && matchesStatus) {
+                    card.classList.remove('hidden');
+                    visible++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            // Update count
+            if (query || status) {
+                searchCount.innerHTML = `<span>${visible}</span> of ${total} shown`;
+            } else {
+                searchCount.innerHTML = '';
+            }
+
+            // No results message
+            noResults.style.display = visible === 0 && total > 0 ? 'block' : 'none';
+        }
+
+        searchInput.addEventListener('input', filterCards);
+        statusFilter.addEventListener('change', filterCards);
+
+        // Clear search on Escape
+        searchInput.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                searchInput.value = '';
+                statusFilter.value = '';
+                filterCards();
+            }
+        });
+    </script>
 </body>
 </html>
