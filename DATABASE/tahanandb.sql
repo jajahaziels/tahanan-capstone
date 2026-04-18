@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Apr 15, 2026 at 10:08 PM
+-- Generation Time: Apr 18, 2026 at 07:10 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.1.17
 
@@ -125,10 +125,8 @@ CREATE TABLE `conversations` (
 INSERT INTO `conversations` (`id`, `type`, `title`, `created_at`) VALUES
 (13, 'private', 'Chat about STUDIO TYPE APARTMENT', '2026-02-08 20:12:06'),
 (14, 'private', 'Chat about Magandang bahay hehe', '2026-02-08 20:12:14'),
-(15, 'private', 'Chat about Bahay sa san pedro', '2026-03-26 10:51:25'),
-(16, 'private', 'Chat about STUDIO TYPE APARTMENT', '2026-03-27 10:52:23'),
-(17, 'private', 'Chat about STUDION TYPE APARTMENT', '2026-03-27 11:00:03'),
-(18, 'private', 'Chat about SMALL ONE BED ROOM APARTMENT FOR RENT', '2026-04-15 15:35:25');
+(19, 'private', 'Chat about ISANG BUONG BAHAY IN PACITA 1 SAN PEDRO LAGUNA WITH 4 BEDROOM', '2026-04-18 03:34:04'),
+(20, 'private', 'Chat about Magandang bahay hehe', '2026-04-18 03:34:13');
 
 -- --------------------------------------------------------
 
@@ -183,7 +181,11 @@ INSERT INTO `conversation_members` (`id`, `conversation_id`, `user_type`, `user_
 (33, 17, 'tenant', 3, '2026-03-27 11:00:03', NULL),
 (34, 17, 'landlord', 1, '2026-03-27 11:00:03', NULL),
 (35, 18, 'tenant', 4, '2026-04-15 15:35:25', NULL),
-(36, 18, 'landlord', 1, '2026-04-15 15:35:25', NULL);
+(36, 18, 'landlord', 1, '2026-04-15 15:35:25', NULL),
+(37, 19, 'tenant', 4, '2026-04-18 03:34:04', NULL),
+(38, 19, 'landlord', 1, '2026-04-18 03:34:04', NULL),
+(39, 20, 'tenant', 4, '2026-04-18 03:34:13', NULL),
+(40, 20, 'landlord', 2, '2026-04-18 03:34:13', NULL);
 
 -- --------------------------------------------------------
 
@@ -223,7 +225,9 @@ INSERT INTO `emergency_alerts` (`id`, `alert_type`, `title`, `message`, `severit
 (12, 'fire', 'hjhjh', 'ikj', 'warning', NULL, 'Tahanan', '2026-04-15 17:43:47', NULL, 1),
 (13, 'storm', 'jh', 'bhjhbhbj', 'alert', NULL, 'Tahanan', '2026-04-15 17:44:45', NULL, 1),
 (14, 'storm', 'weed', 'edfef', 'warning', NULL, 'Tahanan', '2026-04-15 18:27:37', NULL, 1),
-(15, 'storm', 'dfsd', 'dsfd', 'emergency', NULL, 'Tahanan', '2026-04-15 19:25:32', NULL, 1);
+(15, 'storm', 'dfsd', 'dsfd', 'emergency', NULL, 'Tahanan', '2026-04-15 19:25:32', NULL, 1),
+(16, 'earthquake', 'FLOOD', 'dfsdf', 'warning', NULL, 'Tahanan', '2026-04-15 23:22:55', NULL, 1),
+(17, 'flood', 'FLOOD', 'dasdadsasasd', 'advisory', NULL, 'Tahanan', '2026-04-15 23:25:58', NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -344,10 +348,10 @@ CREATE TABLE `leasetbl` (
   `deposit` decimal(10,2) DEFAULT NULL,
   `terms` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `status` enum('pending','active','expired','terminated','renewed') NOT NULL DEFAULT 'pending',
+  `status` enum('pending','active','expired','terminated','renewed','cancelled') NOT NULL DEFAULT 'pending',
   `pdf_path` varchar(255) DEFAULT NULL,
   `tenant_response` enum('pending','accepted','rejected') NOT NULL DEFAULT 'pending',
-  `lease_status` enum('active','terminated','renewed') DEFAULT 'active',
+  `lease_status` enum('active','terminated','renewed','cancelled') DEFAULT 'active',
   `visible_to_tenant` tinyint(1) NOT NULL DEFAULT 1,
   `rent_due_day` int(11) NOT NULL,
   `request_id` int(11) DEFAULT NULL
@@ -358,7 +362,9 @@ CREATE TABLE `leasetbl` (
 --
 
 INSERT INTO `leasetbl` (`ID`, `listing_id`, `tenant_id`, `landlord_id`, `start_date`, `end_date`, `rent`, `deposit`, `terms`, `created_at`, `status`, `pdf_path`, `tenant_response`, `lease_status`, `visible_to_tenant`, `rent_due_day`, `request_id`) VALUES
-(216, 10, 3, 1, '2026-04-17', '2026-08-23', 3500.00, 2000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\"]', '2026-04-15 19:19:41', 'active', '../LANDLORD/leases/lease_216.pdf', 'accepted', 'active', 1, 17, NULL);
+(216, 10, 3, 1, '2026-04-17', '2026-08-23', 3500.00, 2000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\"]', '2026-04-15 19:19:41', 'terminated', '../LANDLORD/leases/lease_216.pdf', 'accepted', 'terminated', 1, 17, NULL),
+(219, 18, 3, 1, '2026-04-20', '2027-01-04', 2500.00, 5000.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\",\"No karaoke at past 10 in the midnight\"]', '2026-04-17 19:38:08', 'active', '../LANDLORD/leases/lease_219.pdf', 'accepted', 'active', 1, 29, NULL),
+(222, 17, 4, 1, '2026-04-21', '2026-08-23', 2000.00, 3997.00, '[\"Tenant pays 1 month advance rent and 1 month security deposit.\",\"Security deposit refundable upon move-out minus damages.\",\"Rent must be paid on or before the due date.\"]', '2026-04-18 04:43:47', 'active', '../LANDLORD/leases/lease_222.pdf', 'accepted', 'active', 1, 2, NULL);
 
 -- --------------------------------------------------------
 
@@ -394,6 +400,13 @@ CREATE TABLE `lease_terminationstbl` (
   `responded_at` datetime DEFAULT NULL,
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `lease_terminationstbl`
+--
+
+INSERT INTO `lease_terminationstbl` (`ID`, `lease_id`, `terminated_by`, `reason`, `terminated_at`, `landlord_status`, `landlord_response`, `responded_at`, `created_at`) VALUES
+(58, 216, 'tenant', 'fvdf', '2026-04-18 03:10:28', 'approved', NULL, '2026-04-18 03:10:46', '2026-04-18 03:10:28');
 
 -- --------------------------------------------------------
 
@@ -483,6 +496,13 @@ CREATE TABLE `maintenance_requeststbl` (
   `maintenance_status` varchar(50) DEFAULT 'Pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `maintenance_requeststbl`
+--
+
+INSERT INTO `maintenance_requeststbl` (`id`, `lease_id`, `tenant_id`, `landlord_id`, `title`, `description`, `photo_path`, `category`, `priority`, `status`, `requested_date`, `scheduled_date`, `completed_date`, `landlord_remarks`, `created_at`, `updated_at`, `landlord_response`, `response_date`, `maintenance_status`) VALUES
+(32, 216, 3, 1, 'jjj', 'jnjk', 'tahanan/uploads/maintenance/maintenance_1776450310_69e27b06a8780.png', 'Appliances', 'High', 'Completed', '2026-04-18', '2026-05-02', '2026-04-17', NULL, '2026-04-17 18:25:10', '2026-04-17 18:56:59', 'all goods', NULL, 'Pending');
+
 -- --------------------------------------------------------
 
 --
@@ -540,7 +560,10 @@ INSERT INTO `messages` (`id`, `conversation_id`, `sender_id`, `sender_type`, `co
 (42, 14, 2, 'landlord', '.', NULL, NULL, NULL, 'text', 'active', '2026-03-28 03:12:26', NULL, NULL, 0),
 (43, 16, 1, 'tenant', 'hey, i have issue', NULL, NULL, NULL, 'text', 'active', '2026-03-28 04:30:02', '2026-03-28 12:30:19', '2026-03-28 04:30:19', 0),
 (44, 16, 1, 'landlord', 'gfg', NULL, NULL, NULL, 'text', 'active', '2026-04-12 11:15:03', '2026-04-15 10:39:17', '2026-04-15 02:39:17', 0),
-(45, 18, 4, 'tenant', 'Hi! I\'m interested in your property: SMALL ONE BED ROOM APARTMENT FOR RENT.', NULL, NULL, NULL, 'text', 'active', '2026-04-15 15:35:25', '2026-04-15 23:35:49', '2026-04-15 15:35:49', 0);
+(45, 18, 4, 'tenant', 'Hi! I\'m interested in your property: SMALL ONE BED ROOM APARTMENT FOR RENT.', NULL, NULL, NULL, 'text', 'active', '2026-04-15 15:35:25', '2026-04-15 23:35:49', '2026-04-15 15:35:49', 0),
+(46, 18, 1, 'landlord', 'okay, you can apply', NULL, NULL, NULL, 'text', 'active', '2026-04-17 02:33:24', '2026-04-17 11:12:54', '2026-04-17 03:12:54', 0),
+(47, 19, 4, 'tenant', 'Hi! I\'m interested in your property: ISANG BUONG BAHAY IN PACITA 1 SAN PEDRO LAGUNA WITH 4 BEDROOM.', NULL, NULL, NULL, 'text', 'active', '2026-04-18 03:34:04', '2026-04-18 13:02:03', '2026-04-18 05:02:03', 0),
+(48, 20, 4, 'tenant', 'Hi! I\'m interested in your property: Magandang bahay hehe.', NULL, NULL, NULL, 'text', 'active', '2026-04-18 03:34:13', NULL, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -581,7 +604,31 @@ INSERT INTO `notifications` (`id`, `user_id`, `user_type`, `message`, `link`, `t
 (15, 3, 'tenant', '📄 Your application for \"SMALL ONE BED ROOM APARTMENT FOR RENT\" has been approved! Jahaziel Sison has sent you a lease agreement. Please review and respond.', NULL, 'rental', 0, '2026-04-15 19:07:54'),
 (16, 1, 'landlord', '🏠 Joyce Diane Sison has applied for your listing \"Studio Type for Rent – Landayan, San Pedro, Laguna\". Review their application now.', 'property-details.php?ID=10', 'rental', 0, '2026-04-15 19:18:43'),
 (17, 3, 'tenant', '📄 Your application for \"Studio Type for Rent – Landayan, San Pedro, Laguna\" has been approved! Jahaziel Sison has sent you a lease agreement. Please review and respond.', NULL, 'rental', 0, '2026-04-15 19:19:41'),
-(18, 1, 'landlord', '🎉 Joyce Diane Sison has accepted the lease agreement for \"Studio Type for Rent – Landayan, San Pedro, Laguna\". The rental is now active!', 'property-details.php?ID=10', 'rental', 0, '2026-04-15 19:24:03');
+(18, 1, 'landlord', '🎉 Joyce Diane Sison has accepted the lease agreement for \"Studio Type for Rent – Landayan, San Pedro, Laguna\". The rental is now active!', 'property-details.php?ID=10', 'rental', 0, '2026-04-15 19:24:03'),
+(19, 1, 'landlord', '🏠 jahaziel Sison has applied for your listing \"Bedspace Apartment For Rent\". Review their application now.', 'property-details.php?ID=17', 'rental', 0, '2026-04-15 20:59:34'),
+(20, 1, 'landlord', '🏠 jahaziel Sison has applied for your listing \"Bedspace Apartment For Rent\". Review their application now.', 'property-details.php?ID=17', 'rental', 0, '2026-04-17 02:33:52'),
+(21, 4, 'tenant', '📄 Your application for \"Bedspace Apartment For Rent\" has been approved! Jahaziel Sison has sent you a lease agreement. Please review and respond.', NULL, 'rental', 0, '2026-04-17 02:35:03'),
+(22, 1, 'landlord', '🎉 jahaziel Sison has accepted the lease agreement for \"Bedspace Apartment For Rent\". The rental is now active!', 'property-details.php?ID=17', 'rental', 0, '2026-04-17 02:35:50'),
+(23, 1, 'landlord', '📅 A site visit for your listing \"Gardenview Condo\" has been scheduled on April 17, 2026 at 11:25 AM. Note: im visiting', NULL, 'system', 0, '2026-04-17 03:26:20'),
+(24, 1, 'landlord', '✅ Your listing \"Gardenview Condo\" has been approved and is now live! Admin note: All g', NULL, 'system', 0, '2026-04-17 03:26:58'),
+(25, 1, 'landlord', '🏠 jahaziel Sison has applied for your listing \"SMALL ONE BED ROOM APARTMENT FOR RENT\". Review their application now.', 'property-details.php?ID=18', 'rental', 0, '2026-04-17 18:41:10'),
+(26, 4, 'tenant', '📄 Your application for \"SMALL ONE BED ROOM APARTMENT FOR RENT\" has been approved! Jahaziel Sison has sent you a lease agreement. Please review and respond.', NULL, 'rental', 0, '2026-04-17 18:42:09'),
+(27, 1, 'landlord', '🏠 Joyce Diane Sison has applied for your listing \"SMALL ONE BED ROOM APARTMENT FOR RENT\". Review their application now.', 'property-details.php?ID=18', 'rental', 0, '2026-04-17 19:11:28'),
+(28, 3, 'tenant', '📄 Your application for \"SMALL ONE BED ROOM APARTMENT FOR RENT\" has been approved! Jahaziel Sison has sent you a lease agreement. Please review and respond.', NULL, 'rental', 0, '2026-04-17 19:38:08'),
+(29, 1, 'landlord', '🎉 Joyce Diane Sison has accepted the lease agreement for \"SMALL ONE BED ROOM APARTMENT FOR RENT\". The rental is now active!', 'property-details.php?ID=18', 'rental', 0, '2026-04-17 19:38:25'),
+(30, 1, 'landlord', '🏠 jahaziel Sison has applied for your listing \"Bedspace Apartment For Rent\". Review their application now.', 'property-details.php?ID=17', 'rental', 0, '2026-04-17 19:57:21'),
+(31, 1, 'landlord', '🏠 jahaziel Sison has applied for your listing \"Bedspace Apartment For Rent\". Review their application now.', 'property-details.php?ID=17', 'rental', 0, '2026-04-17 19:58:01'),
+(32, 1, 'landlord', '🏠 jahaziel Sison has applied for your listing \"Isang buong bahay\". Review their application now.', 'property-details.php?ID=16', 'rental', 0, '2026-04-17 20:00:56'),
+(33, 1, 'landlord', '🏠 jahaziel Sison has applied for your listing \"Isang buong bahay\". Review their application now.', 'property-details.php?ID=16', 'rental', 0, '2026-04-18 03:25:05'),
+(34, 1, 'landlord', '🏠 jahaziel Sison has applied for your listing \"Isang buong bahay\". Review their application now.', 'property-details.php?ID=16', 'rental', 0, '2026-04-18 03:29:58'),
+(35, 1, 'landlord', '🏠 jahaziel Sison has applied for your listing \"Bedspace Apartment For Rent\". Review their application now.', 'property-details.php?ID=17', 'rental', 0, '2026-04-18 03:48:17'),
+(36, 1, 'landlord', '🏠 jahaziel Sison has applied for your listing \"Bedspace Apartment For Rent\". Review their application now.', 'property-details.php?ID=17', 'rental', 0, '2026-04-18 03:49:03'),
+(37, 4, 'tenant', '📄 Your application for \"Bedspace Apartment For Rent\" has been approved! Jahaziel Sison has sent you a lease agreement. Please review and respond.', NULL, 'rental', 0, '2026-04-18 03:50:04'),
+(38, 1, 'landlord', '🏠 jahaziel Sison has applied for your listing \"Bedspace Apartment For Rent\". Review their application now.', 'property-details.php?ID=17', 'rental', 0, '2026-04-18 04:41:08'),
+(39, 4, 'tenant', '📄 Your application for \"Bedspace Apartment For Rent\" has been approved! Jahaziel Sison has sent you a lease agreement. Please review and respond.', NULL, 'rental', 0, '2026-04-18 04:42:05'),
+(40, 1, 'landlord', '🏠 jahaziel Sison has applied for your listing \"Bedspace Apartment For Rent\". Review their application now.', 'property-details.php?ID=17', 'rental', 0, '2026-04-18 04:43:11'),
+(41, 4, 'tenant', '📄 Your application for \"Bedspace Apartment For Rent\" has been approved! Jahaziel Sison has sent you a lease agreement. Please review and respond.', NULL, 'rental', 0, '2026-04-18 04:43:47'),
+(42, 1, 'landlord', '🎉 jahaziel Sison has accepted the lease agreement for \"Bedspace Apartment For Rent\". The rental is now active!', 'property-details.php?ID=17', 'rental', 0, '2026-04-18 04:44:09');
 
 -- --------------------------------------------------------
 
@@ -666,7 +713,8 @@ CREATE TABLE `renttbl` (
 
 INSERT INTO `renttbl` (`ID`, `lease_id`, `date`, `status`, `landlord_id`, `tenant_id`, `listing_id`, `start_date`, `end_date`, `tenant_request`, `request_status`, `tenant_removed`) VALUES
 (66, NULL, '0000-00-00', '', 2, 2, 12, '0000-00-00', '0000-00-00', 'none', 'pending', 0),
-(93, 216, '2026-04-15', 'approved', 1, 3, 10, '2026-04-17', '2026-08-23', 'none', 'pending', 0);
+(95, 219, '2026-04-17', 'approved', 1, 3, 18, '2026-04-20', '2027-01-04', 'none', 'pending', 0),
+(96, 222, '2026-04-18', 'approved', 1, 4, 17, '2026-04-21', '2026-08-23', 'none', 'pending', 0);
 
 -- --------------------------------------------------------
 
@@ -749,7 +797,8 @@ CREATE TABLE `requesttbl` (
 --
 
 INSERT INTO `requesttbl` (`ID`, `date`, `tenant_id`, `listing_id`, `status`, `lease_id`, `is_removed`, `tenant_action`) VALUES
-(142, '2026-04-16', 3, 10, 'approved', NULL, 0, NULL);
+(142, '2026-04-16', 3, 10, 'approved', NULL, 0, NULL),
+(146, '2026-04-18', 3, 18, 'approved', NULL, 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -952,7 +1001,11 @@ INSERT INTO `user_alert_read_status` (`id`, `alert_id`, `user_id`, `user_type`, 
 (27, 14, 3, 'tenant', 1, '2026-04-16 02:27:40'),
 (28, 14, 1, 'landlord', 1, '2026-04-16 02:28:20'),
 (29, 15, 3, 'tenant', 1, '2026-04-16 03:25:37'),
-(30, 15, 1, 'landlord', 1, '2026-04-16 03:25:37');
+(30, 15, 1, 'landlord', 1, '2026-04-16 03:25:37'),
+(31, 16, 3, 'tenant', 1, '2026-04-16 07:30:28'),
+(32, 16, 1, 'landlord', 1, '2026-04-16 07:22:59'),
+(33, 17, 3, 'tenant', 1, '2026-04-16 07:30:28'),
+(34, 17, 1, 'landlord', 1, '2026-04-16 07:26:54');
 
 -- --------------------------------------------------------
 
@@ -1250,19 +1303,19 @@ ALTER TABLE `cancel_requesttbl`
 -- AUTO_INCREMENT for table `conversations`
 --
 ALTER TABLE `conversations`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `conversation_members`
 --
 ALTER TABLE `conversation_members`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `emergency_alerts`
 --
 ALTER TABLE `emergency_alerts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `extension_requesttbl`
@@ -1286,7 +1339,7 @@ ALTER TABLE `landlord_warnings`
 -- AUTO_INCREMENT for table `leasetbl`
 --
 ALTER TABLE `leasetbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=217;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=223;
 
 --
 -- AUTO_INCREMENT for table `lease_renewaltbl`
@@ -1298,13 +1351,13 @@ ALTER TABLE `lease_renewaltbl`
 -- AUTO_INCREMENT for table `lease_terminationstbl`
 --
 ALTER TABLE `lease_terminationstbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=57;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
 
 --
 -- AUTO_INCREMENT for table `listingtbl`
 --
 ALTER TABLE `listingtbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `maintenance_attachmentstbl`
@@ -1316,31 +1369,31 @@ ALTER TABLE `maintenance_attachmentstbl`
 -- AUTO_INCREMENT for table `maintenance_requeststbl`
 --
 ALTER TABLE `maintenance_requeststbl`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT for table `paymentstbl`
 --
 ALTER TABLE `paymentstbl`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=63;
 
 --
 -- AUTO_INCREMENT for table `renttbl`
 --
 ALTER TABLE `renttbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=97;
 
 --
 -- AUTO_INCREMENT for table `reportstbl`
@@ -1358,7 +1411,7 @@ ALTER TABLE `report_actions_log`
 -- AUTO_INCREMENT for table `requesttbl`
 --
 ALTER TABLE `requesttbl`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=143;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=156;
 
 --
 -- AUTO_INCREMENT for table `reset_password`
@@ -1388,7 +1441,7 @@ ALTER TABLE `trusted_devices`
 -- AUTO_INCREMENT for table `user_alert_read_status`
 --
 ALTER TABLE `user_alert_read_status`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
 
 --
 -- Constraints for dumped tables
