@@ -6,347 +6,311 @@ if (!isset($_SESSION['landlord_id'])) {
     die("Unauthorized access. Please log in as landlord.");
 }
 
-// Helper function to format Philippine phone number
 function formatPhilippinePhone($phoneNum) {
-    if (empty($phoneNum)) {
-        return 'Not provided';
-    }
-    
-    // Remove any non-digit characters
+    if (empty($phoneNum)) return 'Not provided';
     $phone = preg_replace('/[^0-9]/', '', $phoneNum);
-    
-    // If starts with 0, remove it
-    if (substr($phone, 0, 1) === '0') {
-        $phone = substr($phone, 1);
-    }
-    
-    // If starts with 63, remove it
-    if (substr($phone, 0, 2) === '63') {
-        $phone = substr($phone, 2);
-    }
-    
-    // Format: +63 917 123 4567
-    if (strlen($phone) === 10) {
+    if (substr($phone, 0, 1) === '0') $phone = substr($phone, 1);
+    if (substr($phone, 0, 2) === '63') $phone = substr($phone, 2);
+    if (strlen($phone) === 10)
         return '+63 ' . substr($phone, 0, 3) . ' ' . substr($phone, 3, 3) . ' ' . substr($phone, 6);
-    }
-    
-    if (strlen($phone) === 9) {
+    if (strlen($phone) === 9)
         return '+63 ' . substr($phone, 0, 3) . ' ' . substr($phone, 3, 3) . ' ' . substr($phone, 6);
-    }
-    
     return '+63 ' . $phone;
 }
 
-if (!isset($_SESSION['landlord_id'])) {
-    die("Unauthorized access. Please log in as landlord.");
-}
-
 $landlord_id = (int) $_SESSION['landlord_id'];
-
 $tenant_id = isset($_GET['tenant_id']) ? (int) $_GET['tenant_id'] : 0;
-if ($tenant_id <= 0) {
-    die("Invalid tenant ID.");
-}
+if ($tenant_id <= 0) die("Invalid tenant ID.");
 
-$sql = "SELECT ID, firstName, lastName, phoneNum, email, created_at, profilePic 
-        FROM tenanttbl 
-        WHERE ID = ?";
+$sql = "SELECT ID, firstName, lastName, phoneNum, email, created_at, profilePic FROM tenanttbl WHERE ID = ?";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $tenant_id);
 $stmt->execute();
-$result = $stmt->get_result();
-$tenant = $result->fetch_assoc();
+$tenant = $stmt->get_result()->fetch_assoc();
 $stmt->close();
 
-if (!$tenant) {
-    die("Tenant not found.");
-}
+if (!$tenant) die("Tenant not found.");
 
 $profilePath = $tenant['profilePic'] ?? '';
-if (!empty($profilePath) && !str_starts_with($profilePath, 'http')) {
+if (!empty($profilePath) && !str_starts_with($profilePath, 'http'))
     $profilePath = "../uploads/" . $profilePath;
-}
 
 $firstLetter = strtoupper(substr($tenant['firstName'], 0, 1));
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="../css/bootstrap.min.css">
     <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
-
     <title>Tenant Profile</title>
-
     <style>
-        /* PAGE WRAPPER */
-        /* ==========================================
-   TENANT PROFILE (LANDLORD VIEW)
-   SAME STYLE AS MY ACCOUNT
-========================================== */
+        .tenant-profile-page {
+            margin-top: 140px;
+            padding: 0 20px 60px;
+            min-height: calc(100vh - 140px);
+            background: #eef2f7;
+        }
 
-.landlord-page {
-    margin-top: 140px;
-    padding: 0 20px 60px 20px;
-    min-height: calc(100vh - 140px);
-    background: linear-gradient(135deg, #eef2f7 0%, #dde5ee 100%);
-}
+        .profile-card {
+            background: #fff;
+            border-radius: 20px;
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
 
-.account-card {
-    background: #f8f9fb;
-    border-radius: 28px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.08);
-    overflow: hidden;
-    padding-bottom: 50px;
-    position: relative;
-}
+        .profile-banner {
+            height: 160px;
+            background: #8d0b41;
+        }
 
-.account-card::before {
-    content: "";
-    display: block;
-    height: 220px;
-    background: linear-gradient(135deg, #8d0b41 0%, #6a0831 100%);
-}
+        .profile-body {
+            text-align: center;
+            padding: 0 28px 40px;
+        }
 
-.profile-content {
-    text-align: center;
-    margin-top: -80px;
-    padding: 0 30px;
-}
+        /* Avatar — both image and initial fallback */
+        .avatar-wrap {
+            display: flex;
+            justify-content: center;
+            margin-top: -64px;
+            margin-bottom: 16px;
+        }
 
-.profile-img,
-.avatar {
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-    border: 6px solid #ffffff;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-    object-fit: cover;
-}
+        .profile-img,
+        .avatar-initial {
+            width: 128px;
+            height: 128px;
+            border-radius: 50%;
+            border: 5px solid #fff;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        }
 
-.avatar {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #8d0b41 0%, #6a0831 100%);
-    color: white;
-    font-size: 64px;
-    font-weight: 700;
-}
+        .profile-img {
+            object-fit: cover;
+        }
 
-.profile-name {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #2d3748;
-    margin-top: 20px;
-    margin-bottom: 10px;
-}
+        .avatar-initial {
+            background: #6a0831;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 52px;
+            font-weight: 600;
+            color: #f4c0d1;
+            letter-spacing: -2px;
+            flex-shrink: 0;
+        }
 
-.profile-role {
-    display: inline-block;
-    padding: 6px 18px;
-    border-radius: 50px;
-    background: #e2e8f0;
-    color: #8d0b41;
-    font-size: 0.9rem;
-    font-weight: 500;
-    margin-bottom: 30px;
-}
+        .profile-name {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
 
-.info-cards {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    margin-bottom: 35px;
-}
+        .profile-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fbeaf0;
+            color: #8d0b41;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 5px 16px;
+            border-radius: 50px;
+            margin-bottom: 28px;
+        }
 
-.info-card {
-    background: #eef2f7;
-    border-radius: 14px;
-    padding: 18px 24px;
-    min-width: 260px;
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    border: 1px solid #d6dde6;
-}
+        /* Info grid */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-bottom: 28px;
+        }
 
-.info-icon {
-    width: 44px;
-    height: 44px;
-    background: linear-gradient(135deg, #8d0b41 0%, #6a0831 100%);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #ffffff;
-    font-size: 18px;
-}
+        .info-card {
+            background: #f7f9fc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-align: left;
+        }
 
-.info-text small {
-    display: block;
-    font-size: 0.75rem;
-    color: #718096;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            background: #8d0b41;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #f4c0d1;
+            font-size: 15px;
+        }
 
-.info-text span {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: #2d3748;
-}
+        .info-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+            color: #718096;
+            margin-bottom: 3px;
+        }
 
-.account-actions {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    flex-wrap: wrap;
-}
+        .info-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #2d3748;
+        }
 
-.btn-primary-custom {
-    padding: 10px 22px;
-    border-radius: 50px;
-    background: linear-gradient(135deg, #8d0b41 0%, #6a0831 100%);
-    color: white;
-    border: none;
-    font-weight: 600;
-    transition: 0.3s ease;
-}
+        /* Action buttons */
+        .profile-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
 
-.btn-primary-custom:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 18px rgba(141, 11, 65, 0.3);
-}
+        .btn-chat {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 26px;
+            border-radius: 50px;
+            background: #8d0b41;
+            color: #fff;
+            border: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
 
-.btn-danger-custom {
-    padding: 10px 22px;
-    border-radius: 50px;
-    background: #fbd5d5;
-    color: #c53030;
-    border: none;
-    font-weight: 600;
-    transition: 0.3s ease;
-}
+        .btn-chat:hover {
+            background: #6a0831;
+            transform: translateY(-1px);
+        }
 
-.btn-danger-custom:hover {
-    background: #fc8181;
-    color: white;
-}
+        .btn-report {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 26px;
+            border-radius: 50px;
+            background: #fbd5d5;
+            color: #c53030;
+            border: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
 
-@media (max-width: 768px) {
-    .profile-img,
-    .avatar {
-        width: 120px;
-        height: 120px;
-    }
+        .btn-report:hover {
+            background: #fc8181;
+            color: #fff;
+            transform: translateY(-1px);
+        }
 
-    .profile-name {
-        font-size: 1.5rem;
-    }
-
-    .info-card {
-        width: 100%;
-    }
-
-    .account-actions {
-        flex-direction: column;
-    }
-
-    .btn-primary-custom,
-    .btn-danger-custom {
-        width: 100%;
-    }
-}
-        
+        @media (max-width: 640px) {
+            .info-grid { grid-template-columns: 1fr; }
+            .profile-actions { flex-direction: column; align-items: stretch; }
+            .btn-chat, .btn-report { justify-content: center; }
+            .avatar-initial, .profile-img { width: 100px; height: 100px; font-size: 40px; }
+            .avatar-wrap { margin-top: -50px; }
+        }
     </style>
 </head>
-
 <body>
 
-    <?php include '../Components/landlord-header.php'; ?>
+<?php include '../Components/landlord-header.php'; ?>
 
-    <div class="landlord-page">
-        <div class="container">
-            <div class="row justify-content-center">
-                <div class="col-lg-10">
-                    <div class="account-card">
-    <div class="profile-content">
+<div class="tenant-profile-page">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="profile-card">
+                    <div class="profile-banner"></div>
 
-        <?php if (!empty($tenant['profilePic'])): ?>
-            <img src="<?= htmlspecialchars($profilePath); ?>" class="profile-img">
-        <?php else: ?>
-            <div class="avatar"><?= $firstLetter ?></div>
-        <?php endif; ?>
+                    <div class="profile-body">
 
-        <h2 class="profile-name">
-            <?= htmlspecialchars(ucwords($tenant['firstName'] . ' ' . $tenant['lastName'])); ?>
-        </h2>
+                        <div class="avatar-wrap">
+                            <?php if (!empty($tenant['profilePic'])): ?>
+                                <img src="<?= htmlspecialchars($profilePath) ?>"
+                                     alt="<?= htmlspecialchars($tenant['firstName']) ?>"
+                                     class="profile-img">
+                            <?php else: ?>
+                                <div class="avatar-initial"><?= $firstLetter ?></div>
+                            <?php endif; ?>
+                        </div>
 
-        <div class="profile-role">
-            <i class="fas fa-user"></i> Tenant
-        </div>
+                        <h2 class="profile-name">
+                            <?= htmlspecialchars(ucwords($tenant['firstName'] . ' ' . $tenant['lastName'])) ?>
+                        </h2>
 
-        <div class="info-cards">
+                        <div class="profile-badge">
+                            <i class="fas fa-user" style="font-size:12px;"></i>
+                            Tenant
+                        </div>
 
-            <div class="info-card">
-                <div class="info-icon">
-                    <i class="fas fa-phone"></i>
-                </div>
-                <div class="info-text">
-                    <small>PHONE NUMBER</small>
-                    <span><?= formatPhilippinePhone($tenant['phoneNum']); ?></span>
+                        <div class="info-grid">
+                            <div class="info-card">
+                                <div class="info-icon">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div>
+                                    <div class="info-label">Phone number</div>
+                                    <div class="info-value"><?= formatPhilippinePhone($tenant['phoneNum']) ?></div>
+                                </div>
+                            </div>
+
+                            <div class="info-card">
+                                <div class="info-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <div class="info-label">Email address</div>
+                                    <div class="info-value"><?= htmlspecialchars($tenant['email']) ?></div>
+                                </div>
+                            </div>
+
+                            <div class="info-card">
+                                <div class="info-icon">
+                                    <i class="fas fa-calendar"></i>
+                                </div>
+                                <div>
+                                    <div class="info-label">Member since</div>
+                                    <div class="info-value"><?= date("F j, Y", strtotime($tenant['created_at'])) ?></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="profile-actions">
+                            <button class="btn-chat"
+                                onclick="location.href='landlord-message.php?tenant_id=<?= $tenant['ID'] ?>'">
+                                <i class="fas fa-comments"></i> Chat
+                            </button>
+                            <button class="btn-report"
+                                onclick="location.href='report-tenant.php?tenant_id=<?= $tenant_id ?>'">
+                                <i class="fas fa-flag"></i> Report
+                            </button>
+                        </div>
+
+                    </div>
                 </div>
             </div>
-
-            <div class="info-card">
-                <div class="info-icon">
-                    <i class="fas fa-envelope"></i>
-                </div>
-                <div class="info-text">
-                    <small>EMAIL ADDRESS</small>
-                    <span><?= htmlspecialchars($tenant['email']); ?></span>
-                </div>
-            </div>
-
-            <div class="info-card">
-                <div class="info-icon">
-                    <i class="fas fa-calendar"></i>
-                </div>
-                <div class="info-text">
-                    <small>MEMBER SINCE</small>
-                    <span><?= date("F j, Y", strtotime($tenant['created_at'])); ?></span>
-                </div>
-            </div>
-
         </div>
-
-        <div class="account-actions">
-            <button class="btn-primary-custom"
-                onclick="location.href='landlord-message.php?tenant_id=<?= $tenant['ID']; ?>'">
-                <i class="fas fa-comments"></i> Chat
-            </button>
-
-            <button class="btn-danger-custom"
-                onclick="location.href='report-tenant.php?tenant_id=<?= $tenant_id ?>'">
-                <i class="fas fa-flag"></i> Report
-            </button>
-        </div>
-
     </div>
 </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <script src="../js/bootstrap.bundle.min.js"></script>
+<script src="../js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

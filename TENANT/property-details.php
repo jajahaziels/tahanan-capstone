@@ -1,23 +1,23 @@
 <?php
+
+ini_set('display_errors', 1);
+error_reporting(E_ALL); 
+
 require_once '../connection.php';
 include '../session_auth.php';
 
 $listingID = intval($_GET['id'] ?? $_GET['ID'] ?? 0);
-if ($listingID <= 0)
-    die("Invalid property ID.");
+if ($listingID <= 0) die("Invalid property ID.");
 
 $sql = "
-SELECT 
-    l.*,
-    l.ID AS listing_id,
-    ld.ID          AS landlord_id,
-    ld.firstName   AS landlord_fname,
-    ld.lastName    AS landlord_lname,
-    ld.profilePic  AS landlord_profilePic
-FROM listingtbl l
-JOIN landlordtbl ld ON l.landlord_id = ld.ID
-WHERE l.ID = ?
-LIMIT 1
+    SELECT l.*, l.ID AS listing_id,
+           ld.ID AS landlord_id,
+           ld.firstName AS landlord_fname,
+           ld.lastName AS landlord_lname,
+           ld.profilePic AS landlord_profilePic
+    FROM listingtbl l
+    JOIN landlordtbl ld ON l.landlord_id = ld.ID
+    WHERE l.ID = ? LIMIT 1
 ";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $listingID);
@@ -28,25 +28,16 @@ $property = $res->fetch_assoc();
 $stmt->close();
 
 $images    = json_decode($property['images'] ?? '[]', true) ?? [];
-$terms     = isset($property['terms']) && !empty($property['terms'])
-             ? (json_decode($property['terms'], true) ?? [])
-             : [];
-$tenant_id = (int) ($_SESSION['tenant_id'] ?? 0);
+$terms     = !empty($property['terms']) ? (json_decode($property['terms'], true) ?? []) : [];
+$tenant_id = (int)($_SESSION['tenant_id'] ?? 0);
 
 $requestStatus = null;
 $requestId     = null;
-
 if ($tenant_id > 0) {
-    $checkSql = "
-        SELECT id, status FROM requesttbl
-        WHERE tenant_id = ? AND listing_id = ?
-        ORDER BY id DESC LIMIT 1
-    ";
-    $stmt = $conn->prepare($checkSql);
+    $stmt = $conn->prepare("SELECT id, status FROM requesttbl WHERE tenant_id = ? AND listing_id = ? ORDER BY id DESC LIMIT 1");
     $stmt->bind_param("ii", $tenant_id, $listingID);
     $stmt->execute();
-    $r = $stmt->get_result();
-    if ($row = $r->fetch_assoc()) {
+    if ($row = $stmt->get_result()->fetch_assoc()) {
         $requestStatus = $row['status'];
         $requestId     = $row['id'];
     }
@@ -71,14 +62,33 @@ if ($tenant_id > 0) {
     $stmt->close();
 }
 
-if ($hasActiveLease || $hasActiveRent) {
-    $btnState = 'renting';
-} elseif ($requestStatus === 'pending') {
-    $btnState = 'pending';
-} elseif ($requestStatus === 'approved' && !$hasActiveLease) {
-    $btnState = 'apply';
-} else {
-    $btnState = 'apply';
+if ($hasActiveLease || $hasActiveRent) $btnState = 'renting';
+elseif ($requestStatus === 'pending')  $btnState = 'pending';
+else                                   $btnState = 'apply';
+
+$sqlOther = "
+    SELECT l.ID, l.listingName, l.price, l.category, l.barangay, l.images
+    FROM listingtbl l
+    WHERE l.ID != ? AND l.availability = 'available'
+      AND (l.barangay = ? OR l.category = ?)
+    ORDER BY RAND()
+    LIMIT 4
+";
+$stmtO = $conn->prepare($sqlOther);
+$stmtO->bind_param("iss", $listingID, $property['barangay'], $property['category']);
+$stmtO->execute();
+$otherListings = $stmtO->get_result()->fetch_all(MYSQLI_ASSOC);
+$stmtO->close();
+
+if (count($otherListings) < 4) {
+    $exclude = array_merge([$listingID], array_column($otherListings, 'ID'));
+    $placeholders = implode(',', array_fill(0, count($exclude), '?'));
+    $types = str_repeat('i', count($exclude));
+    $stmtF = $conn->prepare("SELECT ID, listingName, price, category, barangay, images FROM listingtbl WHERE ID NOT IN ($placeholders) AND availability='available' ORDER BY RAND() LIMIT " . (4 - count($otherListings)));
+    $stmtF->bind_param($types, ...$exclude);
+    $stmtF->execute();
+    $otherListings = array_merge($otherListings, $stmtF->get_result()->fetch_all(MYSQLI_ASSOC));
+    $stmtF->close();
 }
 ?>
 <!DOCTYPE html>
@@ -87,125 +97,537 @@ if ($hasActiveLease || $hasActiveRent) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <link rel="stylesheet" href="../css/bootstrap.min.css">
-    <link rel="stylesheet" href="../css/style.css?v=<?= time(); ?>">
-    <title><?= htmlspecialchars($property['listingName']); ?> - Details</title>
-
+    <link rel="stylesheet" href="../css/style.css?v=<?= time() ?>">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <title><?= htmlspecialchars($property['listingName']) ?> - Details</title>
     <style>
-        .tenant-page { margin-top: 50px !important; }
+        body { background: var(--bg-alt-color); }
 
-        .prorperty-details {
-            background-color: var(--bg-color);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 2px 2px 10px rgba(0,0,0,0.165);
+        .tenant-page {
+            margin-top: 80px;
+            padding: 0 0 80px;
         }
 
-        .back-button { position: fixed; margin-top: 160px; }
-        .price { font-size: 3rem; }
-
-        .avatar {
-            width: 60px !important; height: 60px !important;
-            border-radius: 50%;
-            background: var(--main-color);
-            color: var(--bg-color);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 20px;
-        }
-        .avatar img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
-
-        #map { height: 400px; padding: 0; margin: auto; }
-
-        /* ── Carousel ── */
-        .carousel-inner { height: 420px !important; }
-        #carouselExample { max-width: 500px !important; margin: 0 auto !important; }
-        #carouselExample img {
-            height: 400px !important;
-            object-fit: cover !important;
-            border-radius: 20px !important;
-            cursor: zoom-in;
-            transition: transform 0.2s ease;
-        }
-        #carouselExample img:hover { transform: scale(1.01); }
-
-        .rent-warning-card {
-            background: #fff6f6;
-            border-radius: 15px;
-            padding: 15px 18px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-        }
-        .warning-icon {
-            width: 40px; height: 40px; border-radius: 50%;
-            background: var(--main-color); color: white;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 18px; margin-right: 12px;
-        }
-        .warning-text h6 { font-weight: 600; color: var(--main-color); }
-        .warning-text p  { font-size: 0.9rem; color: #555; }
-
-        .btn-cancel-apply {
-            background: transparent;
-            border: 2px solid var(--main-color);
-            color: var(--main-color);
-            border-radius: 25px;
-            padding: 8px 20px;
-            font-weight: 600; font-size: 0.9rem;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        .btn-cancel-apply:hover { background: var(--main-color); color: #fff; }
-
-        /* ── House Rules Card ── */
-        .house-rules-card {
-            background: #fff8f0;
-            border: 1px solid #ffe0b2;
-            border-radius: 14px;
-            padding: 20px 22px;
-            margin-top: 24px;
+        .page-wrap {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 28px 20px 0;
         }
 
-        .house-rules-card h5 {
-            color: var(--main-color);
+        /* ── Top bar ── */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 22px;
+        }
+
+        .top-bar h1 {
+            font-size: 1.4rem;
             font-weight: 700;
-            margin-bottom: 14px;
-            font-size: 1.05rem;
-        }
-
-        .rules-list {
-            list-style: none;
-            padding: 0;
+            color: var(--text-color);
             margin: 0;
         }
 
-        .rules-list li {
+        .top-bar h1 span { color: var(--main-color); }
+
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            border: 1.5px solid rgba(141,11,65,0.2);
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.22s;
+        }
+
+        .btn-back:hover { background: var(--main-color); color: #fff; border-color: var(--main-color); }
+
+        /* ── Main card ── */
+        .detail-card {
+            background: var(--bg-color);
+            border-radius: 22px;
+            border: 1px solid rgba(141,11,65,0.08);
+            box-shadow: 0 4px 28px var(--shadow-color);
+            overflow: hidden;
+            margin-bottom: 36px;
+        }
+
+        /* ── Gallery ── */
+        .gallery-wrap { position: relative; cursor: pointer; }
+
+        /* Main hero image — tall, full-bleed, covers the full width */
+        .gallery-wrap .carousel-item img {
+            width: 100%;
+            height: 480px;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+            transition: transform 0.4s;
+        }
+
+        .gallery-wrap:hover .carousel-item.active img { transform: scale(1.015); }
+
+        .gallery-hint {
+            position: absolute;
+            bottom: 14px;
+            right: 14px;
+            background: rgba(0,0,0,0.52);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 13px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            pointer-events: none;
+            z-index: 5;
+            backdrop-filter: blur(3px);
+        }
+
+        .img-count {
+            position: absolute;
+            bottom: 14px;
+            left: 14px;
+            background: rgba(0,0,0,0.48);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: 50px;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* ── Detail body ── */
+        .detail-body { padding: 32px 36px; }
+
+        /* ── Warning ── */
+        .warn-box {
+            background: #fff6f6;
+            border: 1px solid rgba(220,53,69,0.18);
+            border-left: 4px solid #dc3545;
+            border-radius: 0 12px 12px 0;
+            padding: 15px 20px;
             display: flex;
             align-items: flex-start;
-            gap: 10px;
-            padding: 9px 0;
-            border-bottom: 1px dashed #f0d9c0;
-            font-size: 0.95rem;
-            color: #444;
+            gap: 14px;
+            margin-bottom: 24px;
         }
 
-        .rules-list li:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .rules-list li:first-child {
-            padding-top: 0;
-        }
-
-        .rule-icon {
-            color: var(--main-color);
-            margin-top: 2px;
+        .warn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--main-color);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             flex-shrink: 0;
-            font-size: 0.9rem;
+            font-size: 15px;
         }
 
-        /* ── Lightbox ── */
+        .warn-text h6 { font-size: 13.5px; font-weight: 700; color: var(--main-color); margin-bottom: 3px; }
+        .warn-text p  { font-size: 12.5px; color: #666; margin: 0; }
+
+        /* ── Property header ── */
+        .prop-location {
+            font-size: 13px;
+            color: var(--text-alt-color);
+            margin-bottom: 7px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .prop-location i { color: var(--main-color); font-size: 11px; }
+
+        .prop-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 14px;
+            margin-bottom: 10px;
+        }
+
+        .prop-name {
+            font-size: 1.65rem;
+            font-weight: 700;
+            color: var(--text-color);
+            flex: 1;
+            line-height: 1.3;
+        }
+
+        .prop-price {
+            font-size: 1.85rem;
+            font-weight: 800;
+            color: var(--main-color);
+            margin-bottom: 24px;
+        }
+
+        .prop-price small { font-size: 13px; font-weight: 400; color: var(--text-alt-color); }
+
+        /* ── Apply buttons ── */
+        .btn-apply {
+            background: var(--main-color);
+            color: #fff;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.22s;
+            box-shadow: 0 4px 16px rgba(141,11,65,0.28);
+        }
+
+        .btn-apply:hover { background: #6e0932; transform: translateY(-1px); }
+        .btn-apply:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        .btn-cancel-apply {
+            background: transparent;
+            border: 1.5px solid var(--main-color);
+            color: var(--main-color);
+            padding: 12px 26px;
+            border-radius: 50px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.22s;
+            white-space: nowrap;
+        }
+
+        .btn-cancel-apply:hover { background: var(--main-color); color: #fff; }
+
+        /* ── Landlord strip ── */
+        .landlord-strip {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--bg-alt-color);
+            border: 1px solid rgba(141,11,65,0.1);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 28px;
+        }
+
+        .ll-avatar {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: #6a0831;
+            color: #f4c0d1;
+            font-size: 19px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .ll-avatar img { width: 52px; height: 52px; object-fit: cover; }
+        .ll-name { font-size: 15px; font-weight: 700; color: var(--text-color); }
+        .ll-role { font-size: 12px; color: var(--text-alt-color); }
+
+        .ll-actions { margin-left: auto; display: flex; gap: 10px; }
+
+        .ll-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(141,11,65,0.2);
+            background: var(--bg-color);
+            color: var(--main-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.22s;
+        }
+
+        .ll-btn:hover { background: var(--main-color); color: #fff; border-color: var(--main-color); }
+
+        /* ── Divider ── */
+        .section-divider {
+            border: none;
+            border-top: 1px solid rgba(141,11,65,0.08);
+            margin: 26px 0;
+        }
+
+        /* ── Section label ── */
+        .section-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.9px;
+            text-transform: uppercase;
+            color: var(--main-color);
+            margin-bottom: 14px;
+        }
+
+        /* ── Info tiles ── */
+        .info-tiles-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .info-tile {
+            background: var(--bg-alt-color);
+            border: 1px solid rgba(141,11,65,0.1);
+            border-radius: 14px;
+            padding: 16px 18px;
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+        }
+
+        .info-tile-full {
+            margin-bottom: 0;
+        }
+
+        .info-tile-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: #fbeaf0;
+            color: var(--main-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 15px;
+        }
+
+        .info-tile-label {
+            font-size: 11px;
+            color: var(--text-alt-color);
+            margin-bottom: 4px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+        }
+
+        .info-tile-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-color);
+            line-height: 1.4;
+        }
+
+        /* ── Description ── */
+        .desc-text {
+            font-size: 14.5px;
+            color: var(--text-color);
+            line-height: 1.85;
+            margin-bottom: 0;
+        }
+
+        /* ── Rules ── */
+        .rules-box {
+            background: var(--bg-alt-color);
+            border: 1px solid rgba(141,11,65,0.12);
+            border-radius: 16px;
+            padding: 22px;
+            margin-bottom: 0;
+        }
+
+        .rule-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 13px;
+            padding: 10px 0;
+            border-bottom: 1px dashed rgba(141,11,65,0.1);
+            font-size: 14px;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .rule-row:first-child { padding-top: 0; }
+        .rule-row:last-child  { border-bottom: none; padding-bottom: 0; }
+
+        .rule-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--main-color);
+            flex-shrink: 0;
+            margin-top: 7px;
+        }
+
+        /* ── Map ── */
+        #map {
+            height: 300px;
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        /* ════ OTHER LISTINGS — match tenant.php card style ════ */
+        .section-heading {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-heading span { color: var(--main-color); }
+
+        /* 2-column grid so cards are wide enough to look good */
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 22px;
+            margin-bottom: 48px;
+        }
+
+        /* Card shell — matches prop-card style from tenant.php */
+        .listing-card {
+            background: var(--bg-color);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1.5px solid transparent;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+            text-decoration: none;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+        }
+
+        .listing-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--main-color), transparent);
+            border-radius: 16px 0 0 16px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: 2;
+        }
+
+        .listing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 36px var(--shadow-color);
+            border-color: rgba(141,11,65,0.2);
+        }
+
+        .listing-card:hover::before { opacity: 1; }
+
+        /* Image area — same proportions as tenant.php card-img-wrap */
+        .lc-img {
+            position: relative;
+            overflow: hidden;
+            height: 200px;
+            flex-shrink: 0;
+            background: var(--bg-alt-color);
+        }
+
+        .lc-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            transition: transform 0.5s ease;
+        }
+
+        .listing-card:hover .lc-img img { transform: scale(1.06); }
+
+        /* Price ribbon overlay — matches tenant.php style */
+        .lc-price-ribbon {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.68), transparent);
+            padding: 30px 14px 10px;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        .lc-price-ribbon small {
+            font-size: 0.72rem;
+            font-weight: 400;
+            opacity: 0.75;
+            margin-left: 2px;
+        }
+
+        /* Card body */
+        .lc-body {
+            padding: 16px 18px 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .lc-name {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 5px;
+            line-height: 1.35;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .lc-loc {
+            font-size: 0.78rem;
+            color: var(--text-alt-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .lc-loc i { color: var(--main-color); flex-shrink: 0; font-size: 0.7rem; }
+
+        /* Footer row with tag pill */
+        .lc-footer {
+            margin-top: auto;
+            padding: 12px 18px;
+            border-top: 1px solid var(--bg-alt-color);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .lc-tag {
+            background: var(--bg-alt-color);
+            color: var(--text-alt-color);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 50px;
+            border: 1px solid rgba(141,11,65,0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .lc-tag i { color: var(--main-color); font-size: 0.72rem; }
+
+        /* ════ LIGHTBOX ════ */
         .lightbox-overlay {
             display: none;
             position: fixed;
@@ -216,23 +638,15 @@ if ($hasActiveLease || $hasActiveRent) {
             justify-content: center;
             flex-direction: column;
         }
+
         .lightbox-overlay.active { display: flex; }
 
-        .lightbox-img-wrap {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            max-width: 92vw;
-            max-height: 78vh;
-        }
         .lightbox-img-wrap img {
             max-width: 92vw;
             max-height: 78vh;
             border-radius: 12px;
             object-fit: contain;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.6);
-            user-select: none;
-            transition: opacity 0.18s ease;
+            transition: opacity 0.15s;
         }
 
         .lightbox-close {
@@ -240,7 +654,7 @@ if ($hasActiveLease || $hasActiveRent) {
             top: 18px; right: 22px;
             background: rgba(255,255,255,0.13);
             border: none; color: #fff;
-            font-size: 1.7rem;
+            font-size: 1.5rem;
             width: 44px; height: 44px;
             border-radius: 50%;
             cursor: pointer;
@@ -248,6 +662,7 @@ if ($hasActiveLease || $hasActiveRent) {
             transition: background 0.2s;
             z-index: 10001;
         }
+
         .lightbox-close:hover { background: rgba(255,255,255,0.28); }
 
         .lightbox-nav {
@@ -255,23 +670,24 @@ if ($hasActiveLease || $hasActiveRent) {
             top: 50%; transform: translateY(-50%);
             background: rgba(255,255,255,0.13);
             border: none; color: #fff;
-            font-size: 1.6rem;
-            width: 50px; height: 50px;
+            font-size: 1.4rem;
+            width: 48px; height: 48px;
             border-radius: 50%;
             cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             transition: background 0.2s;
             z-index: 10001;
         }
+
         .lightbox-nav:hover { background: rgba(255,255,255,0.28); }
-        .lightbox-prev { left: 16px; }
-        .lightbox-next { right: 16px; }
+        .lightbox-prev { left: 14px; }
+        .lightbox-next { right: 14px; }
         .lightbox-nav.hidden { display: none; }
 
         .lightbox-counter {
-            color: rgba(255,255,255,0.75);
-            font-size: 0.85rem;
-            margin-top: 12px;
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+            margin-top: 13px;
             letter-spacing: 0.05em;
         }
 
@@ -283,487 +699,525 @@ if ($hasActiveLease || $hasActiveRent) {
             justify-content: center;
             max-width: 90vw;
         }
+
         .lightbox-thumbnails img {
-            width: 54px; height: 40px;
+            width: 56px; height: 42px;
             object-fit: cover;
-            border-radius: 6px;
+            border-radius: 7px;
             cursor: pointer;
-            opacity: 0.5;
+            opacity: 0.45;
             border: 2px solid transparent;
             transition: all 0.2s;
         }
+
         .lightbox-thumbnails img.active,
-        .lightbox-thumbnails img:hover {
-            opacity: 1;
-            border-color: #fff;
+        .lightbox-thumbnails img:hover { opacity: 1; border-color: #fff; }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .detail-body { padding: 22px 18px; }
+            .gallery-wrap .carousel-item img { height: 260px; }
+            .prop-name { font-size: 1.3rem; }
+            .prop-price { font-size: 1.5rem; }
+            .info-tiles-grid { grid-template-columns: 1fr 1fr; }
+            .listings-grid { grid-template-columns: 1fr; }
         }
 
-        #applyBtnWrapper {
-            display: flex;
-            align-items: center;
+        @media (max-width: 420px) {
+            .info-tiles-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
-
-<!-- Apply Confirm Modal -->
-<div class="modal fade" id="applyConfirmModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Application</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center">
-                Are you sure you want to apply for
-                <strong><?= htmlspecialchars($property['listingName']); ?></strong>?
-            </div>
-            <div class="modal-footer justify-content-center">
-                <button type="button" class="main-button" data-bs-dismiss="modal">Cancel</button>
-                <form action="apply.php" method="POST">
-                    <input type="hidden" name="listing_id" value="<?= $property['listing_id']; ?>">
-                    <button type="submit" class="main-button">Yes, Apply</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Cancel Apply Confirm Modal -->
-<div class="modal fade" id="cancelApplyModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Cancel Application</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body text-center">
-                Are you sure you want to <strong>cancel</strong> your application for
-                <strong><?= htmlspecialchars($property['listingName']); ?></strong>?
-            </div>
-            <div class="modal-footer justify-content-center">
-                <button type="button" class="main-button" data-bs-dismiss="modal">No, Keep It</button>
-                <button type="button" class="main-button" id="confirmCancelApply">Yes, Cancel</button>
-            </div>
-        </div>
-    </div>
-</div>
+<body>
 
 <!-- Lightbox -->
 <div class="lightbox-overlay" id="lightbox">
-    <button class="lightbox-close" id="lightboxClose"><i class="fa-solid fa-xmark"></i></button>
-    <button class="lightbox-nav lightbox-prev" id="lightboxPrev"><i class="fa-solid fa-chevron-left"></i></button>
-    <button class="lightbox-nav lightbox-next" id="lightboxNext"><i class="fa-solid fa-chevron-right"></i></button>
-    <div class="lightbox-img-wrap">
-        <img id="lightboxImg" src="" alt="Full Image">
-    </div>
+    <button class="lightbox-close" id="lightboxClose"><i class="fas fa-times"></i></button>
+    <button class="lightbox-nav lightbox-prev" id="lightboxPrev"><i class="fas fa-chevron-left"></i></button>
+    <button class="lightbox-nav lightbox-next" id="lightboxNext"><i class="fas fa-chevron-right"></i></button>
+    <div class="lightbox-img-wrap"><img id="lightboxImg" src="" alt="Full Image"></div>
     <div class="lightbox-counter" id="lightboxCounter"></div>
     <div class="lightbox-thumbnails" id="lightboxThumbs"></div>
 </div>
 
-<body>
-    <?php include '../Components/tenant-header.php' ?>
+<?php include '../Components/tenant-header.php' ?>
 
-    <div class="tenant-page">
-        <div class="container m-auto">
-            <div class="d-flex justify-content-start align-items-center">
-                <button class="main-button back-button" onclick="location.href='tenant.php'">Back</button>
+<div class="tenant-page">
+    <div class="page-wrap">
+
+        <!-- Top bar -->
+        <div class="top-bar">
+            <h1>Property <span>Details</span></h1>
+            <a class="btn-back" href="tenant.php">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+
+        <!-- ══ Main detail card ══ -->
+        <div class="detail-card">
+
+            <!-- Gallery -->
+            <div class="gallery-wrap" id="galleryWrap">
+                <div id="carouselExample" class="carousel slide">
+                    <div class="carousel-inner">
+                        <?php if (!empty($images)):
+                            foreach ($images as $i => $img): ?>
+                                <div class="carousel-item <?= $i === 0 ? 'active' : '' ?>">
+                                    <img src="../LANDLORD/uploads/<?= htmlspecialchars($img) ?>"
+                                         alt="Property Image"
+                                         data-index="<?= $i ?>"
+                                         onclick="event.stopPropagation(); openLightbox(<?= $i ?>)">
+                                </div>
+                            <?php endforeach; else: ?>
+                            <div class="carousel-item active">
+                                <img src="../LANDLORD/uploads/placeholder.jpg" alt="No Image">
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                    </button>
+                </div>
+                <?php if (count($images) > 1): ?>
+                    <div class="img-count">1 / <?= count($images) ?></div>
+                <?php endif; ?>
+                <div class="gallery-hint"><i class="fas fa-expand"></i> Click to expand</div>
+            </div>
+
+            <!-- Body -->
+            <div class="detail-body">
+
+                <!-- Warning -->
+                <?php if ($hasActiveRent || $hasActiveLease): ?>
+                    <div class="warn-box">
+                        <div class="warn-icon"><i class="fas fa-triangle-exclamation"></i></div>
+                        <div class="warn-text">
+                            <h6>Active lease detected</h6>
+                            <p>You already have an active apartment. You cannot apply until your current lease ends.</p>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <!-- Location breadcrumb -->
+                <div class="prop-location">
+                    <i class="fas fa-map-pin"></i>
+                    <?= htmlspecialchars($property['barangay']) ?>, San Pedro, Laguna
+                </div>
+
+                <!-- Name + Apply button -->
+                <div class="prop-row">
+                    <div class="prop-name"><?= htmlspecialchars($property['listingName']) ?></div>
+                    <div id="applyBtnWrapper">
+                        <?php if ($btnState === 'renting'): ?>
+                            <button class="btn-apply" disabled>Already renting</button>
+                        <?php elseif ($btnState === 'pending'): ?>
+                            <button class="btn-cancel-apply" id="cancelApplyBtn">
+                                <i class="fas fa-xmark me-1"></i> Cancel apply
+                            </button>
+                        <?php else: ?>
+                            <button class="btn-apply" id="applyBtn">Apply</button>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <!-- Price -->
+                <div class="prop-price">₱<?= number_format($property['price']) ?>.00<small> /month</small></div>
+
+                <!-- Landlord strip -->
+                <div class="landlord-strip">
+                    <div class="ll-avatar">
+                        <?php if (!empty($property['landlord_profilePic'])): ?>
+                            <img src="../uploads/<?= htmlspecialchars($property['landlord_profilePic']) ?>" alt="Landlord">
+                        <?php else: ?>
+                            <?= strtoupper(substr($property['landlord_fname'], 0, 1)) ?>
+                        <?php endif; ?>
+                    </div>
+                    <div>
+                        <div class="ll-name"><?= htmlspecialchars(ucwords(strtolower($property['landlord_fname'] . ' ' . $property['landlord_lname']))) ?></div>
+                        <div class="ll-role">Landlord</div>
+                    </div>
+                    <div class="ll-actions">
+                        <button class="ll-btn" title="View profile" onclick="location.href='landlord-profile.php?landlord_id=<?= $property['landlord_id'] ?>'">
+                            <i class="fas fa-user"></i>
+                        </button>
+                        <button class="ll-btn" title="Message landlord" onclick="contactLandlord(<?= $property['landlord_id'] ?>, <?= $property['listing_id'] ?>, '<?= htmlspecialchars(addslashes($property['listingName'])) ?>')">
+                            <i class="fas fa-comment-dots"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <hr class="section-divider">
+
+                <!-- ── Property Info Tiles ── -->
+                <div class="section-label">Property details</div>
+
+                <div class="info-tiles-grid">
+                    <div class="info-tile">
+                        <div class="info-tile-icon"><i class="fas fa-house"></i></div>
+                        <div>
+                            <div class="info-tile-label">Type</div>
+                            <div class="info-tile-value"><?= htmlspecialchars($property['category']) ?></div>
+                        </div>
+                    </div>
+                    <div class="info-tile">
+                        <div class="info-tile-icon"><i class="fas fa-bed"></i></div>
+                        <div>
+                            <div class="info-tile-label">Bedrooms</div>
+                            <div class="info-tile-value"><?= htmlspecialchars($property['rooms']) ?> Bedroom(s)</div>
+                        </div>
+                    </div>
+                    <div class="info-tile">
+                        <div class="info-tile-icon"><i class="fas fa-map-pin"></i></div>
+                        <div>
+                            <div class="info-tile-label">Barangay</div>
+                            <div class="info-tile-value"><?= htmlspecialchars($property['barangay']) ?></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Full address — full width row -->
+                <div class="info-tile info-tile-full" style="margin-top: 12px;">
+                    <div class="info-tile-icon"><i class="fas fa-location-dot"></i></div>
+                    <div>
+                        <div class="info-tile-label">Full address</div>
+                        <div class="info-tile-value"><?= htmlspecialchars($property['address']) ?>, <?= htmlspecialchars($property['barangay']) ?>, San Pedro, Laguna</div>
+                    </div>
+                </div>
+
+                <hr class="section-divider">
+
+                <!-- About -->
+                <div class="section-label">About this property</div>
+                <div class="desc-text"><?= nl2br(htmlspecialchars($property['listingDesc'] ?? 'No description available.')) ?></div>
+
+                <!-- House rules -->
+                <?php if (!empty($terms)): ?>
+                    <hr class="section-divider">
+                    <div class="section-label">House rules &amp; terms</div>
+                    <div class="rules-box">
+                        <?php foreach ($terms as $rule): ?>
+                            <div class="rule-row">
+                                <div class="rule-dot"></div>
+                                <?= htmlspecialchars($rule) ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
+                <hr class="section-divider">
+
+                <!-- Map -->
+                <div class="section-label">Location</div>
+                <div id="map"></div>
+
             </div>
         </div>
 
-        <div class="row justify-content-center align-items-center mt-5">
-            <div class="col-lg-6 p-3">
-                <div class="prorperty-details">
+        <!-- ══ Other listings ══ -->
+        <?php if (!empty($otherListings)): ?>
+            <div class="section-heading">
+                Other <span>listings</span> you might like
+            </div>
+            <div class="listings-grid">
+                <?php foreach ($otherListings as $ol):
+                    $olImages = json_decode($ol['images'] ?? '[]', true) ?? [];
+                    $olThumb  = !empty($olImages) ? '../LANDLORD/uploads/' . htmlspecialchars($olImages[0]) : '../LANDLORD/uploads/placeholder.jpg';
+                ?>
+                    <a href="property-details.php?ID=<?= $ol['ID'] ?>" class="listing-card">
 
-                    <!-- Carousel -->
-                    <div id="carouselExample" class="carousel slide mb-4">
-                        <div class="carousel-inner">
-                            <?php if (!empty($images)): ?>
-                                <?php foreach ($images as $index => $img): ?>
-                                    <div class="carousel-item <?= $index === 0 ? 'active' : '' ?>">
-                                        <div class="row justify-content-center">
-                                            <div class="col-lg-12">
-                                                <img src="../LANDLORD/uploads/<?= htmlspecialchars($img); ?>"
-                                                    class="d-block w-100"
-                                                    style="max-height:400px; object-fit:cover;"
-                                                    alt="Property Image"
-                                                    data-index="<?= $index ?>"
-                                                    onclick="event.stopPropagation(); openLightbox(<?= $index ?>)">
-                                            </div>
-                                        </div>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <div class="carousel-item active">
-                                    <div class="row justify-content-center">
-                                        <div class="col-lg-12">
-                                            <img src="../LANDLORD/uploads/placeholder.jpg"
-                                                class="d-block w-100"
-                                                style="max-height:400px; object-fit:cover;"
-                                                alt="No Image">
-                                        </div>
-                                    </div>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExample" data-bs-slide="prev">
-                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                        </button>
-                        <button class="carousel-control-next" type="button" data-bs-target="#carouselExample" data-bs-slide="next">
-                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                        </button>
-                    </div>
-
-                    <!-- Active Rent Warning -->
-                    <?php if ($hasActiveRent || $hasActiveLease): ?>
-                        <div class="rent-warning-card mt-3">
-                            <div class="d-flex align-items-center">
-                                <div class="warning-icon">
-                                    <i class="fa-solid fa-triangle-exclamation"></i>
-                                </div>
-                                <div class="warning-text">
-                                    <h6 class="mb-1">Active Lease Detected</h6>
-                                    <p class="mb-1">
-                                        You already have an active apartment. You cannot apply for another property
-                                        until your current lease ends.
-                                    </p>
-                                </div>
+                        <!-- Image with price ribbon overlay -->
+                        <div class="lc-img">
+                            <img src="<?= $olThumb ?>" alt="<?= htmlspecialchars($ol['listingName']) ?>"
+                                 onerror="this.src='../img/house1.jpeg'">
+                            <div class="lc-price-ribbon">
+                                ₱<?= number_format($ol['price']) ?><small>/mo</small>
                             </div>
                         </div>
-                    <?php endif; ?>
 
-                    <!-- Property Header + Apply Button -->
-                    <p class="mb-0 mt-4"><?= htmlspecialchars($property['barangay'] ?? ''); ?>, San Pedro, Laguna</p>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h4 class="mb-0 mt-0"><?= htmlspecialchars($property['listingName']); ?></h4>
-
-                        <div id="applyBtnWrapper" class="mx-5">
-                            <?php if ($btnState === 'renting'): ?>
-                                <button class="main-button" disabled>Already Renting</button>
-                            <?php elseif ($btnState === 'pending'): ?>
-                                <button class="btn-cancel-apply"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#cancelApplyModal">
-                                    <i class="fa-solid fa-xmark me-1"></i> Cancel Apply
-                                </button>
-                            <?php else: ?>
-                                <button class="main-button"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#applyConfirmModal">
-                                    Apply
-                                </button>
-                            <?php endif; ?>
+                        <!-- Body -->
+                        <div class="lc-body">
+                            <div class="lc-name"><?= htmlspecialchars($ol['listingName']) ?></div>
+                            <div class="lc-loc">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <?= htmlspecialchars($ol['barangay']) ?>, San Pedro, Laguna
+                            </div>
                         </div>
-                    </div>
 
-                    <h2 class="price">
-                        ₱ <?= number_format($property['price']); ?>.00
-                        <small class="text-muted fs-5">/month</small>
-                    </h2>
-
-                    <!-- Landlord Info -->
-                    <div class="d-flex align-items-center p-2 border rounded mb-4 mt-4">
-                        <div class="avatar me-3">
-                            <?php if (!empty($property['landlord_profilePic'])): ?>
-                                <img src="../uploads/<?= htmlspecialchars($property['landlord_profilePic']); ?>" alt="Profile">
-                            <?php else: ?>
-                                <div class="landlord-info">
-                                    <?= strtoupper(substr($property['landlord_fname'], 0, 1)); ?>
-                                </div>
-                            <?php endif; ?>
+                        <!-- Footer pill -->
+                        <div class="lc-footer">
+                            <span class="lc-tag">
+                                <i class="fas fa-building"></i>
+                                <?= htmlspecialchars($ol['category']) ?>
+                            </span>
                         </div>
-                        <div class="info flex-grow-1 mt-2">
-                            <h1 class="mb-0">
-                                <?= htmlspecialchars(ucwords(strtolower($property['landlord_fname'] . ' ' . $property['landlord_lname']))); ?>
-                            </h1>
-                            <p class="text-muted">Landlord</p>
-                        </div>
-                        <div class="d-flex">
-                            <button class="small-button"
-                                onclick="window.location.href='landlord-profile.php?landlord_id=<?= $property['landlord_id']; ?>'">
-                                <i class="fa-solid fa-user"></i>
-                            </button>
-                            <button class="small-button mx-3"
-                                onclick="contactLandlord(<?= $property['landlord_id']; ?>, <?= $property['listing_id']; ?>, '<?= htmlspecialchars(addslashes($property['listingName'])); ?>')">
-                                <i class="fas fa-comment-dots"></i>
-                            </button>
-                        </div>
-                    </div>
 
-                    <!-- Property Description -->
-                    <h3>Property Description</h3>
-                    <p><?= nl2br(htmlspecialchars($property['listingDesc'] ?? "No description available.")); ?></p>
-                    <ul>
-                        <li><strong>Address:</strong> <?= htmlspecialchars($property['address']); ?>, <?= htmlspecialchars($property['barangay']); ?>, San Pedro, Laguna</li>
-                        <li><strong>Category:</strong> <?= htmlspecialchars($property['category']); ?></li>
-                        <li><strong>Rooms:</strong> <?= htmlspecialchars($property['rooms']); ?> Bedroom(s)</li>
-                    </ul>
-
-                    <!-- ── HOUSE RULES CARD ── -->
-                    <?php if (!empty($terms)): ?>
-                        <div class="house-rules-card">
-                            <h5>
-                                <i class="fa-solid fa-clipboard-list me-2"></i>House Rules &amp; Terms
-                            </h5>
-                            <ul class="rules-list">
-                                <?php foreach ($terms as $rule): ?>
-                                    <li>
-                                        <i class="fa-solid fa-circle-check rule-icon"></i>
-                                        <?= htmlspecialchars($rule) ?>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul>
-                        </div>
-                    <?php endif; ?>
-
-                    <!-- Map -->
-                    <div id="map" class="mt-4"></div>
-                </div>
+                    </a>
+                <?php endforeach; ?>
             </div>
-        </div>
+        <?php endif; ?>
+
     </div>
+</div>
 
-    <?php include '../Components/footer.php' ?>
+<?php include '../Components/footer.php' ?>
 
-    <script src="../js/script.js" defer></script>
-    <script src="../js/bootstrap.bundle.min.js"></script>
-    <script src="https://unpkg.com/scrollreveal"></script>
-    <script src="../js/contact-landlord.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=&callback=initMap" async defer></script>
+<script src="../js/script.js" defer></script>
+<script src="../js/bootstrap.bundle.min.js"></script>
+<script src="https://unpkg.com/scrollreveal"></script>
+<script src="../js/contact-landlord.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=&libraries=places&callback=initMap" async defer></script>
 
-    <!-- Lightbox -->
-    <script>
-        const lightboxImages = <?= json_encode(array_values(array_map(
-            fn($img) => '../LANDLORD/uploads/' . $img,
-            $images
-        ))) ?>;
+<script>
+// ── Carousel counter ──
+document.getElementById('carouselExample').addEventListener('slid.bs.carousel', (e) => {
+    const countEl = document.querySelector('.img-count');
+    if (countEl) countEl.textContent = (e.to + 1) + ' / <?= count($images) ?>';
+    if (!lightbox.classList.contains('active')) currentIdx = e.to;
+});
 
-        let currentIdx = 0;
-        let thumbsBuilt = false;
+// ── Lightbox ──
+const lightboxImages = <?= json_encode(array_values(array_map(fn($img) => '../LANDLORD/uploads/' . $img, $images))) ?>;
+let currentIdx  = 0;
+let thumbsBuilt = false;
 
-        const lightbox       = document.getElementById('lightbox');
-        const lightboxImg    = document.getElementById('lightboxImg');
-        const lightboxCtr    = document.getElementById('lightboxCounter');
-        const lightboxPrev   = document.getElementById('lightboxPrev');
-        const lightboxNext   = document.getElementById('lightboxNext');
-        const lightboxThumbs = document.getElementById('lightboxThumbs');
+const lightbox       = document.getElementById('lightbox');
+const lightboxImg    = document.getElementById('lightboxImg');
+const lightboxCtr    = document.getElementById('lightboxCounter');
+const lightboxPrev   = document.getElementById('lightboxPrev');
+const lightboxNext   = document.getElementById('lightboxNext');
+const lightboxThumbs = document.getElementById('lightboxThumbs');
 
-        // ── FIX: Pause carousel transitions while lightbox is open ──
-        function pauseCarousel() {
-            const carouselEl = document.getElementById('carouselExample');
-            const carouselInstance = bootstrap.Carousel.getOrCreateInstance(carouselEl);
-            carouselInstance.pause();
-            // Disable slide animation to prevent blink behind lightbox
-            carouselEl.querySelectorAll('.carousel-item').forEach(item => {
-                item.style.transition = 'none';
-            });
-        }
+function pauseCarousel() {
+    bootstrap.Carousel.getOrCreateInstance(document.getElementById('carouselExample')).pause();
+}
 
-        // ── FIX: Resume carousel and sync to current lightbox index on close ──
-        function resumeCarousel() {
-            const carouselEl = document.getElementById('carouselExample');
-            const carouselInstance = bootstrap.Carousel.getOrCreateInstance(carouselEl);
-            // Re-enable transitions
-            carouselEl.querySelectorAll('.carousel-item').forEach(item => {
-                item.style.transition = '';
-            });
-            // Silently jump carousel to the last viewed image without animation
-            if (lightboxImages.length > 1) {
-                // Manually set active class without triggering slide event
-                const items = carouselEl.querySelectorAll('.carousel-item');
-                items.forEach((item, i) => {
-                    item.classList.toggle('active', i === currentIdx);
+function resumeCarousel() {
+    const carouselEl = document.getElementById('carouselExample');
+    const c = bootstrap.Carousel.getOrCreateInstance(carouselEl);
+    carouselEl.querySelectorAll('.carousel-item').forEach((item, i) => {
+        item.classList.toggle('active', i === currentIdx);
+    });
+    c.cycle();
+}
+
+function openLightbox(index) {
+    if (!lightboxImages.length) return;
+    currentIdx = index;
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    if (lightboxImages.length <= 1) {
+        lightboxPrev.classList.add('hidden');
+        lightboxNext.classList.add('hidden');
+    }
+    if (!thumbsBuilt) buildThumbs();
+    renderLightbox();
+    pauseCarousel();
+}
+
+function closeLightbox() {
+    lightbox.classList.remove('active');
+    document.body.style.overflow = '';
+    resumeCarousel();
+}
+
+function lightboxNav(dir) {
+    currentIdx = (currentIdx + dir + lightboxImages.length) % lightboxImages.length;
+    renderLightbox();
+}
+
+function renderLightbox() {
+    lightboxImg.style.opacity = '0';
+    setTimeout(() => { lightboxImg.src = lightboxImages[currentIdx]; lightboxImg.style.opacity = '1'; }, 150);
+    lightboxCtr.textContent = (currentIdx + 1) + ' / ' + lightboxImages.length;
+    document.querySelectorAll('#lightboxThumbs img').forEach((t, i) => t.classList.toggle('active', i === currentIdx));
+}
+
+function buildThumbs() {
+    lightboxImages.forEach((src, i) => {
+        const img = document.createElement('img');
+        img.src = src;
+        if (i === currentIdx) img.classList.add('active');
+        img.addEventListener('click', (e) => { e.stopPropagation(); currentIdx = i; renderLightbox(); });
+        lightboxThumbs.appendChild(img);
+    });
+    thumbsBuilt = true;
+}
+
+lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
+document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+lightboxPrev.addEventListener('click', (e) => { e.stopPropagation(); lightboxNav(-1); });
+lightboxNext.addEventListener('click', (e) => { e.stopPropagation(); lightboxNav(1); });
+document.addEventListener('keydown', (e) => {
+    if (!lightbox.classList.contains('active')) return;
+    if (e.key === 'ArrowRight') lightboxNav(1);
+    if (e.key === 'ArrowLeft')  lightboxNav(-1);
+    if (e.key === 'Escape')     closeLightbox();
+});
+</script>
+
+<script>
+// ════════════════════════════════════════
+// APPLY — SweetAlert2
+// ════════════════════════════════════════
+const LISTING_ID   = <?= (int)$property['listing_id'] ?>;
+const LISTING_NAME = <?= json_encode($property['listingName']) ?>;
+
+function attachApplyBtn() {
+    const btn = document.getElementById('applyBtn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        Swal.fire({
+            title: 'Confirm Application',
+            html: `You are about to apply for:<br><strong style="color:#8D0B41">${LISTING_NAME}</strong>`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#8D0B41',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '<i class="fas fa-file-signature"></i> Yes, Apply',
+            cancelButtonText: 'Cancel'
+        }).then(result => {
+            if (!result.isConfirmed) return;
+
+            Swal.fire({ title: 'Submitting…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+            const fd = new FormData();
+            fd.append('listing_id', LISTING_ID);
+
+            fetch('apply.php', { method: 'POST', body: fd })
+                .then(async res => {
+                    const text = await res.text();
+                    try { return JSON.parse(text); }
+                    catch { return res.ok ? { success: true } : { success: false, message: text.substring(0, 120) }; }
+                })
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('applyBtnWrapper').innerHTML = `
+                            <button class="btn-cancel-apply" id="cancelApplyBtn">
+                                <i class="fas fa-xmark me-1"></i> Cancel apply
+                            </button>`;
+                        attachCancelBtn();
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Application Submitted!',
+                            html: `Your application for <strong>${LISTING_NAME}</strong> has been sent. The landlord will review it shortly.`,
+                            confirmButtonColor: '#8D0B41',
+                            confirmButtonText: 'Got it'
+                        });
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Application Failed', text: data.message || 'Something went wrong. Please try again.', confirmButtonColor: '#8D0B41' });
+                    }
+                })
+                .catch(() => {
+                    Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not reach the server. Please check your connection.', confirmButtonColor: '#8D0B41' });
                 });
-            }
-            carouselInstance.cycle();
-        }
-
-        function openLightbox(index) {
-            if (!lightboxImages.length) return;
-            currentIdx = index;
-            lightbox.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            if (lightboxImages.length <= 1) {
-                lightboxPrev.classList.add('hidden');
-                lightboxNext.classList.add('hidden');
-            }
-            if (!thumbsBuilt) buildThumbs();
-            renderLightbox();
-            // ── FIX: Stop carousel from animating behind the lightbox ──
-            pauseCarousel();
-        }
-
-        function closeLightbox() {
-            lightbox.classList.remove('active');
-            document.body.style.overflow = '';
-            // ── FIX: Sync carousel position silently then resume ──
-            resumeCarousel();
-        }
-
-        function lightboxNav(dir) {
-            currentIdx = (currentIdx + dir + lightboxImages.length) % lightboxImages.length;
-            renderLightbox();
-        }
-
-        function renderLightbox() {
-            lightboxImg.style.opacity = '0';
-            setTimeout(() => {
-                lightboxImg.src = lightboxImages[currentIdx];
-                lightboxImg.style.opacity = '1';
-            }, 160);
-            lightboxCtr.textContent = (currentIdx + 1) + ' / ' + lightboxImages.length;
-
-            // ── FIX: Do NOT sync carousel while lightbox is open — causes blink ──
-            // Carousel will be synced silently when lightbox closes via resumeCarousel()
-
-            document.querySelectorAll('#lightboxThumbs img').forEach((t, i) => {
-                t.classList.toggle('active', i === currentIdx);
-            });
-        }
-
-        function buildThumbs() {
-            lightboxImages.forEach((src, i) => {
-                const img = document.createElement('img');
-                img.src = src;
-                img.alt = 'Thumb ' + (i + 1);
-                if (i === currentIdx) img.classList.add('active');
-                img.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    currentIdx = i;
-                    renderLightbox();
-                });
-                lightboxThumbs.appendChild(img);
-            });
-            thumbsBuilt = true;
-        }
-
-        lightbox.addEventListener('click', (e) => { if (e.target === lightbox) closeLightbox(); });
-        document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
-        lightboxPrev.addEventListener('click', (e) => { e.stopPropagation(); lightboxNav(-1); });
-        lightboxNext.addEventListener('click', (e) => { e.stopPropagation(); lightboxNav(1); });
-        document.addEventListener('keydown', (e) => {
-            if (!lightbox.classList.contains('active')) return;
-            if (e.key === 'ArrowRight') lightboxNav(1);
-            if (e.key === 'ArrowLeft')  lightboxNav(-1);
-            if (e.key === 'Escape')     closeLightbox();
         });
+    });
+}
 
-        // ── FIX: Only update currentIdx from carousel when lightbox is NOT open ──
-        document.getElementById('carouselExample').addEventListener('slid.bs.carousel', (e) => {
-            if (lightbox.classList.contains('active')) return; // ignore while lightbox is open
-            currentIdx = e.to;
-        });
-    </script>
+// ════════════════════════════════════════
+// CANCEL — SweetAlert2
+// ════════════════════════════════════════
+function attachCancelBtn() {
+    const btn = document.getElementById('cancelApplyBtn');
+    if (!btn) return;
+    btn.addEventListener('click', () => {
+        Swal.fire({
+            title: 'Cancel Application?',
+            html: `Are you sure you want to cancel your application for:<br><strong style="color:#8D0B41">${LISTING_NAME}</strong>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#8D0B41',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Cancel It',
+            cancelButtonText: 'No, Keep It'
+        }).then(result => {
+            if (!result.isConfirmed) return;
 
-    <!-- Cancel Apply -->
-    <script>
-        document.getElementById('confirmCancelApply')?.addEventListener('click', function () {
-            const listingId = <?= (int)$property['listing_id'] ?>;
+            Swal.fire({ title: 'Cancelling…', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
             fetch('cancel-apply.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `listing_id=${listingId}`
+                body: `listing_id=${LISTING_ID}`
             })
-            .then(res => res.json())
+            .then(async res => {
+                const text = await res.text();
+                try { return JSON.parse(text); }
+                catch { return res.ok ? { success: true } : { success: false, message: text.substring(0, 120) }; }
+            })
             .then(data => {
-                bootstrap.Modal.getInstance(
-                    document.getElementById('cancelApplyModal')
-                ).hide();
                 if (data.success) {
                     document.getElementById('applyBtnWrapper').innerHTML = `
-                        <button class="main-button"
-                            data-bs-toggle="modal"
-                            data-bs-target="#applyConfirmModal">
-                            Apply
-                        </button>`;
+                        <button class="btn-apply" id="applyBtn">Apply</button>`;
+                    attachApplyBtn();
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Application Cancelled',
+                        text: 'Your application has been successfully cancelled. You can apply again anytime.',
+                        confirmButtonColor: '#8D0B41'
+                    });
                 } else {
-                    alert(data.message || 'Could not cancel application.');
+                    Swal.fire({ icon: 'error', title: 'Cancellation Failed', text: data.message || 'Could not cancel your application. Please try again.', confirmButtonColor: '#8D0B41' });
                 }
             })
-            .catch(() => alert('Network error. Please try again.'));
+            .catch(() => {
+                Swal.fire({ icon: 'error', title: 'Network Error', text: 'Could not reach the server. Please check your connection.', confirmButtonColor: '#8D0B41' });
+            });
         });
-    </script>
+    });
+}
 
-    <!-- Map -->
-    <script>
-        function initMap() {
-            const lat = <?= $property['latitude']  ?: 14.3647 ?>;
-            const lng = <?= $property['longitude'] ?: 121.0556 ?>;
-            const apartmentLocation = { lat, lng };
+attachApplyBtn();
+attachCancelBtn();
+</script>
 
-            const map = new google.maps.Map(document.getElementById("map"), {
-                center: apartmentLocation,
-                zoom: 15,
-                mapTypeControl: false,
-                streetViewControl: false,
-                fullscreenControl: true
+<script>
+function initMap() {
+    const lat = <?= $property['latitude']  ?: 14.3647 ?>;
+    const lng = <?= $property['longitude'] ?: 121.0556 ?>;
+    const loc = { lat, lng };
+
+    const map = new google.maps.Map(document.getElementById("map"), {
+        center: loc, zoom: 15,
+        mapTypeControl: false, streetViewControl: false, fullscreenControl: true
+    });
+
+    new google.maps.Marker({
+        position: loc, map,
+        title: "<?= htmlspecialchars($property['listingName']) ?>",
+        icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+    });
+
+    const service    = new google.maps.places.PlacesService(map);
+    const infoWindow = new google.maps.InfoWindow();
+
+    function getDistanceKM(lat1, lng1, lat2, lng2) {
+        const R = 6371, dLat = (lat2-lat1)*Math.PI/180, dLng = (lng2-lng1)*Math.PI/180;
+        const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)**2;
+        const d = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return d < 1 ? `${Math.round(d*1000)} meters` : `${d.toFixed(2)} km`;
+    }
+
+    [{ type: "hospital", icon: "https://maps.google.com/mapfiles/ms/icons/hospitals.png", emoji: "🏥" },
+     { keyword: "evacuation center", icon: "https://maps.google.com/mapfiles/ms/icons/caution.png", emoji: "🚨" }]
+    .forEach(({ type, keyword, icon, emoji }) => {
+        service.nearbySearch({ location: loc, radius: type ? 3000 : 5000, ...(type ? { type } : { keyword }) }, (results, status) => {
+            if (status !== google.maps.places.PlacesServiceStatus.OK) return;
+            results.forEach(place => {
+                const dist = getDistanceKM(lat, lng, place.geometry.location.lat(), place.geometry.location.lng());
+                const m = new google.maps.Marker({ position: place.geometry.location, map, title: place.name, icon });
+                m.addListener("click", () => {
+                    infoWindow.setContent(`<strong>${emoji} ${place.name}</strong><br>Distance: ${dist}`);
+                    infoWindow.open(map, m);
+                });
             });
+        });
+    });
+}
+</script>
 
-            new google.maps.Marker({
-                position: apartmentLocation,
-                map,
-                title: "<?= htmlspecialchars($property['listingName']); ?>",
-                icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
-            });
-
-            const service    = new google.maps.places.PlacesService(map);
-            const infoWindow = new google.maps.InfoWindow();
-
-            function getDistanceKM(lat1, lng1, lat2, lng2) {
-                const R    = 6371;
-                const dLat = (lat2 - lat1) * Math.PI / 180;
-                const dLng = (lng2 - lng1) * Math.PI / 180;
-                const a    =
-                    Math.sin(dLat/2) * Math.sin(dLat/2) +
-                    Math.cos(lat1 * Math.PI/180) *
-                    Math.cos(lat2 * Math.PI/180) *
-                    Math.sin(dLng/2) * Math.sin(dLng/2);
-                const c        = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-                const distance = R * c;
-                return distance < 1
-                    ? `${Math.round(distance * 1000)} meters`
-                    : `${distance.toFixed(2)} km`;
-            }
-
-            service.nearbySearch({
-                location: apartmentLocation, radius: 3000, type: "hospital"
-            }, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    results.forEach(place => {
-                        const distance = getDistanceKM(lat, lng,
-                            place.geometry.location.lat(), place.geometry.location.lng());
-                        const marker = new google.maps.Marker({
-                            position: place.geometry.location, map,
-                            title: place.name,
-                            icon: "https://maps.google.com/mapfiles/ms/icons/hospitals.png"
-                        });
-                        marker.addListener("click", () => {
-                            infoWindow.setContent(`<strong>🏥 ${place.name}</strong><br>Distance: ${distance}`);
-                            infoWindow.open(map, marker);
-                        });
-                    });
-                }
-            });
-
-            service.nearbySearch({
-                location: apartmentLocation, radius: 5000, keyword: "evacuation center"
-            }, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    results.forEach(place => {
-                        const distance = getDistanceKM(lat, lng,
-                            place.geometry.location.lat(), place.geometry.location.lng());
-                        const marker = new google.maps.Marker({
-                            position: place.geometry.location, map,
-                            title: place.name,
-                            icon: "https://maps.google.com/mapfiles/ms/icons/caution.png"
-                        });
-                        marker.addListener("click", () => {
-                            infoWindow.setContent(`<strong>🚨 ${place.name}</strong><br>Distance: ${distance}`);
-                            infoWindow.open(map, marker);
-                        });
-                    });
-                }
-            });
-        }
-    </script>
 </body>
 </html>
